@@ -1,0 +1,83 @@
+name: Deploy to Yandex Object Storage
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "index.html"
+      - "README.md"
+      - "readme.txt"
+      - "assets/**"
+      - ".github/workflows/deploy-yandex-object-storage.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+      AWS_ACCESS_KEY_ID: ${{ secrets.YC_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.YC_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ru-central1
+      AWS_EC2_METADATA_DISABLED: "true"
+      YC_BUCKET: ${{ secrets.YC_BUCKET }}
+      YC_ENDPOINT: https://storage.yandexcloud.net
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check deploy settings
+        run: |
+          if [ -z "${AWS_ACCESS_KEY_ID}" ]; then
+            echo "::error::GitHub Secret YC_ACCESS_KEY_ID is empty or missing"
+            exit 1
+          fi
+
+          if [ -z "${AWS_SECRET_ACCESS_KEY}" ]; then
+            echo "::error::GitHub Secret YC_SECRET_ACCESS_KEY is empty or missing"
+            exit 1
+          fi
+
+          if [ -z "${YC_BUCKET}" ]; then
+            echo "::error::GitHub Secret YC_BUCKET is empty or missing"
+            exit 1
+          fi
+
+          echo "Deploy target: s3://${YC_BUCKET}"
+          aws --version
+
+      - name: Upload index.html
+        run: |
+          aws s3 cp index.html "s3://${YC_BUCKET}/index.html" \
+            --endpoint-url "${YC_ENDPOINT}" \
+            --content-type "text/html; charset=utf-8" \
+            --cache-control "no-cache, no-store, must-revalidate"
+
+      - name: Upload assets
+        run: |
+          if [ -d assets ]; then
+            aws s3 sync assets "s3://${YC_BUCKET}/assets" \
+              --endpoint-url "${YC_ENDPOINT}" \
+              --cache-control "public, max-age=31536000, immutable"
+          else
+            echo "assets directory not found, skipping optional upload"
+          fi
+
+      - name: Upload documentation
+        run: |
+          aws s3 cp README.md "s3://${YC_BUCKET}/README.md" \
+            --endpoint-url "${YC_ENDPOINT}" \
+            --content-type "text/markdown; charset=utf-8" \
+            --cache-control "no-cache"
+
+          if [ -f readme.txt ]; then
+            aws s3 cp readme.txt "s3://${YC_BUCKET}/readme.txt" \
+              --endpoint-url "${YC_ENDPOINT}" \
+              --content-type "text/plain; charset=utf-8" \
+              --cache-control "no-cache"
+          else
+            echo "readme.txt not found, skipping optional upload"
+          fi
