@@ -1,0 +1,960 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brew Planner | Супер-админ</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-soft: #eef3f8;
+      --text: #101827;
+      --muted: #64748b;
+      --line: #d9e2ec;
+      --accent: #ff8b00;
+      --danger: #dc2626;
+      --ok: #15803d;
+      --shadow: 0 18px 50px rgba(15, 23, 42, .12);
+      font-family: Inter, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background: linear-gradient(145deg, #eef9ff 0%, #f8fbff 42%, #edf2f7 72%, #dbe4ee 100%);
+      background-attachment: fixed;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 8px;
+      min-height: 36px;
+      padding: 8px 12px;
+      font-weight: 700;
+    }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #111827;
+    }
+
+    button.danger {
+      color: #fff;
+      background: var(--danger);
+      border-color: var(--danger);
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    textarea {
+      min-height: 96px;
+      resize: vertical;
+    }
+
+    .login {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .login-card {
+      width: min(420px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .login-card h1,
+    .admin-title h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    .login-card p,
+    .admin-title p {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .status {
+      margin-top: 12px;
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status.error { color: var(--danger); }
+    .status.ok { color: var(--ok); }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+    }
+
+    body[data-auth="locked"] .app,
+    body[data-auth="checking"] .app,
+    body[data-auth="open"] .login {
+      display: none;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 18px;
+      border-right: 1px solid var(--line);
+      background: rgba(255, 255, 255, .78);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      margin-bottom: 22px;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--accent);
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav button {
+      text-align: left;
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .nav button.active {
+      background: var(--surface);
+      border-color: var(--line);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, .08);
+    }
+
+    .side-footer {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 18px;
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .main {
+      padding: 24px;
+      min-width: 0;
+    }
+
+    .topline {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, .06);
+      overflow: hidden;
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .card-head h2 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .card-body {
+      padding: 14px 16px;
+    }
+
+    .list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .row {
+      display: grid;
+      gap: 5px;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .row.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(255, 139, 0, .16);
+    }
+
+    .row-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-weight: 900;
+    }
+
+    .row-meta,
+    .small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-soft);
+    }
+
+    .tabs button.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #111827;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .feature-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .feature-row input {
+      width: auto;
+    }
+
+    .table {
+      display: grid;
+      gap: 8px;
+    }
+
+    .user-row,
+    .ticket-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 140px 110px;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .side-footer { position: static; margin-top: 18px; }
+      .grid { grid-template-columns: 1fr; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .user-row,
+      .ticket-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body data-auth="checking">
+  <section class="login">
+    <form class="login-card" id="loginForm">
+      <h1>Кабинет супер-админа</h1>
+      <p>Управление организациями, функциями, пользователями и обращениями</p>
+      <label class="field">
+        <span>Email</span>
+        <input id="loginInput" type="email" autocomplete="username" required>
+      </label>
+      <label class="field">
+        <span>Пароль</span>
+        <input id="passwordInput" type="password" autocomplete="current-password" required>
+      </label>
+      <button class="primary" type="submit">Войти</button>
+      <div class="status" id="loginStatus">Проверяем сохраненный вход...</div>
+    </form>
+  </section>
+
+  <main class="app">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark"></span><span>Brew Planner Admin</span></div>
+      <nav class="nav">
+        <button class="active" type="button" data-view="organizations">Организации</button>
+        <button type="button" data-view="tickets">Обращения</button>
+        <button type="button" data-view="settings">Настройки сервиса</button>
+      </nav>
+      <div class="side-footer">
+        <span id="currentUserName">Супер-админ</span>
+        <button id="logoutButton" type="button">Выйти</button>
+        <span>v2026.06.21.9-saas</span>
+      </div>
+    </aside>
+
+    <section class="main">
+      <div class="topline">
+        <div class="admin-title">
+          <h1 id="pageTitle">Организации</h1>
+          <p id="pageSubtitle">Единый центр управления клиентами сервиса</p>
+        </div>
+        <button class="primary" id="refreshButton" type="button">Обновить</button>
+      </div>
+
+      <section id="organizationsView">
+        <div class="grid">
+          <div class="card">
+            <div class="card-head">
+              <h2>Организации</h2>
+              <span class="badge" id="organizationCount">0</span>
+            </div>
+            <div class="card-body">
+              <div class="list" id="organizationList"></div>
+              <form id="organizationForm">
+                <label class="field">
+                  <span>Новая организация</span>
+                  <input id="organizationNameInput" placeholder="Название организации">
+                </label>
+                <div class="two">
+                  <label class="field">
+                    <span>Статус</span>
+                    <select id="organizationStatusInput">
+                      <option value="trial">Тест</option>
+                      <option value="active">Активна</option>
+                      <option value="blocked">Заблокирована</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Тариф</span>
+                    <select id="organizationTariffInput">
+                      <option value="manual">Ручной</option>
+                      <option value="basic">Basic</option>
+                      <option value="pro">Pro</option>
+                      <option value="enterprise">Enterprise</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="actions">
+                  <button class="primary" type="submit">Создать организацию</button>
+                </div>
+                <div class="status" id="organizationStatus"></div>
+              </form>
+            </div>
+          </div>
+
+          <div class="card" id="organizationDetails">
+            <div class="card-head">
+              <h2 id="selectedOrganizationTitle">Выберите организацию</h2>
+              <span class="badge" id="selectedOrganizationBadge">-</span>
+            </div>
+            <div class="tabs">
+              <button class="active" type="button" data-org-tab="features">Функции</button>
+              <button type="button" data-org-tab="users">Сотрудники</button>
+              <button type="button" data-org-tab="profile">Параметры</button>
+            </div>
+            <div class="card-body" id="orgFeaturesTab">
+              <div class="feature-grid" id="featureList"></div>
+              <div class="actions">
+                <button class="primary" id="saveFeaturesButton" type="button">Сохранить функции</button>
+              </div>
+              <div class="status" id="featuresStatus"></div>
+            </div>
+            <div class="card-body hidden" id="orgUsersTab">
+              <div class="table" id="organizationUsers"></div>
+              <form id="organizationUserForm">
+                <div class="two">
+                  <label class="field">
+                    <span>Email</span>
+                    <input id="orgUserEmailInput" type="email" placeholder="user@company.ru">
+                  </label>
+                  <label class="field">
+                    <span>Пароль</span>
+                    <input id="orgUserPasswordInput" type="password" placeholder="для нового пользователя">
+                  </label>
+                </div>
+                <div class="two">
+                  <label class="field">
+                    <span>Имя</span>
+                    <input id="orgUserNameInput" placeholder="ФИО">
+                  </label>
+                  <label class="field">
+                    <span>Роль</span>
+                    <select id="orgUserRoleInput">
+                      <option value="org_admin">Администратор организации</option>
+                      <option value="editor" selected>Редактор</option>
+                      <option value="reader">Читатель</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="actions">
+                  <button class="primary" type="submit">Добавить сотрудника</button>
+                </div>
+                <div class="status" id="usersStatus"></div>
+              </form>
+            </div>
+            <div class="card-body hidden" id="orgProfileTab">
+              <form id="organizationEditForm">
+                <label class="field">
+                  <span>Название</span>
+                  <input id="organizationEditNameInput">
+                </label>
+                <div class="two">
+                  <label class="field">
+                    <span>Статус</span>
+                    <select id="organizationEditStatusInput">
+                      <option value="trial">Тест</option>
+                      <option value="active">Активна</option>
+                      <option value="past_due">Просрочка</option>
+                      <option value="blocked">Заблокирована</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Тариф</span>
+                    <select id="organizationEditTariffInput">
+                      <option value="manual">Ручной</option>
+                      <option value="basic">Basic</option>
+                      <option value="pro">Pro</option>
+                      <option value="enterprise">Enterprise</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="actions">
+                  <button class="primary" type="submit">Сохранить параметры</button>
+                </div>
+                <div class="status" id="profileStatus"></div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="ticketsView" class="hidden">
+        <div class="card">
+          <div class="card-head">
+            <h2>Обращения</h2>
+            <span class="badge" id="ticketCount">0</span>
+          </div>
+          <div class="card-body">
+            <div class="table" id="ticketList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="settingsView" class="hidden">
+        <div class="card">
+          <div class="card-head"><h2>Настройки сервиса</h2></div>
+          <div class="card-body">
+            <p class="small">Здесь позже появятся тарифы, SMTP/email-уведомления, резервные копии и системная диагностика.</p>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    window.BREW_PLANNER_YANDEX_API_BASE_URL = window.BREW_PLANNER_YANDEX_API_BASE_URL || "https://d5d9i7sr7b8mehoelc4k.y3q8o1jq.apigw.yandexcloud.net";
+
+    const storageKey = "production-planner-v1";
+    const tokenKey = `${storageKey}-yandex-token`;
+    const apiBase = window.BREW_PLANNER_YANDEX_API_BASE_URL;
+    const featureLabels = {
+      partialBottlings: "Частичные розливы",
+      warehouseCalendar: "Календарь розливов",
+      bottlings: "Ближайшие розливы",
+      comments: "Комментарии",
+      productTemplates: "Шаблоны сортов",
+      cycleSources: "Связанные циклы",
+      actionLog: "Журнал действий",
+      filters: "Фильтры",
+      bulkActions: "Групповые действия",
+      onlineUsers: "Онлайн-пользователи",
+      supportTickets: "Helpdesk",
+      cycleTasks: "Задачи по циклам",
+      cycleProcess: "Процесс производства",
+      contractBrews: "Контрактные варки",
+      contractBrewery: "Несколько площадок"
+    };
+
+    let currentUser = null;
+    let organizations = [];
+    let selectedOrganizationId = "";
+    let selectedOrgUsers = [];
+    let tickets = [];
+    let activeView = "organizations";
+    let activeOrgTab = "features";
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function token() {
+      return localStorage.getItem(tokenKey) || "";
+    }
+
+    function setToken(value) {
+      if (value) localStorage.setItem(tokenKey, value);
+      else localStorage.removeItem(tokenKey);
+    }
+
+    async function request(path, options = {}) {
+      const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+      const authToken = options.token === undefined ? token() : options.token;
+      if (authToken) headers.Authorization = `Bearer ${authToken}`;
+      const response = await fetch(`${apiBase.replace(/\/+$/, "")}${path}`, {
+        method: options.method || "GET",
+        headers,
+        body: options.body ? JSON.stringify(options.body) : undefined
+      });
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
+      if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`);
+      return data;
+    }
+
+    function selectedOrganization() {
+      return organizations.find((organization) => organization.id === selectedOrganizationId) || organizations[0] || null;
+    }
+
+    function setStatus(element, message, type = "") {
+      element.className = `status ${type}`.trim();
+      element.textContent = message || "";
+    }
+
+    async function loadMe() {
+      if (!token()) return null;
+      const data = await request("/auth/me");
+      if (!data.user) return null;
+      const user = {
+        ...data.user,
+        serviceRole: data.user.serviceRole || (data.user.role === "admin" && !data.user.organizationId ? "super_admin" : "user")
+      };
+      if (user.serviceRole !== "super_admin") throw new Error("Учетная запись не является супер-админом");
+      return user;
+    }
+
+    async function loadOrganizations() {
+      const data = await request("/organizations");
+      organizations = data.organizations || [];
+      if (!selectedOrganizationId || !organizations.some((item) => item.id === selectedOrganizationId)) {
+        selectedOrganizationId = organizations[0]?.id || "";
+      }
+      renderOrganizations();
+      await loadSelectedOrganizationUsers();
+    }
+
+    async function loadSelectedOrganizationUsers() {
+      const organization = selectedOrganization();
+      if (!organization) {
+        selectedOrgUsers = [];
+      } else {
+        const data = await request(`/organizations/${encodeURIComponent(organization.id)}/users`);
+        selectedOrgUsers = data.users || [];
+      }
+      renderOrganizationDetails();
+    }
+
+    async function loadTickets() {
+      const data = await request("/tickets");
+      tickets = data.tickets || [];
+      renderTickets();
+    }
+
+    async function loadAll() {
+      await loadOrganizations();
+      await loadTickets();
+    }
+
+    function renderViews() {
+      $("#organizationsView").classList.toggle("hidden", activeView !== "organizations");
+      $("#ticketsView").classList.toggle("hidden", activeView !== "tickets");
+      $("#settingsView").classList.toggle("hidden", activeView !== "settings");
+      $$(".nav button").forEach((button) => button.classList.toggle("active", button.dataset.view === activeView));
+      const titles = {
+        organizations: ["Организации", "Единый центр управления клиентами сервиса"],
+        tickets: ["Обращения", "Helpdesk по всем организациям"],
+        settings: ["Настройки сервиса", "Тарифы, почта, резервные копии и диагностика"]
+      };
+      $("#pageTitle").textContent = titles[activeView][0];
+      $("#pageSubtitle").textContent = titles[activeView][1];
+    }
+
+    function renderOrganizations() {
+      $("#organizationCount").textContent = String(organizations.length);
+      $("#organizationList").innerHTML = organizations.map((organization) => `
+        <button class="row ${organization.id === selectedOrganizationId ? "active" : ""}" type="button" data-organization-id="${escapeHtml(organization.id)}">
+          <span class="row-title">
+            <span>${escapeHtml(organization.name)}</span>
+            <span class="badge">${escapeHtml(organization.status)}</span>
+          </span>
+          <span class="row-meta">${escapeHtml(organization.tariff)} · ${organization.userCount || 0} пользователей</span>
+        </button>
+      `).join("");
+      $("#organizationList").querySelectorAll("[data-organization-id]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          selectedOrganizationId = button.dataset.organizationId;
+          renderOrganizations();
+          await loadSelectedOrganizationUsers();
+        });
+      });
+    }
+
+    function renderOrganizationDetails() {
+      const organization = selectedOrganization();
+      $("#selectedOrganizationTitle").textContent = organization?.name || "Выберите организацию";
+      $("#selectedOrganizationBadge").textContent = organization ? `${organization.status} · ${organization.tariff}` : "-";
+      $("#organizationEditNameInput").value = organization?.name || "";
+      $("#organizationEditStatusInput").value = organization?.status || "trial";
+      $("#organizationEditTariffInput").value = organization?.tariff || "manual";
+      renderFeatureList(organization?.features || {});
+      renderOrganizationUsers();
+      renderOrgTabs();
+    }
+
+    function renderOrgTabs() {
+      $("[data-org-tab='features']").classList.toggle("active", activeOrgTab === "features");
+      $("[data-org-tab='users']").classList.toggle("active", activeOrgTab === "users");
+      $("[data-org-tab='profile']").classList.toggle("active", activeOrgTab === "profile");
+      $("#orgFeaturesTab").classList.toggle("hidden", activeOrgTab !== "features");
+      $("#orgUsersTab").classList.toggle("hidden", activeOrgTab !== "users");
+      $("#orgProfileTab").classList.toggle("hidden", activeOrgTab !== "profile");
+    }
+
+    function renderFeatureList(features) {
+      $("#featureList").innerHTML = Object.entries(featureLabels).map(([key, label]) => `
+        <label class="feature-row">
+          <input type="checkbox" data-feature-key="${escapeHtml(key)}" ${features[key] !== false ? "checked" : ""}>
+          <span>${escapeHtml(label)}</span>
+        </label>
+      `).join("");
+    }
+
+    function renderOrganizationUsers() {
+      $("#organizationUsers").innerHTML = selectedOrgUsers.length ? selectedOrgUsers.map((user) => `
+        <div class="user-row" data-user-id="${escapeHtml(user.id)}">
+          <div>
+            <b>${escapeHtml(user.displayName || user.email)}</b>
+            <div class="small">${escapeHtml(user.email)}</div>
+          </div>
+          <select data-role>
+            <option value="admin" ${user.role === "admin" ? "selected" : ""}>Админ</option>
+            <option value="manager" ${user.role === "manager" ? "selected" : ""}>Редактор</option>
+            <option value="reader" ${user.role === "reader" ? "selected" : ""}>Читатель</option>
+          </select>
+          <button class="danger" type="button" data-remove>Удалить</button>
+        </div>
+      `).join("") : `<p class="small">В организации пока нет пользователей.</p>`;
+
+      $("#organizationUsers").querySelectorAll(".user-row").forEach((row) => {
+        row.querySelector("[data-role]").addEventListener("change", async (event) => {
+          await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users/${encodeURIComponent(row.dataset.userId)}`, {
+            method: "PATCH",
+            body: { role: event.target.value }
+          });
+          await loadSelectedOrganizationUsers();
+        });
+        row.querySelector("[data-remove]").addEventListener("click", async () => {
+          if (!confirm("Удалить пользователя из организации?")) return;
+          await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users/${encodeURIComponent(row.dataset.userId)}`, {
+            method: "DELETE"
+          });
+          await loadSelectedOrganizationUsers();
+        });
+      });
+    }
+
+    function renderTickets() {
+      $("#ticketCount").textContent = String(tickets.length);
+      $("#ticketList").innerHTML = tickets.length ? tickets.map((ticket) => `
+        <div class="ticket-row" data-ticket-id="${escapeHtml(ticket.id)}">
+          <div>
+            <b>${escapeHtml(ticket.number)} · ${escapeHtml(ticket.title)}</b>
+            <div class="small">${escapeHtml(ticket.organizationName || ticket.organizationId)} · ${escapeHtml(ticket.createdByName || ticket.createdByEmail)} · ${escapeHtml(ticket.category)}</div>
+          </div>
+          <select data-ticket-status>
+            <option value="new" ${ticket.status === "new" ? "selected" : ""}>Новое</option>
+            <option value="in_progress" ${ticket.status === "in_progress" ? "selected" : ""}>В работе</option>
+            <option value="waiting_customer" ${ticket.status === "waiting_customer" ? "selected" : ""}>Ожидает клиента</option>
+            <option value="done" ${ticket.status === "done" ? "selected" : ""}>Выполнено</option>
+            <option value="closed" ${ticket.status === "closed" ? "selected" : ""}>Закрыто</option>
+          </select>
+          <span class="badge">${escapeHtml(ticket.priority || "normal")}</span>
+        </div>
+      `).join("") : `<p class="small">Обращений пока нет.</p>`;
+      $("#ticketList").querySelectorAll(".ticket-row").forEach((row) => {
+        row.querySelector("[data-ticket-status]").addEventListener("change", async (event) => {
+          await request(`/tickets/${encodeURIComponent(row.dataset.ticketId)}`, {
+            method: "PATCH",
+            body: { status: event.target.value }
+          });
+          await loadTickets();
+        });
+      });
+    }
+
+    async function boot() {
+      try {
+        currentUser = await loadMe();
+        if (!currentUser) {
+          document.body.dataset.auth = "locked";
+          $("#loginStatus").textContent = "";
+          return;
+        }
+        $("#currentUserName").textContent = currentUser.displayName || currentUser.email;
+        document.body.dataset.auth = "open";
+        await loadAll();
+      } catch (error) {
+        setToken("");
+        document.body.dataset.auth = "locked";
+        setStatus($("#loginStatus"), error.message, "error");
+      }
+    }
+
+    $("#loginForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      setStatus($("#loginStatus"), "Проверяем логин и пароль...");
+      try {
+        const data = await request("/auth/login", {
+          method: "POST",
+          token: "",
+          body: {
+            email: $("#loginInput").value.trim(),
+            password: $("#passwordInput").value
+          }
+        });
+        setToken(data.token);
+        currentUser = await loadMe();
+        if (currentUser.serviceRole !== "super_admin") throw new Error("Учетная запись не является супер-админом");
+        $("#currentUserName").textContent = currentUser.displayName || currentUser.email;
+        document.body.dataset.auth = "open";
+        await loadAll();
+      } catch (error) {
+        setToken("");
+        setStatus($("#loginStatus"), `Ошибка входа: ${error.message}`, "error");
+      }
+    });
+
+    $("#logoutButton").addEventListener("click", () => {
+      setToken("");
+      currentUser = null;
+      document.body.dataset.auth = "locked";
+    });
+
+    $$(".nav button").forEach((button) => {
+      button.addEventListener("click", () => {
+        activeView = button.dataset.view;
+        renderViews();
+      });
+    });
+
+    $$("[data-org-tab]").forEach((button) => {
+      button.addEventListener("click", () => {
+        activeOrgTab = button.dataset.orgTab;
+        renderOrgTabs();
+      });
+    });
+
+    $("#refreshButton").addEventListener("click", loadAll);
+
+    $("#organizationForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      setStatus($("#organizationStatus"), "Создаем организацию...");
+      try {
+        const data = await request("/organizations", {
+          method: "POST",
+          body: {
+            name: $("#organizationNameInput").value.trim(),
+            status: $("#organizationStatusInput").value,
+            tariff: $("#organizationTariffInput").value
+          }
+        });
+        selectedOrganizationId = data.organization.id;
+        event.target.reset();
+        setStatus($("#organizationStatus"), "Организация создана", "ok");
+        await loadOrganizations();
+      } catch (error) {
+        setStatus($("#organizationStatus"), error.message, "error");
+      }
+    });
+
+    $("#organizationEditForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!selectedOrganizationId) return;
+      setStatus($("#profileStatus"), "Сохраняем...");
+      try {
+        await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}`, {
+          method: "PATCH",
+          body: {
+            name: $("#organizationEditNameInput").value.trim(),
+            status: $("#organizationEditStatusInput").value,
+            tariff: $("#organizationEditTariffInput").value
+          }
+        });
+        setStatus($("#profileStatus"), "Сохранено", "ok");
+        await loadOrganizations();
+      } catch (error) {
+        setStatus($("#profileStatus"), error.message, "error");
+      }
+    });
+
+    $("#saveFeaturesButton").addEventListener("click", async () => {
+      if (!selectedOrganizationId) return;
+      const features = {};
+      $$("[data-feature-key]").forEach((input) => {
+        features[input.dataset.featureKey] = input.checked;
+      });
+      setStatus($("#featuresStatus"), "Сохраняем функции...");
+      try {
+        await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/features`, {
+          method: "PUT",
+          body: { features }
+        });
+        setStatus($("#featuresStatus"), "Функции сохранены", "ok");
+        await loadOrganizations();
+      } catch (error) {
+        setStatus($("#featuresStatus"), error.message, "error");
+      }
+    });
+
+    $("#organizationUserForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!selectedOrganizationId) return;
+      setStatus($("#usersStatus"), "Добавляем пользователя...");
+      try {
+        await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users`, {
+          method: "POST",
+          body: {
+            email: $("#orgUserEmailInput").value.trim(),
+            password: $("#orgUserPasswordInput").value,
+            displayName: $("#orgUserNameInput").value.trim(),
+            organizationRole: $("#orgUserRoleInput").value
+          }
+        });
+        event.target.reset();
+        setStatus($("#usersStatus"), "Пользователь добавлен", "ok");
+        await loadSelectedOrganizationUsers();
+      } catch (error) {
+        setStatus($("#usersStatus"), error.message, "error");
+      }
+    });
+
+    renderViews();
+    boot();
+  </script>
+</body>
+</html>
