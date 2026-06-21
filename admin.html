@@ -170,6 +170,10 @@
     }
 
     .nav button {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
       text-align: left;
       border-color: transparent;
       background: transparent;
@@ -179,6 +183,25 @@
       background: var(--surface);
       border-color: var(--line);
       box-shadow: 0 10px 24px rgba(15, 23, 42, .08);
+    }
+
+    .nav-counter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 7px;
+      border-radius: 999px;
+      background: var(--danger);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .nav-counter[hidden] {
+      display: none;
     }
 
     .side-footer {
@@ -332,6 +355,40 @@
       width: auto;
     }
 
+    .logo-editor {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .logo-preview {
+      display: grid;
+      place-items: center;
+      width: 150px;
+      height: 72px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .logo-preview img {
+      max-width: 138px;
+      max-height: 60px;
+      object-fit: contain;
+      display: block;
+    }
+
     .table {
       display: grid;
       gap: 8px;
@@ -362,6 +419,7 @@
       .side-footer { position: static; margin-top: 18px; }
       .grid { grid-template-columns: 1fr; }
       .feature-grid { grid-template-columns: 1fr; }
+      .logo-editor { grid-template-columns: 1fr; }
       .user-row,
       .ticket-row { grid-template-columns: 1fr; }
     }
@@ -390,13 +448,13 @@
       <div class="brand"><span class="brand-mark"></span><span>Brew Planner Admin</span></div>
       <nav class="nav">
         <button class="active" type="button" data-view="organizations">Организации</button>
-        <button type="button" data-view="tickets">Обращения</button>
+        <button type="button" data-view="tickets"><span>Обращения</span><span class="nav-counter" id="ticketNavCounter" hidden>0</span></button>
         <button type="button" data-view="settings">Настройки сервиса</button>
       </nav>
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.21.9-saas</span>
+        <span>v2026.06.22.2-saas</span>
       </div>
     </aside>
 
@@ -506,6 +564,19 @@
                   <span>Название</span>
                   <input id="organizationEditNameInput">
                 </label>
+                <div class="logo-editor">
+                  <div class="logo-preview" id="organizationLogoPreview">Без логотипа</div>
+                  <div>
+                    <label class="field">
+                      <span>Логотип организации</span>
+                      <input id="organizationLogoInput" type="file" accept="image/*">
+                    </label>
+                    <div class="actions">
+                      <button class="secondary" id="clearOrganizationLogoButton" type="button">Убрать логотип</button>
+                    </div>
+                    <p class="small">По умолчанию организация создается без логотипа. Рекомендуемый формат: PNG или SVG до 300 КБ.</p>
+                  </div>
+                </div>
                 <div class="two">
                   <label class="field">
                     <span>Статус</span>
@@ -560,7 +631,7 @@
   </main>
 
   <script>
-    window.BREW_PLANNER_YANDEX_API_BASE_URL = window.BREW_PLANNER_YANDEX_API_BASE_URL || "https://d5d9i7sr7b8mehoelc4k.y3q8o1jq.apigw.yandexcloud.net";
+    window.BREW_PLANNER_YANDEX_API_BASE_URL = window.BREW_PLANNER_YANDEX_API_BASE_URL || "https://d5dn5no723gof5n2nu74.628pfjdx.apigw.yandexcloud.net";
 
     const storageKey = "production-planner-v1";
     const tokenKey = `${storageKey}-yandex-token`;
@@ -590,6 +661,7 @@
     let tickets = [];
     let activeView = "organizations";
     let activeOrgTab = "features";
+    let pendingOrganizationLogo = null;
 
     const $ = (selector) => document.querySelector(selector);
     const $$ = (selector) => Array.from(document.querySelectorAll(selector));
@@ -634,6 +706,29 @@
     function setStatus(element, message, type = "") {
       element.className = `status ${type}`.trim();
       element.textContent = message || "";
+    }
+
+    function readImageFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          dataUrl: reader.result
+        });
+        reader.onerror = () => reject(reader.error || new Error("Не удалось прочитать файл"));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderLogoPreview(logoDataUrl) {
+      const preview = $("#organizationLogoPreview");
+      if (logoDataUrl) {
+        preview.innerHTML = `<img src="${escapeHtml(logoDataUrl)}" alt="Логотип организации">`;
+      } else {
+        preview.textContent = "Без логотипа";
+      }
     }
 
     async function loadMe() {
@@ -721,6 +816,9 @@
       $("#organizationEditNameInput").value = organization?.name || "";
       $("#organizationEditStatusInput").value = organization?.status || "trial";
       $("#organizationEditTariffInput").value = organization?.tariff || "manual";
+      pendingOrganizationLogo = null;
+      $("#organizationLogoInput").value = "";
+      renderLogoPreview(organization?.logoDataUrl || "");
       renderFeatureList(organization?.features || {});
       renderOrganizationUsers();
       renderOrgTabs();
@@ -779,6 +877,7 @@
     }
 
     function renderTickets() {
+      renderTicketCounter();
       $("#ticketCount").textContent = String(tickets.length);
       $("#ticketList").innerHTML = tickets.length ? tickets.map((ticket) => `
         <div class="ticket-row" data-ticket-id="${escapeHtml(ticket.id)}">
@@ -805,6 +904,14 @@
           await loadTickets();
         });
       });
+    }
+
+    function renderTicketCounter() {
+      const counter = $("#ticketNavCounter");
+      const newCount = tickets.filter((ticket) => ticket.status === "new").length;
+      counter.textContent = String(newCount);
+      counter.hidden = newCount === 0;
+      counter.title = `Новых обращений: ${newCount}`;
     }
 
     async function boot() {
@@ -899,17 +1006,46 @@
       try {
         await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}`, {
           method: "PATCH",
-          body: {
-            name: $("#organizationEditNameInput").value.trim(),
-            status: $("#organizationEditStatusInput").value,
-            tariff: $("#organizationEditTariffInput").value
-          }
-        });
+        body: {
+          name: $("#organizationEditNameInput").value.trim(),
+          status: $("#organizationEditStatusInput").value,
+          tariff: $("#organizationEditTariffInput").value,
+          ...(pendingOrganizationLogo ? {
+            logoDataUrl: pendingOrganizationLogo.dataUrl,
+            logoName: pendingOrganizationLogo.name
+          } : {})
+        }
+      });
         setStatus($("#profileStatus"), "Сохранено", "ok");
         await loadOrganizations();
       } catch (error) {
         setStatus($("#profileStatus"), error.message, "error");
       }
+    });
+
+    $("#organizationLogoInput").addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (file.size > 300 * 1024) {
+        setStatus($("#profileStatus"), "Логотип должен быть не больше 300 КБ", "error");
+        event.target.value = "";
+        return;
+      }
+      try {
+        pendingOrganizationLogo = await readImageFile(file);
+        renderLogoPreview(pendingOrganizationLogo.dataUrl);
+        setStatus($("#profileStatus"), "Логотип выбран. Нажмите «Сохранить параметры».", "");
+      } catch (error) {
+        pendingOrganizationLogo = null;
+        setStatus($("#profileStatus"), error.message, "error");
+      }
+    });
+
+    $("#clearOrganizationLogoButton").addEventListener("click", () => {
+      pendingOrganizationLogo = { name: "", dataUrl: "" };
+      $("#organizationLogoInput").value = "";
+      renderLogoPreview("");
+      setStatus($("#profileStatus"), "Логотип будет удален после сохранения параметров.", "");
     });
 
     $("#saveFeaturesButton").addEventListener("click", async () => {

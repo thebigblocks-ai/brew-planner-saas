@@ -117,6 +117,7 @@
       display: flex;
       align-items: center;
       min-width: 220px;
+      min-height: 40px;
     }
 
     .topbar-left {
@@ -130,6 +131,16 @@
       display: block;
       width: 168px;
       height: auto;
+      max-height: 42px;
+      object-fit: contain;
+    }
+
+    .brand-name {
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 0;
+      line-height: 1.15;
     }
 
     .brand-version {
@@ -142,10 +153,6 @@
       line-height: 1;
       white-space: nowrap;
       pointer-events: none;
-    }
-
-    :root[data-theme="dark"] .brand-logo {
-      filter: invert(1);
     }
 
     .toolbar {
@@ -4026,7 +4033,8 @@
     <header class="topbar">
       <div class="topbar-left">
         <div class="brand">
-          <img class="brand-logo" src="assets/logo.png" alt="Big Blocks">
+          <img class="brand-logo" id="organizationLogo" alt="" hidden>
+          <span class="brand-name" id="organizationBrandName">Планировщик производства</span>
         </div>
         <div class="account-tools">
           <div class="admin-menu-wrap admin-only">
@@ -4035,10 +4043,6 @@
               <button id="actionLogButton" type="button">
                 <svg viewBox="0 0 24 24"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
                 Журнал
-              </button>
-              <button class="admin-only" id="featuresButton" type="button" hidden>
-                <svg viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93 7.76 7.76"/><path d="m16.24 16.24 2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="m16.24 7.76 2.83-2.83"/></svg>
-                Функционал
               </button>
               <button class="admin-only" id="usersButton" type="button">
                 <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -4911,7 +4915,7 @@
 
   <script>
     window.BREW_PLANNER_BACKEND_MODE = "yandex";
-    window.BREW_PLANNER_YANDEX_API_BASE_URL = window.BREW_PLANNER_YANDEX_API_BASE_URL || "https://d5d9i7sr7b8mehoelc4k.y3q8o1jq.apigw.yandexcloud.net";
+    window.BREW_PLANNER_YANDEX_API_BASE_URL = window.BREW_PLANNER_YANDEX_API_BASE_URL || "https://d5dn5no723gof5n2nu74.628pfjdx.apigw.yandexcloud.net";
   </script>
   <script>
     let sites = [
@@ -4928,7 +4932,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.21.9-saas";
+    const appVersion = "v2026.06.22.2-saas";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
     const storageKey = "production-planner-v1";
@@ -5719,7 +5723,9 @@
           role: data.user.role || "reader",
           serviceRole: data.user.serviceRole || "user",
           organizationId: data.user.organizationId || "",
-          organizationName: data.user.organizationName || ""
+          organizationName: data.user.organizationName || "",
+          organizationLogoDataUrl: data.user.organizationLogoDataUrl || "",
+          organizationLogoName: data.user.organizationLogoName || ""
         };
         if (!data.user.serviceRole && profile.role === "admin" && !profile.organizationId) {
           profile.serviceRole = "super_admin";
@@ -6415,6 +6421,8 @@
     const supportAttachmentsInput = document.querySelector("#supportAttachmentsInput");
     const supportStatus = document.querySelector("#supportStatus");
     const cancelSupportButton = document.querySelector("#cancelSupportButton");
+    const organizationLogo = document.querySelector("#organizationLogo");
+    const organizationBrandName = document.querySelector("#organizationBrandName");
     const currentUserName = document.querySelector("#currentUserName");
     const presenceText = document.querySelector("#presenceText");
     const logoutButton = document.querySelector("#logoutButton");
@@ -6462,6 +6470,7 @@
       document.body.dataset.auth = authenticated ? "open" : "locked";
       document.body.dataset.role = currentUser?.role || "";
       currentUserName.textContent = currentUser ? userDisplayName(currentUser) : "Пользователь";
+      renderOrganizationBrand();
       renderPresence();
       const editable = canEdit();
       const admin = canAdmin();
@@ -6497,7 +6506,7 @@
       setEditable(Array.from(templateForm.querySelectorAll("input, select, textarea, button")), editable);
       setEditable([adminMenuButton], admin);
       setEditable([usersButton], admin);
-      featuresButton.hidden = true;
+      if (featuresButton) featuresButton.hidden = true;
       updateUndoButton();
       closeTankButton.disabled = false;
       closeSiteButton.disabled = false;
@@ -6520,6 +6529,22 @@
       if (!admin && state.panelMode === "users") state.panelMode = "hidden";
       if (!admin) adminMenu.classList.remove("open");
       renderTankCreateMode();
+    }
+
+    function renderOrganizationBrand() {
+      const name = currentUser?.organizationName || "Планировщик производства";
+      organizationBrandName.textContent = name;
+      if (currentUser?.organizationLogoDataUrl) {
+        organizationLogo.src = currentUser.organizationLogoDataUrl;
+        organizationLogo.alt = name;
+        organizationLogo.hidden = false;
+        organizationBrandName.hidden = true;
+      } else {
+        organizationLogo.removeAttribute("src");
+        organizationLogo.alt = "";
+        organizationLogo.hidden = true;
+        organizationBrandName.hidden = false;
+      }
     }
 
     function selectedCycleIds() {
@@ -11524,7 +11549,7 @@
       warehouseButton.classList.toggle("active", state.panelMode === "warehouse");
       templatesButton.classList.toggle("active", state.panelMode === "templates");
       actionLogButton.classList.toggle("active", state.panelMode === "log");
-      featuresButton.classList.toggle("active", state.panelMode === "features");
+      if (featuresButton) featuresButton.classList.toggle("active", state.panelMode === "features");
       updateEditorState();
       renderFilterOptions();
       renderBaseGrid(dates);
@@ -11545,7 +11570,10 @@
       if (state.panelMode === "templates") renderTemplateList();
       if (state.panelMode === "users") renderUsers();
       if (state.panelMode === "log") renderActionLog();
-      if (state.panelMode === "features") renderFeatureSettings();
+      if (state.panelMode === "features") {
+        state.panelMode = "hidden";
+        workspace.dataset.panel = state.panelMode;
+      }
       if (state.panelMode === "myTasks") renderMyTasks();
       updateTankPanelState();
       applyAccessControl();
@@ -12524,22 +12552,14 @@
         render();
       });
 
-      featuresButton.addEventListener("click", (event) => {
-        event.stopPropagation();
-        if (!requireAdmin()) return;
-        const isOpen = state.panelMode === "features";
-        state.panelMode = isOpen ? "hidden" : "features";
-        state.addMode = false;
-        state.commentMode = false;
-        state.selectedCycleId = null;
-        state.selectedTankId = null;
-        state.pickedTankId = null;
-        state.pickedDate = null;
-        addMenu.classList.remove("open");
-        adminMenu.classList.remove("open");
-        render();
-        if (!isOpen) renderFeatureSettings();
-      });
+      if (featuresButton) {
+        featuresButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          state.panelMode = "hidden";
+          adminMenu.classList.remove("open");
+          render();
+        });
+      }
 
       myTasksButton.addEventListener("click", () => {
         if (!featureEnabled("cycleTasks")) return;
