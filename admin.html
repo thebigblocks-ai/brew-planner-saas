@@ -475,6 +475,11 @@
       min-width: 0;
     }
 
+    .user-role-actions {
+      display: grid;
+      gap: 7px;
+    }
+
     .user-main select {
       min-width: 0;
     }
@@ -486,6 +491,21 @@
       background: #fff;
       border-color: var(--line);
       font-size: 12px;
+    }
+
+    .user-block-action {
+      min-height: 30px;
+      padding: 6px 9px;
+      color: #b45309;
+      background: #fff7ed;
+      border-color: rgba(245, 158, 11, .38);
+      font-size: 12px;
+    }
+
+    .user-block-action[data-blocked="true"] {
+      color: #15803d;
+      background: #f0fdf4;
+      border-color: rgba(34, 197, 94, .34);
     }
 
     .users-layout {
@@ -673,7 +693,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.23.8-saas</span>
+        <span>v2026.06.23.9-saas</span>
       </div>
     </aside>
 
@@ -1223,13 +1243,16 @@
           <div class="user-main">
             <div>
               <b>${escapeHtml(user.displayName || user.email)}</b>
-              <div class="small">${escapeHtml(user.email)}${user.mustChangePassword ? " · ждет смены пароля" : ""}</div>
+              <div class="small">${escapeHtml(user.email)}${user.mustChangePassword ? " · ждет смены пароля" : ""}${user.isBlocked ? " · отключен" : ""}</div>
             </div>
-            <select data-role>
-              <option value="admin" ${user.role === "admin" ? "selected" : ""}>Админ</option>
-              <option value="manager" ${user.role === "manager" ? "selected" : ""}>Редактор</option>
-              <option value="reader" ${user.role === "reader" ? "selected" : ""}>Читатель</option>
-            </select>
+            <div class="user-role-actions">
+              <select data-role>
+                <option value="admin" ${user.role === "admin" ? "selected" : ""}>Админ</option>
+                <option value="manager" ${user.role === "manager" ? "selected" : ""}>Редактор</option>
+                <option value="reader" ${user.role === "reader" ? "selected" : ""}>Читатель</option>
+              </select>
+              <button class="user-block-action" type="button" data-blocked="${user.isBlocked ? "true" : "false"}" data-toggle-block>${user.isBlocked ? "Разблокировать" : "Заблокировать"}</button>
+            </div>
           </div>
           <div class="user-actions">
             <button class="user-soft-action" type="button" data-reset-password>Временный пароль</button>
@@ -1243,6 +1266,16 @@
           await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users/${encodeURIComponent(row.dataset.userId)}`, {
             method: "PATCH",
             body: { role: event.target.value }
+          });
+          await loadSelectedOrganizationUsers();
+        });
+        row.querySelector("[data-toggle-block]").addEventListener("click", async (event) => {
+          const isBlocked = event.currentTarget.dataset.blocked !== "true";
+          const action = isBlocked ? "Заблокировать пользователя и завершить его доступ к системе?" : "Разблокировать пользователя?";
+          if (!confirm(action)) return;
+          await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users/${encodeURIComponent(row.dataset.userId)}/block`, {
+            method: "POST",
+            body: { isBlocked }
           });
           await loadSelectedOrganizationUsers();
         });

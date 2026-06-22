@@ -2915,6 +2915,21 @@
       font-weight: 750;
     }
 
+    .status.account-disabled {
+      min-height: 0;
+      margin-top: 2px;
+      padding: 11px 12px 11px 14px;
+      border: 1px solid rgba(255, 139, 0, .28);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      background: #fff7ed;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.35;
+      box-shadow: 0 8px 18px rgba(17, 24, 39, .06);
+    }
+
     .status.error[data-attention="true"] {
       border-radius: 6px;
       outline: 2px solid color-mix(in srgb, var(--danger) 34%, transparent);
@@ -5220,7 +5235,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.6-saas";
+    const appVersion = "v2026.06.23.7-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -5383,6 +5398,7 @@
     function loginErrorMessage(error) {
       const message = error?.message || String(error || "");
       const normalized = message.toLowerCase();
+      if (normalized.includes("учетная запись отключена")) return message;
       const isNetworkFailure = normalized.includes("load failed")
         || normalized.includes("failed to fetch")
         || normalized.includes("networkerror")
@@ -12858,8 +12874,10 @@
           }
         } catch (error) {
           setLoginBusy(false);
-          loginStatus.className = "status error";
-          loginStatus.textContent = `Ошибка входа: ${loginErrorMessage(error)}`;
+          const message = loginErrorMessage(error);
+          const accountDisabled = message.toLowerCase().includes("учетная запись отключена");
+          loginStatus.className = accountDisabled ? "status account-disabled" : "status error";
+          loginStatus.textContent = accountDisabled ? message : `Ошибка входа: ${message}`;
           return;
         }
         try {
@@ -12904,8 +12922,10 @@
           render();
         } catch (profileError) {
           setLoginBusy(false);
-          loginStatus.className = "status error";
-          loginStatus.textContent = `Не удалось загрузить профиль: ${profileError.message}`;
+          const message = loginErrorMessage(profileError);
+          const accountDisabled = message.toLowerCase().includes("учетная запись отключена");
+          loginStatus.className = accountDisabled ? "status account-disabled" : "status error";
+          loginStatus.textContent = accountDisabled ? message : `Не удалось загрузить профиль: ${message}`;
         }
       });
 
