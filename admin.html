@@ -454,7 +454,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.22.2-saas</span>
+        <span>v2026.06.22.3-saas</span>
       </div>
     </aside>
 
@@ -1004,20 +1004,30 @@
       if (!selectedOrganizationId) return;
       setStatus($("#profileStatus"), "Сохраняем...");
       try {
-        await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}`, {
+        const logoPatch = pendingOrganizationLogo ? {
+          logoDataUrl: pendingOrganizationLogo.dataUrl,
+          logoName: pendingOrganizationLogo.name
+        } : {};
+        const data = await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}`, {
           method: "PATCH",
-        body: {
-          name: $("#organizationEditNameInput").value.trim(),
-          status: $("#organizationEditStatusInput").value,
-          tariff: $("#organizationEditTariffInput").value,
-          ...(pendingOrganizationLogo ? {
-            logoDataUrl: pendingOrganizationLogo.dataUrl,
-            logoName: pendingOrganizationLogo.name
-          } : {})
-        }
-      });
+          body: {
+            name: $("#organizationEditNameInput").value.trim(),
+            status: $("#organizationEditStatusInput").value,
+            tariff: $("#organizationEditTariffInput").value,
+            ...logoPatch
+          }
+        });
+        const current = selectedOrganization() || {};
+        const saved = {
+          ...current,
+          ...(data.organization || {}),
+          ...logoPatch
+        };
+        organizations = organizations.map((organization) => organization.id === selectedOrganizationId ? saved : organization);
+        pendingOrganizationLogo = null;
+        renderOrganizations();
+        renderOrganizationDetails();
         setStatus($("#profileStatus"), "Сохранено", "ok");
-        await loadOrganizations();
       } catch (error) {
         setStatus($("#profileStatus"), error.message, "error");
       }
