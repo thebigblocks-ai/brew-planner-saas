@@ -454,7 +454,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.22.3-saas</span>
+        <span>v2026.06.22.4-saas</span>
       </div>
     </aside>
 
@@ -535,7 +535,7 @@
                   </label>
                   <label class="field">
                     <span>Пароль</span>
-                    <input id="orgUserPasswordInput" type="password" placeholder="для нового пользователя">
+                    <input value="Будет создан временный пароль" disabled>
                   </label>
                 </div>
                 <div class="two">
@@ -636,6 +636,24 @@
     const storageKey = "production-planner-v1";
     const tokenKey = `${storageKey}-yandex-token`;
     const apiBase = window.BREW_PLANNER_YANDEX_API_BASE_URL;
+    const defaultFeatures = {
+      partialBottlings: true,
+      warehouseCalendar: true,
+      bottlings: true,
+      comments: true,
+      productTemplates: true,
+      cycleSources: true,
+      actionLog: true,
+      filters: true,
+      bulkActions: true,
+      onlineUsers: true,
+      supportTickets: true,
+      cycleTasks: false,
+      cycleProcess: true,
+      initialSetup: false,
+      contractBrews: false,
+      contractBrewery: true
+    };
     const featureLabels = {
       partialBottlings: "Частичные розливы",
       warehouseCalendar: "Календарь розливов",
@@ -650,6 +668,7 @@
       supportTickets: "Helpdesk",
       cycleTasks: "Задачи по циклам",
       cycleProcess: "Процесс производства",
+      initialSetup: "Первичное заполнение",
       contractBrews: "Контрактные варки",
       contractBrewery: "Несколько площадок"
     };
@@ -836,7 +855,7 @@
     function renderFeatureList(features) {
       $("#featureList").innerHTML = Object.entries(featureLabels).map(([key, label]) => `
         <label class="feature-row">
-          <input type="checkbox" data-feature-key="${escapeHtml(key)}" ${features[key] !== false ? "checked" : ""}>
+          <input type="checkbox" data-feature-key="${escapeHtml(key)}" ${(features[key] ?? defaultFeatures[key]) ? "checked" : ""}>
           <span>${escapeHtml(label)}</span>
         </label>
       `).join("");
@@ -847,13 +866,14 @@
         <div class="user-row" data-user-id="${escapeHtml(user.id)}">
           <div>
             <b>${escapeHtml(user.displayName || user.email)}</b>
-            <div class="small">${escapeHtml(user.email)}</div>
+            <div class="small">${escapeHtml(user.email)}${user.mustChangePassword ? " · ждет смены пароля" : ""}</div>
           </div>
           <select data-role>
             <option value="admin" ${user.role === "admin" ? "selected" : ""}>Админ</option>
             <option value="manager" ${user.role === "manager" ? "selected" : ""}>Редактор</option>
             <option value="reader" ${user.role === "reader" ? "selected" : ""}>Читатель</option>
           </select>
+          <button class="secondary" type="button" data-reset-password>Временный пароль</button>
           <button class="danger" type="button" data-remove>Удалить</button>
         </div>
       `).join("") : `<p class="small">В организации пока нет пользователей.</p>`;
@@ -864,6 +884,14 @@
             method: "PATCH",
             body: { role: event.target.value }
           });
+          await loadSelectedOrganizationUsers();
+        });
+        row.querySelector("[data-reset-password]").addEventListener("click", async () => {
+          if (!confirm("Сгенерировать новый временный пароль? Старый пароль перестанет работать.")) return;
+          const data = await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users/${encodeURIComponent(row.dataset.userId)}/password`, {
+            method: "POST"
+          });
+          setStatus($("#usersStatus"), `Временный пароль: ${data.temporaryPassword}`, "ok");
           await loadSelectedOrganizationUsers();
         });
         row.querySelector("[data-remove]").addEventListener("click", async () => {
@@ -1082,17 +1110,16 @@
       if (!selectedOrganizationId) return;
       setStatus($("#usersStatus"), "Добавляем пользователя...");
       try {
-        await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users`, {
+        const data = await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users`, {
           method: "POST",
           body: {
             email: $("#orgUserEmailInput").value.trim(),
-            password: $("#orgUserPasswordInput").value,
             displayName: $("#orgUserNameInput").value.trim(),
             organizationRole: $("#orgUserRoleInput").value
           }
         });
         event.target.reset();
-        setStatus($("#usersStatus"), "Пользователь добавлен", "ok");
+        setStatus($("#usersStatus"), data.temporaryPassword ? `Пользователь добавлен. Временный пароль: ${data.temporaryPassword}` : "Пользователь добавлен", "ok");
         await loadSelectedOrganizationUsers();
       } catch (error) {
         setStatus($("#usersStatus"), error.message, "error");
