@@ -3293,15 +3293,38 @@
     .support-ticket-status[data-status="done"] { background: #dcfce7; color: #15803d; }
     .support-ticket-status[data-status="closed"] { background: #e5e7eb; color: #374151; }
 
+    .support-ticket-deadline {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
     .support-ticket-message {
+      display: grid;
+      gap: 5px;
+      width: fit-content;
       max-width: min(92%, 520px);
       border-radius: 14px 14px 14px 4px;
-      padding: 9px 11px;
+      padding: 8px 11px 9px;
       background: var(--panel);
+      box-shadow: 0 1px 0 rgba(15, 23, 42, .08);
+    }
+
+    .support-ticket-message-meta {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1.25;
+    }
+
+    .support-ticket-message-body {
+      color: var(--ink);
       white-space: pre-wrap;
       font-size: 14px;
-      line-height: 1.42;
-      box-shadow: 0 1px 0 rgba(15, 23, 42, .08);
+      line-height: 1.38;
+      font-weight: 500;
     }
 
     .support-ticket-message[data-own="true"] {
@@ -5197,7 +5220,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.4-saas";
+    const appVersion = "v2026.06.23.6-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -5455,6 +5478,13 @@
       })[status] || status;
     }
 
+    function supportTicketDeadlineText(ticket) {
+      if (!ticket?.responseDeadlineAt) return "";
+      const labels = { 2: "2 часа", 8: "8 часов", 24: "24 часа" };
+      const level = labels[Number(ticket.serviceLevelHours)] || `${ticket.serviceLevelHours || ""} ч`;
+      return `Дедлайн приема в работу: ${formatSupportDate(ticket.responseDeadlineAt)} · SLA ${level}`;
+    }
+
     function updateSupportNotification(tickets = [], { markSeen = false } = {}) {
       const signature = supportTicketsSignature(tickets);
       if (markSeen || !supportTicketSignature) {
@@ -5473,20 +5503,24 @@
       updateSupportNotification(tickets, options);
       supportTicketList.innerHTML = tickets.length ? tickets.map((ticket) => {
         const messages = Array.isArray(ticket.messages) ? ticket.messages.filter((message) => !message.isInternal) : [];
+        const deadline = supportTicketDeadlineText(ticket);
         return `
           <details class="support-ticket-card" data-ticket-id="${escapeHtml(ticket.id)}">
             <summary>
               <span>
                 <b>${escapeHtml(ticket.number || "")} · ${escapeHtml(ticket.title || "")}</b>
                 <small>${escapeHtml(formatSupportDate(ticket.updatedAt || ticket.createdAt))}</small>
+                ${deadline ? `<span class="support-ticket-deadline">${escapeHtml(deadline)}</span>` : ""}
               </span>
               <span class="support-ticket-status" data-status="${escapeHtml(ticket.status || "new")}">${escapeHtml(supportTicketStatusLabel(ticket.status || "new"))}</span>
             </summary>
-            <div class="support-ticket-message">${escapeHtml(ticket.description || "")}</div>
+            <div class="support-ticket-message">
+              <div class="support-ticket-message-body">${escapeHtml(ticket.description || "")}</div>
+            </div>
             ${messages.map((message) => `
               <div class="support-ticket-message" data-own="${message.authorUserId === currentUser?.id ? "true" : "false"}">
-                <small>${escapeHtml(message.authorName || message.authorEmail || "")} · ${escapeHtml(formatSupportDate(message.createdAt))}</small>
-                ${escapeHtml(message.text || "")}
+                <div class="support-ticket-message-meta">${escapeHtml(message.authorName || message.authorEmail || "")} · ${escapeHtml(formatSupportDate(message.createdAt))}</div>
+                <div class="support-ticket-message-body">${escapeHtml(message.text || "")}</div>
               </div>
             `).join("")}
             <form class="support-ticket-reply" data-ticket-reply>
