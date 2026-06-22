@@ -485,6 +485,14 @@
       border-color: var(--brand);
     }
 
+    #partialBottlingToggle:disabled {
+      background: var(--soft-bg);
+      color: var(--muted);
+      border-color: var(--line);
+      opacity: .72;
+      box-shadow: none;
+    }
+
     .admin-menu-wrap,
     .add-menu-wrap,
     .filter-menu-wrap {
@@ -3245,6 +3253,17 @@
       background: #f8fafc;
     }
 
+    .support-ticket-card summary {
+      display: grid;
+      gap: 7px;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .support-ticket-card summary::-webkit-details-marker {
+      display: none;
+    }
+
     .support-ticket-card header {
       display: flex;
       justify-content: space-between;
@@ -3256,6 +3275,23 @@
     .support-ticket-card small {
       display: block;
     }
+
+    .support-ticket-status {
+      width: fit-content;
+      min-height: 22px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      background: var(--soft-bg);
+      color: var(--muted);
+    }
+
+    .support-ticket-status[data-status="new"] { background: #dbeafe; color: #1d4ed8; }
+    .support-ticket-status[data-status="in_progress"] { background: #fef3c7; color: #b45309; }
+    .support-ticket-status[data-status="waiting_customer"] { background: #ede9fe; color: #6d28d9; }
+    .support-ticket-status[data-status="done"] { background: #dcfce7; color: #15803d; }
+    .support-ticket-status[data-status="closed"] { background: #e5e7eb; color: #374151; }
 
     .support-ticket-message {
       max-width: min(92%, 520px);
@@ -3535,8 +3571,8 @@
     }
 
     .bottling-row[data-missing-packaging="true"] {
-      background: rgba(244, 114, 182, 0.16);
-      box-shadow: inset 3px 0 0 rgba(244, 114, 182, 0.72);
+      background: var(--panel);
+      box-shadow: none;
     }
 
     .bottling-alert {
@@ -3844,11 +3880,16 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
+      min-height: 34px;
+      padding: 0 10px 0 12px;
+      border-radius: 7px;
+      background: var(--soft-bg);
       color: var(--muted);
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 900;
       letter-spacing: .02em;
       text-transform: uppercase;
+      cursor: pointer;
     }
 
     .template-inline-form {
@@ -4279,7 +4320,7 @@
             <b id="myTasksCount">0</b>
           </button>
           <button class="top-action" id="supportButton" type="button">
-            <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H7l-4 2 1.3-4A8 8 0 1 1 21 12Z"/><path d="M9.5 9a2.5 2.5 0 0 1 4.7 1.2c0 1.8-2.2 2-2.2 3.3"/><path d="M12 17h.01"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M20.5 11.5a7.5 7.5 0 0 1-7.5 7.5H8l-4.5 2 1.4-4.2A7.5 7.5 0 1 1 20.5 11.5Z"/><path d="M10 9.2a2.2 2.2 0 0 1 4.1 1.1c0 1.45-1.7 1.7-2.05 2.65"/><path d="M12 16h.01"/></svg>
             Поддержка
           </button>
           <div class="presence-box" id="presenceBox" title="Пользователи онлайн"><span id="presenceText"></span></div>
@@ -5156,7 +5197,8 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.3-saas";
+    const appVersion = "v2026.06.23.4-saas";
+    const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
     const storageKey = "production-planner-v1";
@@ -5366,7 +5408,7 @@
       supportAccessStatus.className = enabled ? "status ok" : "status";
       supportAccessStatus.textContent = enabled
         ? `Доступ поддержки разрешен до ${until || data.supportAccessUntil}`
-        : "Доступ поддержки к данным организации запрещен";
+        : "Доступ поддержки к данным Вашей организации сейчас запрещен";
     }
 
     function setSupportTab(tab) {
@@ -5403,6 +5445,16 @@
       return tickets.map((ticket) => `${ticket.id}:${ticket.status}:${ticket.updatedAt || ticket.createdAt}`).join("|");
     }
 
+    function supportTicketStatusLabel(status = "new") {
+      return ({
+        new: "Новое",
+        in_progress: "В работе",
+        waiting_customer: "Ожидает клиента",
+        done: "Выполнено",
+        closed: "Закрыто"
+      })[status] || status;
+    }
+
     function updateSupportNotification(tickets = [], { markSeen = false } = {}) {
       const signature = supportTicketsSignature(tickets);
       if (markSeen || !supportTicketSignature) {
@@ -5422,14 +5474,14 @@
       supportTicketList.innerHTML = tickets.length ? tickets.map((ticket) => {
         const messages = Array.isArray(ticket.messages) ? ticket.messages.filter((message) => !message.isInternal) : [];
         return `
-          <article class="support-ticket-card" data-ticket-id="${escapeHtml(ticket.id)}">
-            <header>
+          <details class="support-ticket-card" data-ticket-id="${escapeHtml(ticket.id)}">
+            <summary>
               <span>
                 <b>${escapeHtml(ticket.number || "")} · ${escapeHtml(ticket.title || "")}</b>
-                <small>${escapeHtml(ticket.status || "new")} · ${escapeHtml(formatSupportDate(ticket.updatedAt || ticket.createdAt))}</small>
+                <small>${escapeHtml(formatSupportDate(ticket.updatedAt || ticket.createdAt))}</small>
               </span>
-              <span class="badge">${escapeHtml(ticket.category || "other")}</span>
-            </header>
+              <span class="support-ticket-status" data-status="${escapeHtml(ticket.status || "new")}">${escapeHtml(supportTicketStatusLabel(ticket.status || "new"))}</span>
+            </summary>
             <div class="support-ticket-message">${escapeHtml(ticket.description || "")}</div>
             ${messages.map((message) => `
               <div class="support-ticket-message" data-own="${message.authorUserId === currentUser?.id ? "true" : "false"}">
@@ -5439,13 +5491,19 @@
             `).join("")}
             <form class="support-ticket-reply" data-ticket-reply>
               <textarea placeholder="Ответить по обращению"></textarea>
-              <button class="secondary" type="submit">Отправить ответ</button>
+              <button class="secondary" type="submit">Отправить (${submitShortcutLabel})</button>
               <div class="status"></div>
             </form>
-          </article>
+          </details>
         `;
       }).join("") : `<p class="small">У вас пока нет обращений.</p>`;
       supportTicketList.querySelectorAll("[data-ticket-reply]").forEach((form) => {
+        form.querySelector("textarea").addEventListener("keydown", (event) => {
+          if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+            event.preventDefault();
+            form.requestSubmit();
+          }
+        });
         form.addEventListener("submit", async (event) => {
           event.preventDefault();
           const card = form.closest("[data-ticket-id]");
@@ -6552,6 +6610,7 @@
       selectedTemplateId: null,
       showArchivedTemplates: false,
       selectedGpProduct: "",
+      collapsedTemplateCustomers: {},
       filters: {
         product: "",
         stage: "",
@@ -10096,11 +10155,11 @@
           .sort(([a], [b]) => a.localeCompare(b, "ru"))
           .map(([customer, groupTemplates]) => `
             <section class="template-customer-group">
-              <div class="template-customer-title">
+              <div class="template-customer-title" data-template-customer="${escapeHtml(customer)}">
                 <span>${escapeHtml(customer)}</span>
-                <b>${formatNumber(groupTemplates.length)}</b>
+                <b>${state.collapsedTemplateCustomers[customer] ? "Развернуть" : formatNumber(groupTemplates.length)}</b>
               </div>
-              ${groupTemplates
+              ${state.collapsedTemplateCustomers[customer] ? "" : groupTemplates
                 .slice()
                 .sort((a, b) => a.name.localeCompare(b.name, "ru"))
                 .map(templateRowHtml)
@@ -10111,6 +10170,13 @@
         templateList.innerHTML = templates.map(templateRowHtml).join("");
       }
       placeTemplateForm();
+      templateList.querySelectorAll("[data-template-customer]").forEach((header) => {
+        header.addEventListener("click", () => {
+          const customer = header.dataset.templateCustomer;
+          state.collapsedTemplateCustomers[customer] = !state.collapsedTemplateCustomers[customer];
+          renderTemplateList();
+        });
+      });
       templateList.querySelectorAll("[data-id]").forEach((button) => {
         button.addEventListener("click", (event) => {
           openProductTemplate(event.currentTarget.dataset.id);

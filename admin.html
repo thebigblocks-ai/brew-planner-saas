@@ -458,7 +458,29 @@
     }
 
     .user-row {
-      grid-template-columns: minmax(0, 1fr) 140px 160px;
+      grid-template-columns: minmax(0, 1fr) 170px;
+      align-items: start;
+    }
+
+    .user-actions {
+      display: grid;
+      gap: 8px;
+    }
+
+    .users-layout {
+      display: grid;
+      grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .user-create-form {
+      display: grid;
+      gap: 4px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
     }
 
     .ticket-row {
@@ -496,6 +518,43 @@
       border-color: rgba(255, 139, 0, .35);
     }
 
+    .ticket-card {
+      display: grid;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .ticket-card summary {
+      display: grid;
+      gap: 7px;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .ticket-card summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .ticket-status-badge {
+      width: fit-content;
+      min-height: 22px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      background: var(--surface-soft);
+      color: var(--muted);
+    }
+
+    .ticket-status-badge[data-status="new"] { background: #dbeafe; color: #1d4ed8; }
+    .ticket-status-badge[data-status="in_progress"] { background: #fef3c7; color: #b45309; }
+    .ticket-status-badge[data-status="waiting_customer"] { background: #ede9fe; color: #6d28d9; }
+    .ticket-status-badge[data-status="done"] { background: #dcfce7; color: #15803d; }
+    .ticket-status-badge[data-status="closed"] { background: #e5e7eb; color: #374151; }
+
     .message-list {
       display: grid;
       gap: 8px;
@@ -516,6 +575,7 @@
       .tickets-layout { grid-template-columns: 1fr; }
       .feature-grid { grid-template-columns: 1fr; }
       .logo-editor { grid-template-columns: 1fr; }
+      .users-layout { grid-template-columns: 1fr; }
       .user-row,
       .ticket-row { grid-template-columns: 1fr; }
     }
@@ -550,7 +610,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.23.3-saas</span>
+        <span>v2026.06.23.4-saas</span>
       </div>
     </aside>
 
@@ -617,6 +677,7 @@
             <div class="tabs">
               <button class="active" type="button" data-org-tab="features">Функции</button>
               <button type="button" data-org-tab="users">Сотрудники</button>
+              <button type="button" data-org-tab="tickets">Обращения</button>
               <button type="button" data-org-tab="profile">Параметры</button>
             </div>
             <div class="card-body" id="orgFeaturesTab">
@@ -627,9 +688,8 @@
               <div class="status" id="featuresStatus"></div>
             </div>
             <div class="card-body hidden" id="orgUsersTab">
-              <div class="table" id="organizationUsers"></div>
-              <form id="organizationUserForm">
-                <div class="two">
+              <div class="users-layout">
+                <form id="organizationUserForm" class="user-create-form">
                   <label class="field">
                     <span>Email</span>
                     <input id="orgUserEmailInput" type="email" placeholder="user@company.ru">
@@ -638,8 +698,6 @@
                     <span>Пароль</span>
                     <input value="Будет создан временный пароль" disabled>
                   </label>
-                </div>
-                <div class="two">
                   <label class="field">
                     <span>Имя</span>
                     <input id="orgUserNameInput" placeholder="ФИО">
@@ -652,12 +710,14 @@
                       <option value="reader">Читатель</option>
                     </select>
                   </label>
-                </div>
-                <div class="actions">
                   <button class="primary" type="submit">Добавить сотрудника</button>
-                </div>
-                <div class="status" id="usersStatus"></div>
-              </form>
+                  <div class="status" id="usersStatus"></div>
+                </form>
+                <div class="table" id="organizationUsers"></div>
+              </div>
+            </div>
+            <div class="card-body hidden" id="orgTicketsTab">
+              <div class="table" id="organizationTickets"></div>
             </div>
             <div class="card-body hidden" id="orgProfileTab">
               <form id="organizationEditForm">
@@ -704,10 +764,6 @@
                 <div class="status" id="profileStatus"></div>
               </form>
             </div>
-            <div class="card-body">
-              <h3 class="section-title">Обращения организации</h3>
-              <div class="table" id="organizationTickets"></div>
-            </div>
           </div>
         </div>
       </section>
@@ -720,6 +776,17 @@
               <span class="badge" id="ticketCount">0</span>
             </div>
             <div class="card-body">
+              <label class="field compact-field">
+                <span>Статус</span>
+                <select id="ticketStatusFilter">
+                  <option value="">Все обращения</option>
+                  <option value="new">Новое</option>
+                  <option value="in_progress">В работе</option>
+                  <option value="waiting_customer">Ожидает клиента</option>
+                  <option value="done">Выполнено</option>
+                  <option value="closed">Закрыто</option>
+                </select>
+              </label>
               <div class="table" id="ticketList"></div>
             </div>
           </div>
@@ -796,6 +863,14 @@
       "contractBrewery"
     ];
     const defaultFeatureKeys = Object.keys(featureLabels).filter((key) => !managedFeatureKeys.includes(key));
+    const ticketStatusLabels = {
+      new: "Новое",
+      in_progress: "В работе",
+      waiting_customer: "Ожидает клиента",
+      done: "Выполнено",
+      closed: "Закрыто"
+    };
+    const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
 
     let currentUser = null;
     let organizations = [];
@@ -803,6 +878,7 @@
     let selectedOrgUsers = [];
     let tickets = [];
     let selectedTicketId = "";
+    let ticketStatusFilter = "";
     let organizationSearchQuery = "";
     let organizationFormOpen = false;
     let ticketRefreshTimer = null;
@@ -899,6 +975,34 @@
       } else {
         preview.textContent = "Без логотипа";
       }
+    }
+
+    function ticketStatusBadge(status = "new") {
+      return `<span class="ticket-status-badge" data-status="${escapeHtml(status)}">${escapeHtml(ticketStatusLabels[status] || status)}</span>`;
+    }
+
+    function ticketCardHtml(ticket) {
+      const messages = Array.isArray(ticket.messages) ? ticket.messages : [];
+      return `
+        <details class="ticket-card" data-ticket-card-id="${escapeHtml(ticket.id)}">
+          <summary>
+            <span>
+              <b>${escapeHtml(ticket.number)} · ${escapeHtml(ticket.title)}</b>
+              <span class="small">${escapeHtml(ticket.organizationName || ticket.organizationId)} · ${escapeHtml(ticket.createdByName || ticket.createdByEmail)} · ${escapeHtml(formatDateTime(ticket.updatedAt || ticket.createdAt))}</span>
+            </span>
+            ${ticketStatusBadge(ticket.status || "new")}
+          </summary>
+          <div class="ticket-description">${escapeHtml(ticket.description || "")}</div>
+          <div class="message-list">
+            ${messages.length ? messages.map((message) => `
+              <div class="ticket-message" data-internal="${message.isInternal ? "true" : "false"}">
+                <div class="small">${escapeHtml(message.authorName || message.authorEmail)} · ${escapeHtml(formatDateTime(message.createdAt))}${message.isInternal ? " · внутреннее" : ""}</div>
+                ${escapeHtml(message.text || "")}
+              </div>
+            `).join("") : `<p class="small">Сообщений пока нет.</p>`}
+          </div>
+        </details>
+      `;
     }
 
     async function loadMe() {
@@ -1003,9 +1107,11 @@
     function renderOrgTabs() {
       $("[data-org-tab='features']").classList.toggle("active", activeOrgTab === "features");
       $("[data-org-tab='users']").classList.toggle("active", activeOrgTab === "users");
+      $("[data-org-tab='tickets']").classList.toggle("active", activeOrgTab === "tickets");
       $("[data-org-tab='profile']").classList.toggle("active", activeOrgTab === "profile");
       $("#orgFeaturesTab").classList.toggle("hidden", activeOrgTab !== "features");
       $("#orgUsersTab").classList.toggle("hidden", activeOrgTab !== "users");
+      $("#orgTicketsTab").classList.toggle("hidden", activeOrgTab !== "tickets");
       $("#orgProfileTab").classList.toggle("hidden", activeOrgTab !== "profile");
     }
 
@@ -1041,13 +1147,15 @@
             <b>${escapeHtml(user.displayName || user.email)}</b>
             <div class="small">${escapeHtml(user.email)}${user.mustChangePassword ? " · ждет смены пароля" : ""}</div>
           </div>
-          <select data-role>
-            <option value="admin" ${user.role === "admin" ? "selected" : ""}>Админ</option>
-            <option value="manager" ${user.role === "manager" ? "selected" : ""}>Редактор</option>
-            <option value="reader" ${user.role === "reader" ? "selected" : ""}>Читатель</option>
-          </select>
-          <button class="secondary" type="button" data-reset-password>Временный пароль</button>
-          <button class="compact-danger" type="button" data-remove>Удалить пользователя</button>
+          <div class="user-actions">
+            <select data-role>
+              <option value="admin" ${user.role === "admin" ? "selected" : ""}>Админ</option>
+              <option value="manager" ${user.role === "manager" ? "selected" : ""}>Редактор</option>
+              <option value="reader" ${user.role === "reader" ? "selected" : ""}>Читатель</option>
+            </select>
+            <button class="secondary" type="button" data-reset-password>Временный пароль</button>
+            <button class="compact-danger" type="button" data-remove>Удалить пользователя</button>
+          </div>
         </div>
       `).join("") : `<p class="small">В организации пока нет пользователей.</p>`;
 
@@ -1084,15 +1192,7 @@
       const organizationTickets = tickets
         .filter((ticket) => ticket.organizationId === organization.id)
         .sort((a, b) => String(b.updatedAt || b.createdAt).localeCompare(String(a.updatedAt || a.createdAt)));
-      container.innerHTML = organizationTickets.length ? organizationTickets.map((ticket) => `
-        <button class="row" type="button" data-organization-ticket-id="${escapeHtml(ticket.id)}">
-          <span class="row-title">
-            <span>${escapeHtml(ticket.number)} · ${escapeHtml(ticket.title)}</span>
-            <span class="badge">${escapeHtml(ticket.status || "new")}</span>
-          </span>
-          <span class="row-meta">${escapeHtml(ticket.createdByName || ticket.createdByEmail)} · ${escapeHtml(formatDateTime(ticket.updatedAt || ticket.createdAt))}</span>
-        </button>
-      `).join("") : `<p class="small">По этой организации обращений пока нет.</p>`;
+      container.innerHTML = organizationTickets.length ? organizationTickets.map((ticket) => ticketCardHtml(ticket)).join("") : `<p class="small">По этой организации обращений пока нет.</p>`;
       container.querySelectorAll("[data-organization-ticket-id]").forEach((button) => {
         button.addEventListener("click", () => {
           selectedTicketId = button.dataset.organizationTicketId;
@@ -1105,14 +1205,17 @@
 
     function renderTickets() {
       renderTicketCounter();
-      $("#ticketCount").textContent = String(tickets.length);
+      const visibleTickets = ticketStatusFilter ? tickets.filter((ticket) => ticket.status === ticketStatusFilter) : tickets;
+      $("#ticketCount").textContent = ticketStatusFilter ? `${visibleTickets.length}/${tickets.length}` : String(tickets.length);
       if (selectedTicketId && !tickets.some((ticket) => ticket.id === selectedTicketId)) selectedTicketId = "";
-      if (!selectedTicketId && tickets.length) selectedTicketId = tickets[0].id;
-      $("#ticketList").innerHTML = tickets.length ? tickets.map((ticket) => `
+      if (selectedTicketId && !visibleTickets.some((ticket) => ticket.id === selectedTicketId)) selectedTicketId = "";
+      if (!selectedTicketId && visibleTickets.length) selectedTicketId = visibleTickets[0].id;
+      $("#ticketList").innerHTML = visibleTickets.length ? visibleTickets.map((ticket) => `
         <div class="ticket-row ${ticket.id === selectedTicketId ? "active" : ""}" data-ticket-id="${escapeHtml(ticket.id)}">
           <div>
             <b>${escapeHtml(ticket.number)} · ${escapeHtml(ticket.title)}</b>
             <div class="small">${escapeHtml(ticket.organizationName || ticket.organizationId)} · ${escapeHtml(ticket.createdByName || ticket.createdByEmail)} · ${escapeHtml(ticket.createdByPhone || "телефон не указан")} · ${escapeHtml(ticket.category)}</div>
+            ${ticketStatusBadge(ticket.status || "new")}
           </div>
           <select data-ticket-status>
             <option value="new" ${ticket.status === "new" ? "selected" : ""}>Новое</option>
@@ -1121,7 +1224,7 @@
             <option value="done" ${ticket.status === "done" ? "selected" : ""}>Выполнено</option>
             <option value="closed" ${ticket.status === "closed" ? "selected" : ""}>Закрыто</option>
           </select>
-          <span class="badge">${escapeHtml(ticket.priority || "normal")}</span>
+          <span></span>
         </div>
       `).join("") : `<p class="small">Обращений пока нет.</p>`;
       $("#ticketList").querySelectorAll(".ticket-row").forEach((row) => {
@@ -1192,7 +1295,7 @@
               <span>Внутренняя заметка</span>
             </label>
             <div class="actions">
-              <button class="primary" type="submit">Отправить</button>
+              <button class="primary" type="submit">Отправить (${submitShortcutLabel})</button>
             </div>
             <div class="status" id="ticketMessageStatus"></div>
           </form>
@@ -1218,6 +1321,12 @@
           await loadTickets();
         } catch (error) {
           setStatus($("#ticketMessageStatus"), error.message, "error");
+        }
+      });
+      $("#ticketMessageInput").addEventListener("keydown", (event) => {
+        if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+          event.preventDefault();
+          $("#ticketMessageForm").requestSubmit();
         }
       });
       $("#openTicketOrganizationButton").addEventListener("click", async () => {
@@ -1323,6 +1432,12 @@
     });
 
     $("#refreshButton").addEventListener("click", loadAll);
+
+    $("#ticketStatusFilter").addEventListener("change", (event) => {
+      ticketStatusFilter = event.target.value;
+      selectedTicketId = "";
+      renderTickets();
+    });
 
     $("#organizationSearchInput").addEventListener("input", (event) => {
       organizationSearchQuery = event.target.value;
