@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "index.html"
+      - "admin.html"
       - "README.md"
       - "readme.txt"
       - "assets/**"
@@ -52,6 +53,13 @@ jobs:
       - name: Upload index.html
         run: |
           aws s3 cp index.html "s3://${YC_BUCKET}/index.html" \
+            --endpoint-url "${YC_ENDPOINT}" \
+            --content-type "text/html; charset=utf-8" \
+            --cache-control "no-cache, no-store, must-revalidate"
+
+      - name: Upload admin.html
+        run: |
+          aws s3 cp admin.html "s3://${YC_BUCKET}/admin.html" \
             --endpoint-url "${YC_ENDPOINT}" \
             --content-type "text/html; charset=utf-8" \
             --cache-control "no-cache, no-store, must-revalidate"
