@@ -266,6 +266,22 @@
       gap: 8px;
     }
 
+    .compact-field {
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    .full-button {
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .collapsible-form {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
     .row {
       display: grid;
       gap: 5px;
@@ -355,6 +371,27 @@
       width: auto;
     }
 
+    .feature-section {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .feature-section-title {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .feature-row.fixed {
+      background: var(--surface-soft);
+      color: var(--muted);
+      justify-content: space-between;
+    }
+
     .logo-editor {
       display: grid;
       grid-template-columns: 150px minmax(0, 1fr);
@@ -406,6 +443,46 @@
       background: #fff;
     }
 
+    .ticket-row {
+      cursor: pointer;
+    }
+
+    .ticket-row.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(255, 139, 0, .14);
+    }
+
+    .tickets-layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 520px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .ticket-details {
+      display: grid;
+      gap: 14px;
+    }
+
+    .ticket-description,
+    .ticket-message {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+      white-space: pre-wrap;
+    }
+
+    .ticket-message[data-internal="true"] {
+      background: #fff7ed;
+      border-color: rgba(255, 139, 0, .35);
+    }
+
+    .message-list {
+      display: grid;
+      gap: 8px;
+    }
+
     .hidden { display: none !important; }
 
     @media (max-width: 980px) {
@@ -418,6 +495,7 @@
       }
       .side-footer { position: static; margin-top: 18px; }
       .grid { grid-template-columns: 1fr; }
+      .tickets-layout { grid-template-columns: 1fr; }
       .feature-grid { grid-template-columns: 1fr; }
       .logo-editor { grid-template-columns: 1fr; }
       .user-row,
@@ -454,7 +532,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.22.4-saas</span>
+        <span>v2026.06.23.2-saas</span>
       </div>
     </aside>
 
@@ -475,8 +553,13 @@
               <span class="badge" id="organizationCount">0</span>
             </div>
             <div class="card-body">
+              <label class="field compact-field">
+                <span>Поиск</span>
+                <input id="organizationSearchInput" placeholder="Введите часть названия">
+              </label>
               <div class="list" id="organizationList"></div>
-              <form id="organizationForm">
+              <button class="secondary full-button" id="toggleOrganizationFormButton" type="button">Новая организация</button>
+              <form id="organizationForm" class="collapsible-form hidden">
                 <label class="field">
                   <span>Новая организация</span>
                   <input id="organizationNameInput" placeholder="Название организации">
@@ -574,7 +657,7 @@
                     <div class="actions">
                       <button class="secondary" id="clearOrganizationLogoButton" type="button">Убрать логотип</button>
                     </div>
-                    <p class="small">По умолчанию организация создается без логотипа. Рекомендуемый формат: PNG или SVG до 300 КБ.</p>
+                    <p class="small">По умолчанию организация создается без логотипа. Логотип автоматически приводится к высоте 60 px.</p>
                   </div>
                 </div>
                 <div class="two">
@@ -608,13 +691,24 @@
       </section>
 
       <section id="ticketsView" class="hidden">
-        <div class="card">
-          <div class="card-head">
-            <h2>Обращения</h2>
-            <span class="badge" id="ticketCount">0</span>
+        <div class="tickets-layout">
+          <div class="card">
+            <div class="card-head">
+              <h2>Обращения</h2>
+              <span class="badge" id="ticketCount">0</span>
+            </div>
+            <div class="card-body">
+              <div class="table" id="ticketList"></div>
+            </div>
           </div>
-          <div class="card-body">
-            <div class="table" id="ticketList"></div>
+          <div class="card">
+            <div class="card-head">
+              <h2>Детали обращения</h2>
+              <span class="badge" id="selectedTicketBadge">-</span>
+            </div>
+            <div class="card-body" id="ticketDetails">
+              <p class="small">Выберите обращение слева.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -672,12 +766,23 @@
       contractBrews: "Контрактные варки",
       contractBrewery: "Несколько площадок"
     };
+    const managedFeatureKeys = [
+      "cycleTasks",
+      "cycleProcess",
+      "initialSetup",
+      "contractBrews",
+      "contractBrewery"
+    ];
+    const defaultFeatureKeys = Object.keys(featureLabels).filter((key) => !managedFeatureKeys.includes(key));
 
     let currentUser = null;
     let organizations = [];
     let selectedOrganizationId = "";
     let selectedOrgUsers = [];
     let tickets = [];
+    let selectedTicketId = "";
+    let organizationSearchQuery = "";
+    let organizationFormOpen = false;
     let activeView = "organizations";
     let activeOrgTab = "features";
     let pendingOrganizationLogo = null;
@@ -727,16 +832,39 @@
       element.textContent = message || "";
     }
 
-    function readImageFile(file) {
+    function resizeLogoFile(file, targetHeight = 60) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve({
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          dataUrl: reader.result
-        });
-        reader.onerror = () => reject(reader.error || new Error("Не удалось прочитать файл"));
+        reader.onerror = () => reject(reader.error || new Error("Не удалось прочитать логотип"));
+        reader.onload = () => {
+          const sourceDataUrl = String(reader.result || "");
+          const image = new Image();
+          image.onerror = () => reject(new Error("Не удалось обработать логотип"));
+          image.onload = () => {
+            const naturalWidth = Number(image.naturalWidth || image.width || 0);
+            const naturalHeight = Number(image.naturalHeight || image.height || 0);
+            if (!naturalWidth || !naturalHeight) {
+              reject(new Error("Не удалось определить размер логотипа"));
+              return;
+            }
+            const width = Math.max(1, Math.round(naturalWidth * targetHeight / naturalHeight));
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = targetHeight;
+            const context = canvas.getContext("2d");
+            context.clearRect(0, 0, width, targetHeight);
+            context.drawImage(image, 0, 0, width, targetHeight);
+            resolve({
+              name: file.name.replace(/\.[^.]+$/, "") + ".png",
+              size: file.size,
+              type: "image/png",
+              width,
+              height: targetHeight,
+              dataUrl: canvas.toDataURL("image/png")
+            });
+          };
+          image.src = sourceDataUrl;
+        };
         reader.readAsDataURL(file);
       });
     }
@@ -809,8 +937,12 @@
     }
 
     function renderOrganizations() {
-      $("#organizationCount").textContent = String(organizations.length);
-      $("#organizationList").innerHTML = organizations.map((organization) => `
+      const query = organizationSearchQuery.trim().toLowerCase();
+      const visibleOrganizations = query
+        ? organizations.filter((organization) => String(organization.name || "").toLowerCase().includes(query))
+        : organizations;
+      $("#organizationCount").textContent = query ? `${visibleOrganizations.length}/${organizations.length}` : String(organizations.length);
+      $("#organizationList").innerHTML = visibleOrganizations.length ? visibleOrganizations.map((organization) => `
         <button class="row ${organization.id === selectedOrganizationId ? "active" : ""}" type="button" data-organization-id="${escapeHtml(organization.id)}">
           <span class="row-title">
             <span>${escapeHtml(organization.name)}</span>
@@ -818,7 +950,7 @@
           </span>
           <span class="row-meta">${escapeHtml(organization.tariff)} · ${organization.userCount || 0} пользователей</span>
         </button>
-      `).join("");
+      `).join("") : `<p class="small">Организации не найдены.</p>`;
       $("#organizationList").querySelectorAll("[data-organization-id]").forEach((button) => {
         button.addEventListener("click", async () => {
           selectedOrganizationId = button.dataset.organizationId;
@@ -853,12 +985,28 @@
     }
 
     function renderFeatureList(features) {
-      $("#featureList").innerHTML = Object.entries(featureLabels).map(([key, label]) => `
-        <label class="feature-row">
-          <input type="checkbox" data-feature-key="${escapeHtml(key)}" ${(features[key] ?? defaultFeatures[key]) ? "checked" : ""}>
-          <span>${escapeHtml(label)}</span>
-        </label>
-      `).join("");
+      const managedRows = managedFeatureKeys.map((key) => `
+          <label class="feature-row">
+            <input type="checkbox" data-feature-key="${escapeHtml(key)}" ${(features[key] ?? defaultFeatures[key]) ? "checked" : ""}>
+            <span>${escapeHtml(featureLabels[key])}</span>
+          </label>
+        `).join("");
+      const defaultRows = defaultFeatureKeys.map((key) => `
+          <div class="feature-row fixed">
+            <span>${escapeHtml(featureLabels[key])}</span>
+            <span class="badge">по умолчанию</span>
+          </div>
+        `).join("");
+      $("#featureList").innerHTML = `
+        <div class="feature-section">
+          <p class="feature-section-title">Управляемые функции</p>
+          ${managedRows}
+        </div>
+        <div class="feature-section">
+          <p class="feature-section-title">Включены для всех клиентов</p>
+          ${defaultRows}
+        </div>
+      `;
     }
 
     function renderOrganizationUsers() {
@@ -907,11 +1055,13 @@
     function renderTickets() {
       renderTicketCounter();
       $("#ticketCount").textContent = String(tickets.length);
+      if (selectedTicketId && !tickets.some((ticket) => ticket.id === selectedTicketId)) selectedTicketId = "";
+      if (!selectedTicketId && tickets.length) selectedTicketId = tickets[0].id;
       $("#ticketList").innerHTML = tickets.length ? tickets.map((ticket) => `
-        <div class="ticket-row" data-ticket-id="${escapeHtml(ticket.id)}">
+        <div class="ticket-row ${ticket.id === selectedTicketId ? "active" : ""}" data-ticket-id="${escapeHtml(ticket.id)}">
           <div>
             <b>${escapeHtml(ticket.number)} · ${escapeHtml(ticket.title)}</b>
-            <div class="small">${escapeHtml(ticket.organizationName || ticket.organizationId)} · ${escapeHtml(ticket.createdByName || ticket.createdByEmail)} · ${escapeHtml(ticket.category)}</div>
+            <div class="small">${escapeHtml(ticket.organizationName || ticket.organizationId)} · ${escapeHtml(ticket.createdByName || ticket.createdByEmail)} · ${escapeHtml(ticket.createdByPhone || "телефон не указан")} · ${escapeHtml(ticket.category)}</div>
           </div>
           <select data-ticket-status>
             <option value="new" ${ticket.status === "new" ? "selected" : ""}>Новое</option>
@@ -924,6 +1074,11 @@
         </div>
       `).join("") : `<p class="small">Обращений пока нет.</p>`;
       $("#ticketList").querySelectorAll(".ticket-row").forEach((row) => {
+        row.addEventListener("click", (event) => {
+          if (event.target.closest("select")) return;
+          selectedTicketId = row.dataset.ticketId;
+          renderTickets();
+        });
         row.querySelector("[data-ticket-status]").addEventListener("change", async (event) => {
           await request(`/tickets/${encodeURIComponent(row.dataset.ticketId)}`, {
             method: "PATCH",
@@ -932,6 +1087,92 @@
           await loadTickets();
         });
       });
+      renderTicketDetails();
+    }
+
+    function renderTicketDetails() {
+      const ticket = tickets.find((item) => item.id === selectedTicketId);
+      $("#selectedTicketBadge").textContent = ticket ? ticket.number : "-";
+      if (!ticket) {
+        $("#ticketDetails").innerHTML = `<p class="small">Выберите обращение слева.</p>`;
+        return;
+      }
+      const messages = Array.isArray(ticket.messages) ? ticket.messages : [];
+      $("#ticketDetails").innerHTML = `
+        <div class="ticket-details">
+          <div>
+            <b>${escapeHtml(ticket.title)}</b>
+            <div class="small">
+              ${escapeHtml(ticket.organizationName || ticket.organizationId)}
+              · ${escapeHtml(ticket.createdByName || ticket.createdByEmail)}
+              · ${escapeHtml(ticket.createdByPhone || "телефон не указан")}
+            </div>
+          </div>
+          <div class="ticket-description">${escapeHtml(ticket.description || "")}</div>
+          ${ticket.attachments?.length ? `
+            <div>
+              <b>Вложения</b>
+              <div class="message-list">
+                ${ticket.attachments.map((file) => `<a class="small" href="${escapeHtml(file.dataUrl || "#")}" target="_blank" rel="noopener">${escapeHtml(file.name || "Файл")}</a>`).join("")}
+              </div>
+            </div>
+          ` : ""}
+          <div>
+            <b>Переписка</b>
+            <div class="message-list">
+              ${messages.length ? messages.map((message) => `
+                <div class="ticket-message" data-internal="${message.isInternal ? "true" : "false"}">
+                  <div class="small">${escapeHtml(message.authorName || message.authorEmail)} · ${escapeHtml(formatDateTime(message.createdAt))}${message.isInternal ? " · внутреннее" : ""}</div>
+                  ${escapeHtml(message.text || "")}
+                </div>
+              `).join("") : `<p class="small">Сообщений пока нет.</p>`}
+            </div>
+          </div>
+          <form id="ticketMessageForm">
+            <label class="field">
+              <span>Ответ клиенту</span>
+              <textarea id="ticketMessageInput" placeholder="Напишите сообщение"></textarea>
+            </label>
+            <label class="feature-row">
+              <input id="ticketInternalInput" type="checkbox">
+              <span>Внутренняя заметка</span>
+            </label>
+            <div class="actions">
+              <button class="primary" type="submit">Отправить</button>
+            </div>
+            <div class="status" id="ticketMessageStatus"></div>
+          </form>
+        </div>
+      `;
+      $("#ticketMessageForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const text = $("#ticketMessageInput").value.trim();
+        if (!text) {
+          setStatus($("#ticketMessageStatus"), "Введите сообщение", "error");
+          return;
+        }
+        setStatus($("#ticketMessageStatus"), "Отправляем...");
+        try {
+          await request(`/tickets/${encodeURIComponent(ticket.id)}/messages`, {
+            method: "POST",
+            body: {
+              text,
+              isInternal: $("#ticketInternalInput").checked
+            }
+          });
+          setStatus($("#ticketMessageStatus"), "Сообщение отправлено", "ok");
+          await loadTickets();
+        } catch (error) {
+          setStatus($("#ticketMessageStatus"), error.message, "error");
+        }
+      });
+    }
+
+    function formatDateTime(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
     }
 
     function renderTicketCounter() {
@@ -1006,6 +1247,17 @@
 
     $("#refreshButton").addEventListener("click", loadAll);
 
+    $("#organizationSearchInput").addEventListener("input", (event) => {
+      organizationSearchQuery = event.target.value;
+      renderOrganizations();
+    });
+
+    $("#toggleOrganizationFormButton").addEventListener("click", () => {
+      organizationFormOpen = !organizationFormOpen;
+      $("#organizationForm").classList.toggle("hidden", !organizationFormOpen);
+      $("#toggleOrganizationFormButton").textContent = organizationFormOpen ? "Свернуть создание" : "Новая организация";
+    });
+
     $("#organizationForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       setStatus($("#organizationStatus"), "Создаем организацию...");
@@ -1020,6 +1272,9 @@
         });
         selectedOrganizationId = data.organization.id;
         event.target.reset();
+        organizationFormOpen = false;
+        $("#organizationForm").classList.add("hidden");
+        $("#toggleOrganizationFormButton").textContent = "Новая организация";
         setStatus($("#organizationStatus"), "Организация создана", "ok");
         await loadOrganizations();
       } catch (error) {
@@ -1064,15 +1319,13 @@
     $("#organizationLogoInput").addEventListener("change", async (event) => {
       const file = event.target.files?.[0];
       if (!file) return;
-      if (file.size > 300 * 1024) {
-        setStatus($("#profileStatus"), "Логотип должен быть не больше 300 КБ", "error");
-        event.target.value = "";
-        return;
-      }
       try {
-        pendingOrganizationLogo = await readImageFile(file);
+        pendingOrganizationLogo = await resizeLogoFile(file, 60);
+        if (pendingOrganizationLogo.dataUrl.length > 300 * 1024 * 1.4) {
+          throw new Error("После обработки логотип все еще слишком большой. Выберите изображение меньшего размера.");
+        }
         renderLogoPreview(pendingOrganizationLogo.dataUrl);
-        setStatus($("#profileStatus"), "Логотип выбран. Нажмите «Сохранить параметры».", "");
+        setStatus($("#profileStatus"), `Логотип подогнан до ${pendingOrganizationLogo.width}×60 px. Нажмите «Сохранить параметры».`, "");
       } catch (error) {
         pendingOrganizationLogo = null;
         setStatus($("#profileStatus"), error.message, "error");
@@ -1089,8 +1342,12 @@
     $("#saveFeaturesButton").addEventListener("click", async () => {
       if (!selectedOrganizationId) return;
       const features = {};
-      $$("[data-feature-key]").forEach((input) => {
-        features[input.dataset.featureKey] = input.checked;
+      defaultFeatureKeys.forEach((key) => {
+        features[key] = true;
+      });
+      managedFeatureKeys.forEach((key) => {
+        const input = document.querySelector(`[data-feature-key="${key}"]`);
+        features[key] = input ? input.checked : defaultFeatures[key];
       });
       setStatus($("#featuresStatus"), "Сохраняем функции...");
       try {

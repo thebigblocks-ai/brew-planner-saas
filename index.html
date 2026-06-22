@@ -3108,6 +3108,53 @@
       overflow: hidden;
     }
 
+    #supportModal .modal {
+      width: min(720px, 100%);
+      max-height: calc(100vh - 40px);
+      overflow: auto;
+    }
+
+    .support-ticket-list {
+      display: grid;
+      gap: 10px;
+      padding: 14px 16px 0;
+    }
+
+    .support-ticket-card {
+      display: grid;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--soft-bg);
+    }
+
+    .support-ticket-card header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .support-ticket-card b,
+    .support-ticket-card small {
+      display: block;
+    }
+
+    .support-ticket-message {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      background: var(--panel);
+      white-space: pre-wrap;
+      font-size: 13px;
+    }
+
+    .support-ticket-reply {
+      display: grid;
+      gap: 8px;
+    }
+
     .modal h2 {
       margin: 0;
       padding: 16px 16px 0;
@@ -4029,6 +4076,31 @@
     </form>
   </div>
 
+  <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
+    <div class="modal">
+      <h2 id="forcePasswordModalTitle">Смените временный пароль</h2>
+      <p>После смены пароля администратор больше не будет знать ваш постоянный пароль.</p>
+      <form class="password-modal-form" id="forcePasswordForm">
+        <label class="field">
+          <span>Текущий временный пароль</span>
+          <input id="forceCurrentPasswordInput" type="password" autocomplete="current-password" required>
+        </label>
+        <label class="field">
+          <span>Новый пароль</span>
+          <input id="forceNewPasswordInput" type="password" autocomplete="new-password" required>
+        </label>
+        <label class="field">
+          <span>Повторите новый пароль</span>
+          <input id="forceRepeatPasswordInput" type="password" autocomplete="new-password" required>
+        </label>
+        <div class="status" id="forcePasswordStatus"></div>
+      </form>
+      <div class="modal-actions">
+        <button class="primary" id="saveForcePasswordButton" type="submit" form="forcePasswordForm">Сменить пароль</button>
+      </div>
+    </div>
+  </div>
+
   <main class="app">
     <header class="topbar">
       <div class="topbar-left">
@@ -4618,7 +4690,7 @@
               </label>
               <label class="field">
                 <span>Пароль</span>
-                <input id="newUserPasswordInput" type="password" autocomplete="new-password" required>
+                <input id="newUserPasswordInput" value="Будет создан временный пароль" disabled>
               </label>
             </div>
             <label class="field">
@@ -4726,22 +4798,14 @@
 
   <div class="modal-backdrop" id="userPasswordModal" role="dialog" aria-modal="true" aria-labelledby="userPasswordModalTitle">
     <div class="modal">
-      <h2 id="userPasswordModalTitle">Сменить пароль</h2>
-      <p id="userPasswordModalText">Новый пароль будет применен сразу после сохранения.</p>
+      <h2 id="userPasswordModalTitle">Временный пароль</h2>
+      <p id="userPasswordModalText">Будет создан новый временный пароль. Пользователь должен сменить его при следующем входе.</p>
       <form class="password-modal-form" id="userPasswordForm">
-        <label class="field">
-          <span>Новый пароль</span>
-          <input id="userNewPasswordInput" type="password" autocomplete="new-password" required>
-        </label>
-        <label class="field">
-          <span>Повторите пароль</span>
-          <input id="userRepeatPasswordInput" type="password" autocomplete="new-password" required>
-        </label>
         <div class="status" id="userPasswordStatus"></div>
       </form>
       <div class="modal-actions">
         <button class="secondary" id="cancelUserPasswordButton" type="button">Отмена</button>
-        <button class="primary" id="saveUserPasswordButton" type="submit" form="userPasswordForm">Сохранить</button>
+        <button class="primary" id="saveUserPasswordButton" type="submit" form="userPasswordForm">Сгенерировать</button>
       </div>
     </div>
   </div>
@@ -4878,6 +4942,11 @@
     <div class="modal">
       <h2 id="supportModalTitle">Обращение в поддержку</h2>
       <p>Опишите вопрос или проблему. Обращению будет присвоен уникальный номер.</p>
+      <div class="status" id="supportAccessStatus" hidden></div>
+      <div class="modal-actions" id="supportAccessActions" hidden>
+        <button class="secondary" id="enableSupportAccessButton" type="button">Разрешить доступ на 24 часа</button>
+        <button class="secondary" id="disableSupportAccessButton" type="button">Запретить доступ</button>
+      </div>
       <form class="password-modal-form" id="supportForm">
         <label class="field">
           <span>Категория</span>
@@ -4895,6 +4964,10 @@
           <input id="supportTitleInput" required>
         </label>
         <label class="field">
+          <span>Контактный телефон</span>
+          <input id="supportPhoneInput" type="tel" autocomplete="tel" placeholder="+7">
+        </label>
+        <label class="field">
           <span>Описание</span>
           <textarea id="supportDescriptionInput" required></textarea>
         </label>
@@ -4908,6 +4981,7 @@
           <button class="primary" type="submit">Отправить</button>
         </div>
       </form>
+      <div class="support-ticket-list" id="supportTicketList"></div>
     </div>
   </div>
 
@@ -4932,7 +5006,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.22.2-saas";
+    const appVersion = "v2026.06.23.1-saas";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
     const storageKey = "production-planner-v1";
@@ -5129,6 +5203,128 @@
         throw new Error(`Файл ${tooLarge.name} больше 5 МБ`);
       }
       return Promise.all(files.map(readSupportAttachment));
+    }
+
+    function renderSupportAccessStatus(data = {}) {
+      const visible = isYandexBackend && canAdmin();
+      supportAccessStatus.hidden = !visible;
+      supportAccessActions.hidden = !visible;
+      if (!visible) return;
+      const enabled = Boolean(data.supportAccessEnabled);
+      const until = data.supportAccessUntil ? shortNumericDateFormatter.format(parseDate(data.supportAccessUntil.slice(0, 10))) : "";
+      supportAccessStatus.className = enabled ? "status ok" : "status";
+      supportAccessStatus.textContent = enabled
+        ? `Доступ поддержки разрешен до ${until || data.supportAccessUntil}`
+        : "Доступ поддержки к данным организации запрещен";
+    }
+
+    async function loadSupportAccessStatus() {
+      if (!isYandexBackend || !canAdmin()) {
+        renderSupportAccessStatus();
+        return;
+      }
+      try {
+        renderSupportAccessStatus(await yandexRequest("/support-access"));
+      } catch (error) {
+        supportAccessStatus.hidden = false;
+        supportAccessStatus.className = "status error";
+        supportAccessStatus.textContent = `Не удалось проверить доступ поддержки: ${error.message}`;
+      }
+    }
+
+    function formatSupportDate(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      return date.toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+    }
+
+    function renderSupportTickets(tickets = []) {
+      if (!supportTicketList) return;
+      supportTicketList.innerHTML = tickets.length ? tickets.map((ticket) => {
+        const messages = Array.isArray(ticket.messages) ? ticket.messages.filter((message) => !message.isInternal) : [];
+        return `
+          <article class="support-ticket-card" data-ticket-id="${escapeHtml(ticket.id)}">
+            <header>
+              <span>
+                <b>${escapeHtml(ticket.number || "")} · ${escapeHtml(ticket.title || "")}</b>
+                <small>${escapeHtml(ticket.status || "new")} · ${escapeHtml(formatSupportDate(ticket.updatedAt || ticket.createdAt))}</small>
+              </span>
+              <span class="badge">${escapeHtml(ticket.category || "other")}</span>
+            </header>
+            <div class="support-ticket-message">${escapeHtml(ticket.description || "")}</div>
+            ${messages.map((message) => `
+              <div class="support-ticket-message">
+                <small>${escapeHtml(message.authorName || message.authorEmail || "")} · ${escapeHtml(formatSupportDate(message.createdAt))}</small>
+                ${escapeHtml(message.text || "")}
+              </div>
+            `).join("")}
+            <form class="support-ticket-reply" data-ticket-reply>
+              <textarea placeholder="Ответить по обращению"></textarea>
+              <button class="secondary" type="submit">Отправить ответ</button>
+              <div class="status"></div>
+            </form>
+          </article>
+        `;
+      }).join("") : `<p class="small">У вас пока нет обращений.</p>`;
+      supportTicketList.querySelectorAll("[data-ticket-reply]").forEach((form) => {
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const card = form.closest("[data-ticket-id]");
+          const status = form.querySelector(".status");
+          const textarea = form.querySelector("textarea");
+          const text = textarea.value.trim();
+          if (!text) {
+            status.className = "status error";
+            status.textContent = "Введите сообщение";
+            return;
+          }
+          status.className = "status loading";
+          status.textContent = "Отправляем ответ...";
+          try {
+            await yandexRequest(`/tickets/${encodeURIComponent(card.dataset.ticketId)}/messages`, {
+              method: "POST",
+              body: { text }
+            });
+            textarea.value = "";
+            status.className = "status ok";
+            status.textContent = "Ответ отправлен";
+            await loadSupportTickets();
+          } catch (error) {
+            status.className = "status error";
+            status.textContent = error.message;
+          }
+        });
+      });
+    }
+
+    async function loadSupportTickets() {
+      if (!isYandexBackend || !currentUser || !featureEnabled("supportTickets")) {
+        renderSupportTickets([]);
+        return;
+      }
+      try {
+        const data = await yandexRequest("/tickets");
+        renderSupportTickets(data.tickets || []);
+      } catch (error) {
+        if (!supportTicketList) return;
+        supportTicketList.innerHTML = `<p class="small">Не удалось загрузить обращения: ${escapeHtml(error.message)}</p>`;
+      }
+    }
+
+    async function updateSupportAccess(enabled) {
+      supportAccessStatus.hidden = false;
+      supportAccessStatus.className = "status loading";
+      supportAccessStatus.textContent = enabled ? "Разрешаем доступ поддержки..." : "Запрещаем доступ поддержки...";
+      try {
+        renderSupportAccessStatus(await yandexRequest("/support-access", {
+          method: "POST",
+          body: { enabled, hours: 24 }
+        }));
+      } catch (error) {
+        supportAccessStatus.className = "status error";
+        supportAccessStatus.textContent = error.message;
+      }
     }
 
     function yandexToken() {
@@ -5667,20 +5863,26 @@
         method: "POST",
         body: { email, password, displayName, role }
       });
-      return data.user;
+      return data;
     }
 
-    async function changeYandexUserPassword(userId, password) {
+    async function resetYandexUserTemporaryPassword(userId) {
       const data = await yandexRequest(`/users/${encodeURIComponent(userId)}/password`, {
-        method: "PATCH",
-        body: { password }
+        method: "POST"
       });
-      return data.user;
+      return data;
     }
 
-    async function changeUserPassword(user, password) {
-      if (isYandexBackend) return changeYandexUserPassword(user.id, password);
+    async function resetUserTemporaryPassword(user) {
+      if (isYandexBackend) return resetYandexUserTemporaryPassword(user.id);
       throw new Error("Смена пароля из интерфейса доступна в Yandex-only контуре");
+    }
+
+    async function changeOwnYandexPassword(currentPassword, newPassword) {
+      return yandexRequest("/auth/change-password", {
+        method: "POST",
+        body: { currentPassword, newPassword }
+      });
     }
 
     async function updateUserProfile(user, profile) {
@@ -5702,7 +5904,8 @@
 
     async function createAuthUser(email, password) {
       if (isYandexBackend) {
-        return createYandexUser(email, password, newUserDisplayNameInput.value.trim(), newUserRoleInput.value);
+        const data = await createYandexUser(email, password, newUserDisplayNameInput.value.trim(), newUserRoleInput.value);
+        return data.user;
       }
       throw new Error("Создание пользователей доступно только через Yandex API");
     }
@@ -5722,6 +5925,7 @@
           comment: data.user.comment || "",
           role: data.user.role || "reader",
           serviceRole: data.user.serviceRole || "user",
+          mustChangePassword: Boolean(data.user.mustChangePassword),
           organizationId: data.user.organizationId || "",
           organizationName: data.user.organizationName || "",
           organizationLogoDataUrl: data.user.organizationLogoDataUrl || "",
@@ -6363,11 +6567,15 @@
     const deleteModalText = document.querySelector("#deleteModalText");
     const cancelDeleteButton = document.querySelector("#cancelDeleteButton");
     const confirmDeleteButton = document.querySelector("#confirmDeleteButton");
+    const forcePasswordModal = document.querySelector("#forcePasswordModal");
+    const forcePasswordForm = document.querySelector("#forcePasswordForm");
+    const forceCurrentPasswordInput = document.querySelector("#forceCurrentPasswordInput");
+    const forceNewPasswordInput = document.querySelector("#forceNewPasswordInput");
+    const forceRepeatPasswordInput = document.querySelector("#forceRepeatPasswordInput");
+    const forcePasswordStatus = document.querySelector("#forcePasswordStatus");
     const userPasswordModal = document.querySelector("#userPasswordModal");
     const userPasswordForm = document.querySelector("#userPasswordForm");
     const userPasswordModalText = document.querySelector("#userPasswordModalText");
-    const userNewPasswordInput = document.querySelector("#userNewPasswordInput");
-    const userRepeatPasswordInput = document.querySelector("#userRepeatPasswordInput");
     const userPasswordStatus = document.querySelector("#userPasswordStatus");
     const cancelUserPasswordButton = document.querySelector("#cancelUserPasswordButton");
     const userProfileModal = document.querySelector("#userProfileModal");
@@ -6417,9 +6625,15 @@
     const supportForm = document.querySelector("#supportForm");
     const supportCategoryInput = document.querySelector("#supportCategoryInput");
     const supportTitleInput = document.querySelector("#supportTitleInput");
+    const supportPhoneInput = document.querySelector("#supportPhoneInput");
     const supportDescriptionInput = document.querySelector("#supportDescriptionInput");
     const supportAttachmentsInput = document.querySelector("#supportAttachmentsInput");
     const supportStatus = document.querySelector("#supportStatus");
+    const supportTicketList = document.querySelector("#supportTicketList");
+    const supportAccessStatus = document.querySelector("#supportAccessStatus");
+    const supportAccessActions = document.querySelector("#supportAccessActions");
+    const enableSupportAccessButton = document.querySelector("#enableSupportAccessButton");
+    const disableSupportAccessButton = document.querySelector("#disableSupportAccessButton");
     const cancelSupportButton = document.querySelector("#cancelSupportButton");
     const organizationLogo = document.querySelector("#organizationLogo");
     const organizationBrandName = document.querySelector("#organizationBrandName");
@@ -8351,7 +8565,6 @@
       userPasswordStatus.textContent = "";
       userPasswordModalText.textContent = `Пользователь: ${userDisplayName(user)} (${user.login})`;
       userPasswordModal.classList.add("open");
-      requestAnimationFrame(() => userNewPasswordInput.focus());
     }
 
     async function saveUserPasswordFromModal() {
@@ -8362,31 +8575,57 @@
         userPasswordStatus.textContent = "Пользователь не найден";
         return;
       }
-      const password = userNewPasswordInput.value;
-      const repeat = userRepeatPasswordInput.value;
-      if (password.trim().length < 4) {
-        userPasswordStatus.className = "status error";
-        userPasswordStatus.textContent = "Пароль должен быть не короче 4 символов";
-        return;
-      }
-      if (password !== repeat) {
-        userPasswordStatus.className = "status error";
-        userPasswordStatus.textContent = "Пароли не совпадают";
-        return;
-      }
       userPasswordStatus.className = "status loading";
-      userPasswordStatus.innerHTML = '<span class="loading-spinner"></span><span>Сохраняем пароль...</span>';
+      userPasswordStatus.innerHTML = '<span class="loading-spinner"></span><span>Создаем временный пароль...</span>';
       try {
-        await changeUserPassword(user, password);
-        logAction("user_password_updated", "user", user.id, userDisplayName(user), {
+        const data = await resetUserTemporaryPassword(user);
+        logAction("user_temporary_password_reset", "user", user.id, userDisplayName(user), {
           email: user.login
         });
         userStatus.className = "status";
-        userStatus.textContent = "Пароль пользователя изменен";
-        closeUserPasswordModal();
+        userStatus.textContent = `Временный пароль: ${data.temporaryPassword}`;
+        userPasswordStatus.className = "status";
+        userPasswordStatus.textContent = `Временный пароль: ${data.temporaryPassword}`;
+        await loadProfiles();
+        renderUsers();
       } catch (error) {
         userPasswordStatus.className = "status error";
-        userPasswordStatus.textContent = `Не удалось сменить пароль: ${error.message}`;
+        userPasswordStatus.textContent = `Не удалось создать временный пароль: ${error.message}`;
+      }
+    }
+
+    function showForcePasswordModal() {
+      forcePasswordForm.reset();
+      forcePasswordStatus.className = "status";
+      forcePasswordStatus.textContent = "";
+      forcePasswordModal.classList.add("open");
+      requestAnimationFrame(() => forceCurrentPasswordInput.focus());
+    }
+
+    async function saveForcedPasswordChange() {
+      const currentPassword = forceCurrentPasswordInput.value;
+      const newPassword = forceNewPasswordInput.value;
+      const repeatPassword = forceRepeatPasswordInput.value;
+      if (newPassword.trim().length < 8) {
+        forcePasswordStatus.className = "status error";
+        forcePasswordStatus.textContent = "Новый пароль должен быть не короче 8 символов";
+        return;
+      }
+      if (newPassword !== repeatPassword) {
+        forcePasswordStatus.className = "status error";
+        forcePasswordStatus.textContent = "Новые пароли не совпадают";
+        return;
+      }
+      forcePasswordStatus.className = "status loading";
+      forcePasswordStatus.innerHTML = '<span class="loading-spinner"></span><span>Сохраняем новый пароль...</span>';
+      try {
+        const data = await changeOwnYandexPassword(currentPassword, newPassword);
+        if (data.token) setYandexToken(data.token);
+        forcePasswordModal.classList.remove("open");
+        window.location.reload();
+      } catch (error) {
+        forcePasswordStatus.className = "status error";
+        forcePasswordStatus.textContent = `Не удалось сменить пароль: ${error.message}`;
       }
     }
 
@@ -12263,6 +12502,12 @@
           );
           if (currentUser) {
             if (redirectSuperAdminToCabinet()) return;
+            if (isYandexBackend && currentUser.mustChangePassword) {
+              clearAuthLoading();
+              applyAccessControl();
+              showForcePasswordModal();
+              return;
+            }
             await timedLoadStep(
               "Загрузка пользователей и плана",
               () => withTimeout(Promise.all([
@@ -12348,6 +12593,13 @@
             return;
           }
           if (redirectSuperAdminToCabinet()) return;
+          if (isYandexBackend && currentUser.mustChangePassword) {
+            clearAuthLoading();
+            setLoginBusy(false);
+            applyAccessControl();
+            showForcePasswordModal();
+            return;
+          }
           await timedLoadStep("Загрузка пользователей и плана", () => Promise.all([
             loadProfiles(),
             loadRemotePlan(setAuthLoading)
@@ -12868,6 +13120,8 @@
         supportStatus.textContent = "";
         supportForm.reset();
         supportModal.classList.add("open");
+        loadSupportAccessStatus();
+        loadSupportTickets();
       });
 
       cancelSupportButton.addEventListener("click", () => {
@@ -12885,6 +13139,7 @@
             body: {
               category: supportCategoryInput.value,
               title: supportTitleInput.value.trim(),
+              phone: supportPhoneInput.value.trim(),
               description: supportDescriptionInput.value.trim(),
               attachments
             }
@@ -12892,11 +13147,15 @@
           supportStatus.className = "status ok";
           supportStatus.textContent = `Обращение ${data.ticket?.number || ""} создано`;
           supportForm.reset();
+          await loadSupportTickets();
         } catch (error) {
           supportStatus.className = "status error";
           supportStatus.textContent = error.message;
         }
       });
+
+      enableSupportAccessButton.addEventListener("click", () => updateSupportAccess(true));
+      disableSupportAccessButton.addEventListener("click", () => updateSupportAccess(false));
 
       metricLoadButton.addEventListener("click", () => {
         if (gpModal.classList.contains("open")) {
@@ -13016,6 +13275,11 @@
 
       userPasswordModal.addEventListener("click", (event) => {
         if (event.target === userPasswordModal) closeUserPasswordModal();
+      });
+
+      forcePasswordForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        await saveForcedPasswordChange();
       });
 
       cancelUserProfileButton.addEventListener("click", closeUserProfileModal);
@@ -13400,8 +13664,11 @@
         }
         try {
           let authUser;
+          let temporaryPassword = "";
           if (isYandexBackend) {
-            authUser = await createYandexUser(email, password, displayName, newUserRoleInput.value);
+            const data = await createYandexUser(email, password, displayName, newUserRoleInput.value);
+            authUser = data.user;
+            temporaryPassword = data.temporaryPassword || "";
           } else {
             authUser = await createAuthUser(email, password);
             const { error } = await db.from("user_profiles").insert({
@@ -13420,7 +13687,7 @@
           userForm.reset();
           newUserRoleInput.value = "manager";
           userStatus.className = "status";
-          userStatus.textContent = "Пользователь добавлен";
+          userStatus.textContent = temporaryPassword ? `Пользователь добавлен. Временный пароль: ${temporaryPassword}` : "Пользователь добавлен";
           renderUsers();
         } catch (error) {
           userStatus.className = "status error";
