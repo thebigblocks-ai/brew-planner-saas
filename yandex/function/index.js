@@ -203,6 +203,8 @@ function defaultOrganization() {
     slug: process.env.DEFAULT_ORGANIZATION_SLUG || "default",
     status: "active",
     tariff: "manual",
+    logoDataUrl: "",
+    logoName: "",
     features: {},
     createdAt: new Date().toISOString()
   };
@@ -264,6 +266,8 @@ function buildAuthUser(user, membership, organizations) {
     organizationId: membership?.organizationId || organization?.id || DEFAULT_ORGANIZATION_ID,
     organizationRole,
     organizationName: organization?.name || "",
+    organizationLogoDataUrl: organization?.logoDataUrl || "",
+    organizationLogoName: organization?.logoName || "",
     role: organizationRoleToLegacyRole(organizationRole)
   };
 }
@@ -281,6 +285,8 @@ function publicUser(user, context = {}) {
     organizationRole: user.organizationRole || legacyRoleToOrganizationRole(user.role),
     organizationId: user.organizationId || context.organizationId || "",
     organizationName: user.organizationName || context.organizationName || "",
+    organizationLogoDataUrl: user.organizationLogoDataUrl || context.organizationLogoDataUrl || "",
+    organizationLogoName: user.organizationLogoName || context.organizationLogoName || "",
     serviceRole: user.serviceRole || "user",
     organizations: Array.isArray(context.organizations) ? context.organizations : undefined,
     createdAt: user.createdAt || ""
@@ -595,6 +601,8 @@ function publicOrganization(organization, memberships = [], users = []) {
     slug: organization.slug,
     status: organization.status || "active",
     tariff: organization.tariff || "manual",
+    logoDataUrl: organization.logoDataUrl || "",
+    logoName: organization.logoName || "",
     features: organization.features && typeof organization.features === "object" ? organization.features : {},
     userCount: users.filter((user) => userIds.has(user.id)).length,
     createdAt: organization.createdAt || "",
@@ -660,6 +668,8 @@ async function handleOrganizations(req, auth) {
       slug: uniqueOrganizationSlug(auth.organizations, baseSlug),
       status: req.body.status || "trial",
       tariff: req.body.tariff || "manual",
+      logoDataUrl: "",
+      logoName: "",
       features: { ...defaultOrganizationFeatures(), ...(req.body.features || {}) },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -686,6 +696,8 @@ async function handleOrganizations(req, auth) {
       name: req.body.name !== undefined ? String(req.body.name || "").trim() || item.name : item.name,
       status: req.body.status || item.status,
       tariff: req.body.tariff || item.tariff,
+      logoDataUrl: req.body.logoDataUrl !== undefined ? String(req.body.logoDataUrl || "") : item.logoDataUrl,
+      logoName: req.body.logoName !== undefined ? String(req.body.logoName || "") : item.logoName,
       updatedAt: new Date().toISOString()
     } : item);
     await saveOrganizations(organizations);
