@@ -236,6 +236,40 @@
       font-weight: 900;
     }
 
+    #supportButton {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      line-height: 1;
+    }
+
+    #supportButton svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 2.25;
+      flex: 0 0 auto;
+    }
+
+    #supportButton[data-unread]::after {
+      content: attr(data-unread);
+      position: absolute;
+      top: -7px;
+      right: -7px;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: var(--brand);
+      color: #111827;
+      border: 1px solid var(--panel);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
     .account-tools {
       display: flex;
       align-items: center;
@@ -2058,6 +2092,26 @@
       color: #111827;
     }
 
+    .tank-mode-switch {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      padding: 0;
+      margin: 0 0 12px;
+      border-bottom: 0;
+      background: transparent;
+    }
+
+    .tank-mode-switch .cycle-tab {
+      height: auto;
+      min-height: 38px;
+      padding: 7px 9px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      white-space: normal;
+      line-height: 1.15;
+    }
+
     .cycle-pane[hidden],
     .cycle-tab-panel[hidden],
     .cycle-tabs[hidden] {
@@ -2510,6 +2564,10 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 6px;
+      padding: 0;
+      margin: 0 0 12px;
+      border-bottom: 0;
+      background: transparent;
     }
 
     .tank-mode-switch[hidden],
@@ -3114,6 +3172,64 @@
       overflow: auto;
     }
 
+    .support-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      padding: 14px 16px 0;
+    }
+
+    .support-tabs button {
+      min-width: 0;
+      height: 36px;
+      border-radius: 7px;
+      border: 1px solid var(--line-strong);
+      background: var(--panel);
+      color: var(--muted);
+      font-weight: 850;
+    }
+
+    .support-tabs button.active {
+      background: var(--brand);
+      color: #fff;
+      border-color: var(--brand);
+    }
+
+    .support-pane[hidden] {
+      display: none;
+    }
+
+    #supportAccessStatus {
+      margin: 8px 0 0;
+      padding: 0 16px;
+      min-height: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .support-file-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      min-height: 36px;
+      padding: 0 14px;
+      border-radius: 7px;
+      background: var(--brand);
+      color: #fff;
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .support-file-button input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      width: 1px;
+      height: 1px;
+    }
+
     .support-ticket-list {
       display: grid;
       gap: 10px;
@@ -3126,7 +3242,7 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       padding: 10px;
-      background: var(--soft-bg);
+      background: #f8fafc;
     }
 
     .support-ticket-card header {
@@ -3142,17 +3258,29 @@
     }
 
     .support-ticket-message {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 8px;
+      max-width: min(92%, 520px);
+      border-radius: 14px 14px 14px 4px;
+      padding: 9px 11px;
       background: var(--panel);
       white-space: pre-wrap;
-      font-size: 13px;
+      font-size: 14px;
+      line-height: 1.42;
+      box-shadow: 0 1px 0 rgba(15, 23, 42, .08);
+    }
+
+    .support-ticket-message[data-own="true"] {
+      justify-self: end;
+      border-radius: 14px 14px 4px 14px;
+      background: #fff4e5;
     }
 
     .support-ticket-reply {
       display: grid;
       gap: 8px;
+    }
+
+    .support-ticket-reply textarea {
+      min-height: 72px;
     }
 
     .modal h2 {
@@ -3409,6 +3537,21 @@
     .bottling-row[data-missing-packaging="true"] {
       background: rgba(244, 114, 182, 0.16);
       box-shadow: inset 3px 0 0 rgba(244, 114, 182, 0.72);
+    }
+
+    .bottling-alert {
+      display: inline-grid;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      margin-left: 6px;
+      border-radius: 999px;
+      background: #dc2626;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 950;
+      line-height: 1;
+      vertical-align: middle;
     }
 
     .bottling-row b {
@@ -4947,7 +5090,11 @@
         <button class="secondary" id="enableSupportAccessButton" type="button">Разрешить доступ на 24 часа</button>
         <button class="secondary" id="disableSupportAccessButton" type="button">Запретить доступ</button>
       </div>
-      <form class="password-modal-form" id="supportForm">
+      <div class="support-tabs" role="tablist" aria-label="Поддержка">
+        <button class="active" id="supportNewTab" type="button" data-support-tab="new">Новое обращение</button>
+        <button id="supportTicketsTab" type="button" data-support-tab="tickets">Мои обращения</button>
+      </div>
+      <form class="password-modal-form support-pane" id="supportForm" data-support-pane="new">
         <label class="field">
           <span>Категория</span>
           <select id="supportCategoryInput">
@@ -4971,17 +5118,20 @@
           <span>Описание</span>
           <textarea id="supportDescriptionInput" required></textarea>
         </label>
-        <label class="field">
+        <div class="field">
           <span>Скриншоты</span>
-          <input id="supportAttachmentsInput" type="file" accept="image/*" multiple>
-        </label>
+          <label class="support-file-button">
+            <span>Выбрать файл</span>
+            <input id="supportAttachmentsInput" type="file" accept="image/*" multiple>
+          </label>
+        </div>
         <div class="status" id="supportStatus"></div>
         <div class="modal-actions">
           <button class="secondary" id="cancelSupportButton" type="button">Отмена</button>
           <button class="primary" type="submit">Отправить</button>
         </div>
       </form>
-      <div class="support-ticket-list" id="supportTicketList"></div>
+      <div class="support-ticket-list support-pane" id="supportTicketList" data-support-pane="tickets" hidden></div>
     </div>
   </div>
 
@@ -5006,7 +5156,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.1-saas";
+    const appVersion = "v2026.06.23.3-saas";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
     const storageKey = "production-planner-v1";
@@ -5074,6 +5224,7 @@
     let yandexPollingTimer = null;
     let yandexPresenceTimer = null;
     let suppressRealtimeUntil = 0;
+    let supportTicketSignature = localStorage.getItem(`${storageKey}-support-ticket-signature`) || "";
     let supportsTankSortOrder = false;
     let supportsPartialBottlings = false;
     let supportsSourceCycles = false;
@@ -5218,6 +5369,15 @@
         : "Доступ поддержки к данным организации запрещен";
     }
 
+    function setSupportTab(tab) {
+      state.supportTab = tab === "tickets" ? "tickets" : "new";
+      supportNewTab.classList.toggle("active", state.supportTab === "new");
+      supportTicketsTab.classList.toggle("active", state.supportTab === "tickets");
+      supportForm.hidden = state.supportTab !== "new";
+      supportTicketList.hidden = state.supportTab !== "tickets";
+      if (state.supportTab === "tickets") loadSupportTickets({ markSeen: true });
+    }
+
     async function loadSupportAccessStatus() {
       if (!isYandexBackend || !canAdmin()) {
         renderSupportAccessStatus();
@@ -5239,8 +5399,26 @@
       return date.toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
     }
 
-    function renderSupportTickets(tickets = []) {
+    function supportTicketsSignature(tickets = []) {
+      return tickets.map((ticket) => `${ticket.id}:${ticket.status}:${ticket.updatedAt || ticket.createdAt}`).join("|");
+    }
+
+    function updateSupportNotification(tickets = [], { markSeen = false } = {}) {
+      const signature = supportTicketsSignature(tickets);
+      if (markSeen || !supportTicketSignature) {
+        supportTicketSignature = signature;
+        localStorage.setItem(`${storageKey}-support-ticket-signature`, signature);
+        supportButton.removeAttribute("data-unread");
+        return;
+      }
+      const unread = signature && signature !== supportTicketSignature ? 1 : 0;
+      if (unread) supportButton.dataset.unread = "?";
+      else supportButton.removeAttribute("data-unread");
+    }
+
+    function renderSupportTickets(tickets = [], options = {}) {
       if (!supportTicketList) return;
+      updateSupportNotification(tickets, options);
       supportTicketList.innerHTML = tickets.length ? tickets.map((ticket) => {
         const messages = Array.isArray(ticket.messages) ? ticket.messages.filter((message) => !message.isInternal) : [];
         return `
@@ -5254,7 +5432,7 @@
             </header>
             <div class="support-ticket-message">${escapeHtml(ticket.description || "")}</div>
             ${messages.map((message) => `
-              <div class="support-ticket-message">
+              <div class="support-ticket-message" data-own="${message.authorUserId === currentUser?.id ? "true" : "false"}">
                 <small>${escapeHtml(message.authorName || message.authorEmail || "")} · ${escapeHtml(formatSupportDate(message.createdAt))}</small>
                 ${escapeHtml(message.text || "")}
               </div>
@@ -5298,14 +5476,14 @@
       });
     }
 
-    async function loadSupportTickets() {
+    async function loadSupportTickets(options = {}) {
       if (!isYandexBackend || !currentUser || !featureEnabled("supportTickets")) {
         renderSupportTickets([]);
         return;
       }
       try {
         const data = await yandexRequest("/tickets");
-        renderSupportTickets(data.tickets || []);
+        renderSupportTickets(data.tickets || [], options);
       } catch (error) {
         if (!supportTicketList) return;
         supportTicketList.innerHTML = `<p class="small">Не удалось загрузить обращения: ${escapeHtml(error.message)}</p>`;
@@ -6276,6 +6454,7 @@
         }
         try {
           await loadRemotePlan();
+          if (featureEnabled("supportTickets")) loadSupportTickets();
           setSyncStatus("Обновлено", "updated");
           render();
         } catch (error) {
@@ -6402,6 +6581,7 @@
       pendingTaskFileTaskId: null,
       myTasksTab: "open",
       tankCreateMode: "single",
+      supportTab: "new",
       cycleFormSnapshot: null,
       templateFormSnapshot: null
     };
@@ -6622,6 +6802,8 @@
     const loginStatus = document.querySelector("#loginStatus");
     const supportButton = document.querySelector("#supportButton");
     const supportModal = document.querySelector("#supportModal");
+    const supportNewTab = document.querySelector("#supportNewTab");
+    const supportTicketsTab = document.querySelector("#supportTicketsTab");
     const supportForm = document.querySelector("#supportForm");
     const supportCategoryInput = document.querySelector("#supportCategoryInput");
     const supportTitleInput = document.querySelector("#supportTitleInput");
@@ -6700,6 +6882,7 @@
       bulkActions.hidden = !featureEnabled("bulkActions") || !selectedCycleIds().length;
       addSiteButton.disabled = !editable || !featureEnabled("contractBrewery");
       addSiteButton.hidden = !featureEnabled("contractBrewery");
+      addSiteButton.style.display = featureEnabled("contractBrewery") ? "" : "none";
       setEditable([commentDateInput, commentInput, saveCommentButton, deleteCommentButton, confirmDeleteButton, confirmMoveButton, saveCycleChangesButton, copyCycleButton, deriveCycleButton], editable);
       setEditable([bulkStageInput, bulkApplyStageButton, bulkShiftDaysInput, bulkMoveButton, bulkDeleteButton, bulkClearButton], editable);
       deriveCycleButton.disabled = !editable || !state.selectedCycleId || !featureEnabled("cycleSources");
@@ -11630,7 +11813,7 @@
                   <span>${fullDateFormatter.format(parseDate(event.date))}</span>
                   <b>${escapeHtml(event.product)}${event.label ? ` <small>${event.label}</small>` : ""}${tank ? `<small>${escapeHtml(tank.name)}</small>` : ""}</b>
                   <span>${site ? escapeHtml(site.name) : "не указана"}</span>
-                  <span>${formatNumber(packaging.can045.quantity)} банок, ${formatNumber(packaging.keg20.quantity)} кег</span>
+                  <span>${formatNumber(packaging.can045.quantity)} банок, ${formatNumber(packaging.keg20.quantity)} кег${missingPackaging ? `<span class="bottling-alert" title="Не заполнено распределение">!</span>` : ""}</span>
                 </button>
               `;
             }).join("")}
@@ -11777,6 +11960,11 @@
       deriveCycleButton.disabled = !state.selectedCycleId || !canEdit();
       copyCycleButton.disabled = !state.selectedCycleId || !canEdit();
       deleteCycleButton.disabled = !state.selectedCycleId || !canEdit();
+      partialBottlingToggle.disabled = !canEdit() || !state.selectedCycleId || !featureEnabled("partialBottlings");
+      partialBottlingToggle.hidden = !featureEnabled("partialBottlings");
+      if (!state.selectedCycleId && !partialBottlingFields.hidden) {
+        setPartialBottlingFields(null);
+      }
       updateUndoButton();
       workspace.dataset.panel = state.panelMode;
       addMenuButton.classList.toggle("active", addMenu.classList.contains("open"));
@@ -12191,11 +12379,6 @@
 
       const productName = document.querySelector("#productInput").value.trim();
       const productTemplate = templateByName(productName);
-      if (partialBottlingFormHasValue() && partialLiters > numberValue(plannedOutputInput)) {
-        formStatus.className = "status error";
-        formStatus.textContent = `Частичный розлив превышает плановый выход на ${formatLiters(partialLiters - numberValue(plannedOutputInput))} л`;
-        return false;
-      }
       const newCycle = {
         id: newId(),
         tankId,
@@ -12207,7 +12390,7 @@
         stage: normalizeStage(stageInput.value),
         plannedOutput: numberValue(plannedOutputInput),
         packaging: packagingFromForm(),
-        partialBottlings: partialBottlingFormHasValue() ? [partialBottling] : [],
+        partialBottlings: [],
         comments: [],
         tasks: [],
         process: normalizeCycleProcess(),
@@ -13026,6 +13209,7 @@
       canQtyInput.addEventListener("input", () => syncPackagingFrom("canQty"));
       kegLitersInput.addEventListener("input", () => syncPackagingFrom("kegLiters"));
       partialBottlingToggle.addEventListener("click", () => {
+        if (!state.selectedCycleId) return;
         partialBottlingFields.hidden = !partialBottlingFields.hidden;
         partialBottlingToggle.classList.toggle("active", !partialBottlingFields.hidden);
         if (partialBottlingFields.hidden) {
@@ -13119,6 +13303,8 @@
         supportStatus.className = "status";
         supportStatus.textContent = "";
         supportForm.reset();
+        supportPhoneInput.value = "+7";
+        setSupportTab("new");
         supportModal.classList.add("open");
         loadSupportAccessStatus();
         loadSupportTickets();
@@ -13147,11 +13333,25 @@
           supportStatus.className = "status ok";
           supportStatus.textContent = `Обращение ${data.ticket?.number || ""} создано`;
           supportForm.reset();
-          await loadSupportTickets();
+          supportPhoneInput.value = "+7";
+          await loadSupportTickets({ markSeen: true });
+          setSupportTab("tickets");
         } catch (error) {
           supportStatus.className = "status error";
           supportStatus.textContent = error.message;
         }
+      });
+
+      supportNewTab.addEventListener("click", () => setSupportTab("new"));
+      supportTicketsTab.addEventListener("click", () => setSupportTab("tickets"));
+      supportPhoneInput.addEventListener("focus", () => {
+        if (!supportPhoneInput.value.trim()) supportPhoneInput.value = "+7";
+      });
+      supportPhoneInput.addEventListener("input", () => {
+        if (!supportPhoneInput.value.startsWith("+7")) supportPhoneInput.value = "+7";
+      });
+      supportModal.addEventListener("click", (event) => {
+        if (event.target === supportModal) supportModal.classList.remove("open");
       });
 
       enableSupportAccessButton.addEventListener("click", () => updateSupportAccess(true));
