@@ -171,7 +171,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.23.19-saas";
+      content: "v2026.06.23.21-saas";
     }
 
     .toolbar {
@@ -3005,6 +3005,7 @@
     }
 
     .login-card {
+      position: relative;
       width: min(420px, 100%);
       padding: 24px;
       border-radius: 10px;
@@ -3023,6 +3024,18 @@
     .login-card p {
       margin: 0 0 18px;
       color: var(--muted);
+    }
+
+    .login-card-version {
+      position: absolute;
+      right: 8px;
+      bottom: 6px;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+      pointer-events: none;
     }
 
     .status.loading {
@@ -4314,8 +4327,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.23.21-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.19-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.21-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5252,7 +5266,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.19-saas";
+    const appVersion = "v2026.06.23.21-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -5322,6 +5336,7 @@
     let yandexPresenceTimer = null;
     let suppressRealtimeUntil = 0;
     let supportTicketSignature = localStorage.getItem(`${storageKey}-support-ticket-signature`) || "";
+    let forcePasswordAttemptId = 0;
     let supportsTankSortOrder = false;
     let supportsPartialBottlings = false;
     let supportsSourceCycles = false;
@@ -6759,6 +6774,7 @@
     const grid = document.querySelector("#grid");
     const appVersionBadge = document.querySelector("#appVersionBadge");
     const loginVersionBadge = document.querySelector("#loginVersionBadge");
+    const loginCardVersionBadge = document.querySelector("#loginCardVersionBadge");
     const workspace = document.querySelector("#workspace");
     const planner = document.querySelector("#planner");
     const summaryShell = document.querySelector("#summaryShell");
@@ -8985,25 +9001,46 @@
 
     async function saveForcedPasswordChange() {
       console.info("force-password-handler-start");
-      const newPassword = forceNewPasswordInput.value;
-      const repeatPassword = forceRepeatPasswordInput.value;
-      if (newPassword.trim().length < 8) {
-        forcePasswordStatus.className = "status error";
-        forcePasswordStatus.textContent = "Новый пароль должен быть не короче 8 символов";
-        return;
-      }
-      if (newPassword !== repeatPassword) {
-        forcePasswordStatus.className = "status error";
-        forcePasswordStatus.textContent = "Новые пароли не совпадают";
-        return;
-      }
-      forcePasswordStatus.className = "status loading";
-      forcePasswordStatus.innerHTML = '<span class="loading-spinner"></span><span>Сохраняем новый пароль...</span>';
-      saveForcePasswordButton.disabled = true;
-      cancelForcePasswordButton.disabled = true;
-      console.info("force-password-submit");
+      let attemptId = 0;
+      let watchdog = 0;
       try {
+        const newPassword = String(forceNewPasswordInput?.value || "");
+        const repeatPassword = String(forceRepeatPasswordInput?.value || "");
+        console.info("force-password-validation", {
+          newLength: newPassword.length,
+          repeatLength: repeatPassword.length,
+          matches: newPassword === repeatPassword
+        });
+        if (newPassword.trim().length < 8) {
+          forcePasswordStatus.className = "status error";
+          forcePasswordStatus.textContent = "Новый пароль должен быть не короче 8 символов";
+          forcePasswordStatus.scrollIntoView({ behavior: "smooth", block: "center" });
+          return;
+        }
+        if (newPassword !== repeatPassword) {
+          forcePasswordStatus.className = "status error";
+          forcePasswordStatus.textContent = "Новые пароли не совпадают";
+          forcePasswordStatus.scrollIntoView({ behavior: "smooth", block: "center" });
+          return;
+        }
+        forcePasswordStatus.className = "status loading";
+        forcePasswordStatus.innerHTML = '<span class="loading-spinner"></span><span>Сохраняем новый пароль...</span>';
+        saveForcePasswordButton.disabled = true;
+        cancelForcePasswordButton.disabled = true;
+        attemptId = ++forcePasswordAttemptId;
+        watchdog = setTimeout(() => {
+          if (attemptId !== forcePasswordAttemptId) return;
+          console.warn("force-password-watchdog-timeout");
+          forcePasswordAttemptId += 1;
+          saveForcePasswordButton.disabled = false;
+          cancelForcePasswordButton.disabled = false;
+          forcePasswordStatus.className = "status error";
+          forcePasswordStatus.textContent = "Смена пароля заняла больше 15 секунд. Попробуйте еще раз.";
+        }, 15000);
+        console.info("force-password-submit");
         const data = await changeOwnYandexPassword(newPassword, { forceTemporary: true, timeoutMs: 12000 });
+        if (attemptId && attemptId !== forcePasswordAttemptId) return;
+        clearTimeout(watchdog);
         console.info("force-password-response", { hasToken: Boolean(data.token), mustChangePassword: Boolean(data.user?.mustChangePassword) });
         if (!data.token) throw new Error("Сервер не вернул новую сессию");
         setYandexToken(data.token);
@@ -9042,6 +9079,9 @@
             formStatus.textContent = `Пароль сохранен, но данные не загрузились: ${loadError.message}`;
           });
       } catch (error) {
+        console.error("force-password-error", error);
+        if (attemptId && attemptId !== forcePasswordAttemptId) return;
+        if (watchdog) clearTimeout(watchdog);
         saveForcePasswordButton.disabled = false;
         cancelForcePasswordButton.disabled = false;
         forcePasswordStatus.className = "status error";
@@ -12931,6 +12971,8 @@
       appVersionBadge.title = `Версия приложения: ${appVersion}`;
       loginVersionBadge.textContent = appVersion;
       loginVersionBadge.title = `Версия приложения: ${appVersion}`;
+      loginCardVersionBadge.textContent = appVersion;
+      loginCardVersionBadge.title = `Версия приложения: ${appVersion}`;
       loadTheme();
       installNumberInputWheelGuard();
       installStatusErrorAutoScroll();
