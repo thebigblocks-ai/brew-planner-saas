@@ -693,7 +693,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.23.9-saas</span>
+        <span>v2026.06.23.10-saas</span>
       </div>
     </aside>
 
@@ -1255,7 +1255,7 @@
             </div>
           </div>
           <div class="user-actions">
-            <button class="user-soft-action" type="button" data-reset-password>Временный пароль</button>
+            <button class="user-soft-action" type="button" data-reset-password>Отправить временный пароль</button>
             <button class="compact-danger" type="button" data-remove>Удалить пользователя</button>
           </div>
         </div>
@@ -1280,11 +1280,11 @@
           await loadSelectedOrganizationUsers();
         });
         row.querySelector("[data-reset-password]").addEventListener("click", async () => {
-          if (!confirm("Сгенерировать новый временный пароль? Старый пароль перестанет работать.")) return;
+          if (!confirm("Отправить пользователю новый временный пароль? Старый пароль перестанет работать.")) return;
           const data = await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users/${encodeURIComponent(row.dataset.userId)}/password`, {
             method: "POST"
           });
-          setStatus($("#usersStatus"), `Временный пароль: ${data.temporaryPassword}`, "ok");
+          setStatus($("#usersStatus"), data.emailSent ? "Временный пароль отправлен пользователю на email" : "Временный пароль обновлен", "ok");
           await loadSelectedOrganizationUsers();
         });
         row.querySelector("[data-remove]").addEventListener("click", async () => {
@@ -1684,7 +1684,7 @@
           }
         });
         event.target.reset();
-        setStatus($("#usersStatus"), data.temporaryPassword ? `Пользователь добавлен. Временный пароль: ${data.temporaryPassword}` : "Пользователь добавлен", "ok");
+        setStatus($("#usersStatus"), data.emailSent ? "Пользователь добавлен. Временный пароль отправлен на email" : "Пользователь добавлен", "ok");
         await loadSelectedOrganizationUsers();
       } catch (error) {
         setStatus($("#usersStatus"), error.message, "error");

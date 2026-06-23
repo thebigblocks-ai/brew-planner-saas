@@ -171,7 +171,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.23.26-saas";
+      content: "v2026.06.23.27-saas";
     }
 
     .toolbar {
@@ -4334,9 +4334,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.23.26-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.23.27-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.26-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.27-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5060,13 +5060,13 @@
   <div class="modal-backdrop" id="userPasswordModal" role="dialog" aria-modal="true" aria-labelledby="userPasswordModalTitle">
     <div class="modal">
       <h2 id="userPasswordModalTitle">Временный пароль</h2>
-      <p id="userPasswordModalText">Будет создан новый временный пароль. Пользователь должен сменить его при следующем входе.</p>
+      <p id="userPasswordModalText">Пользователю будет отправлен новый временный пароль. Он должен сменить его при следующем входе.</p>
       <form class="password-modal-form" id="userPasswordForm">
         <div class="status" id="userPasswordStatus"></div>
       </form>
       <div class="modal-actions">
         <button class="secondary" id="cancelUserPasswordButton" type="button">Отмена</button>
-        <button class="primary" id="saveUserPasswordButton" type="submit" form="userPasswordForm">Сгенерировать</button>
+        <button class="primary" id="saveUserPasswordButton" type="submit" form="userPasswordForm">Отправить</button>
       </div>
     </div>
   </div>
@@ -5274,7 +5274,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.26-saas";
+    const appVersion = "v2026.06.23.27-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -8940,7 +8940,7 @@
       userPasswordForm.reset();
       userPasswordStatus.className = "status";
       userPasswordStatus.textContent = "";
-      userPasswordModalText.textContent = `Пользователь: ${userDisplayName(user)} (${user.login})`;
+      userPasswordModalText.textContent = `Пользователь: ${userDisplayName(user)} (${user.login}). Новый временный пароль будет отправлен на email.`;
       userPasswordModal.classList.add("open");
     }
 
@@ -8953,21 +8953,21 @@
         return;
       }
       userPasswordStatus.className = "status loading";
-      userPasswordStatus.innerHTML = '<span class="loading-spinner"></span><span>Создаем временный пароль...</span>';
+      userPasswordStatus.innerHTML = '<span class="loading-spinner"></span><span>Отправляем временный пароль...</span>';
       try {
         const data = await resetUserTemporaryPassword(user);
         logAction("user_temporary_password_reset", "user", user.id, userDisplayName(user), {
           email: user.login
         });
         userStatus.className = "status";
-        userStatus.textContent = `Временный пароль: ${data.temporaryPassword}`;
+        userStatus.textContent = data.emailSent ? "Временный пароль отправлен пользователю на email" : "Временный пароль обновлен";
         userPasswordStatus.className = "status";
-        userPasswordStatus.textContent = `Временный пароль: ${data.temporaryPassword}`;
+        userPasswordStatus.textContent = data.emailSent ? "Временный пароль отправлен пользователю на email" : "Временный пароль обновлен";
         await loadProfiles();
         renderUsers();
       } catch (error) {
         userPasswordStatus.className = "status error";
-        userPasswordStatus.textContent = `Не удалось создать временный пароль: ${error.message}`;
+        userPasswordStatus.textContent = `Не удалось отправить временный пароль: ${error.message}`;
       }
     }
 
@@ -14226,11 +14226,11 @@
         }
         try {
           let authUser;
-          let temporaryPassword = "";
+          let emailSent = false;
           if (isYandexBackend) {
             const data = await createYandexUser(email, password, displayName, newUserRoleInput.value);
             authUser = data.user;
-            temporaryPassword = data.temporaryPassword || "";
+            emailSent = Boolean(data.emailSent);
           } else {
             authUser = await createAuthUser(email, password);
             const { error } = await db.from("user_profiles").insert({
@@ -14249,7 +14249,7 @@
           userForm.reset();
           newUserRoleInput.value = "manager";
           userStatus.className = "status";
-          userStatus.textContent = temporaryPassword ? `Пользователь добавлен. Временный пароль: ${temporaryPassword}` : "Пользователь добавлен";
+          userStatus.textContent = emailSent ? "Пользователь добавлен. Временный пароль отправлен на email" : "Пользователь добавлен";
           renderUsers();
         } catch (error) {
           userStatus.className = "status error";
