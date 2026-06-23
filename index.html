@@ -4,6 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Планировщик ЦКТ</title>
+  <script>
+    (() => {
+      try {
+        const searchParams = new URLSearchParams(window.location.search);
+        const hash = String(window.location.hash || "").replace(/^#\/?/, "");
+        const hashQuery = hash.includes("?") ? hash.slice(hash.indexOf("?") + 1) : hash;
+        const hashParams = new URLSearchParams(hashQuery);
+        if (searchParams.has("passwordSetupToken") || searchParams.has("setupToken") || hashParams.has("passwordSetupToken") || hashParams.has("setupToken")) {
+          document.documentElement.dataset.passwordSetup = "true";
+        }
+      } catch {
+        // Ранний маркер нужен только для предотвращения вспышки логина.
+      }
+    })();
+  </script>
   <style>
     :root {
       --page-bg: linear-gradient(145deg, #eef9ff 0%, #f8fbff 42%, #edf2f7 72%, #dbe4ee 100%);
@@ -117,7 +132,7 @@
       display: flex;
       align-items: center;
       min-width: 220px;
-      min-height: 40px;
+      min-height: 60px;
     }
 
     .topbar-left {
@@ -129,10 +144,15 @@
 
     .brand-logo {
       display: block;
-      width: 168px;
-      height: auto;
-      max-height: 42px;
+      width: auto;
+      height: 60px;
+      max-width: none;
+      max-height: 60px;
       object-fit: contain;
+    }
+
+    [data-theme="dark"] .brand-logo {
+      filter: brightness(0) invert(1);
     }
 
     .brand-name {
@@ -171,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.23.30-saas";
+      content: "v2026.06.23.35-saas";
     }
 
     .toolbar {
@@ -1252,6 +1272,78 @@
     .workspace[data-panel="myTasks"] #actionLogPanel,
     .workspace[data-panel="myTasks"] #featuresPanel {
       display: none;
+    }
+
+    #organizationSettingsPanel,
+    #mySettingsPanel {
+      display: none;
+    }
+
+    .workspace[data-panel="orgSettings"],
+    .workspace[data-panel="mySettings"] {
+      grid-template-columns: minmax(0, 1fr) 560px;
+    }
+
+    .workspace[data-panel="orgSettings"] #organizationSettingsPanel,
+    .workspace[data-panel="mySettings"] #mySettingsPanel {
+      display: block;
+    }
+
+    .workspace[data-panel="orgSettings"] #cyclePanel,
+    .workspace[data-panel="orgSettings"] #tankPanel,
+    .workspace[data-panel="orgSettings"] #bottlingPanel,
+    .workspace[data-panel="orgSettings"] #warehousePanel,
+    .workspace[data-panel="orgSettings"] #templatesPanel,
+    .workspace[data-panel="orgSettings"] #sitePanel,
+    .workspace[data-panel="orgSettings"] #usersPanel,
+    .workspace[data-panel="orgSettings"] #actionLogPanel,
+    .workspace[data-panel="orgSettings"] #featuresPanel,
+    .workspace[data-panel="orgSettings"] #myTasksPanel,
+    .workspace[data-panel="mySettings"] #cyclePanel,
+    .workspace[data-panel="mySettings"] #tankPanel,
+    .workspace[data-panel="mySettings"] #bottlingPanel,
+    .workspace[data-panel="mySettings"] #warehousePanel,
+    .workspace[data-panel="mySettings"] #templatesPanel,
+    .workspace[data-panel="mySettings"] #sitePanel,
+    .workspace[data-panel="mySettings"] #usersPanel,
+    .workspace[data-panel="mySettings"] #actionLogPanel,
+    .workspace[data-panel="mySettings"] #featuresPanel,
+    .workspace[data-panel="mySettings"] #myTasksPanel {
+      display: none;
+    }
+
+    .settings-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .settings-logo-row {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+
+    .settings-logo-preview {
+      display: grid;
+      place-items: center;
+      width: 150px;
+      height: 72px;
+      border: 1px dashed var(--line-strong);
+      border-radius: 8px;
+      background: var(--soft-bg);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .settings-logo-preview img {
+      display: block;
+      width: auto;
+      height: 60px;
+      object-fit: contain;
     }
 
     .planner-shell {
@@ -3011,10 +3103,12 @@
       display: grid;
     }
 
+    html[data-password-setup="true"] .login-backdrop,
     body[data-password-setup="true"] .login-backdrop {
       display: none;
     }
 
+    html[data-password-setup="true"] #forcePasswordModal.open,
     body[data-password-setup="true"] #forcePasswordModal.open {
       z-index: 120;
     }
@@ -4344,9 +4438,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.23.30-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.23.35-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.30-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.35-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -4383,6 +4477,10 @@
           <div class="admin-menu-wrap admin-only">
             <button class="top-action" id="adminMenuButton" type="button">Администрирование</button>
             <div class="admin-menu" id="adminMenu">
+              <button class="admin-only" id="organizationSettingsButton" type="button">
+                <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-8h6v8"/></svg>
+                Организация
+              </button>
               <button id="actionLogButton" type="button">
                 <svg viewBox="0 0 24 24"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
                 Журнал
@@ -4405,6 +4503,10 @@
           <button class="my-tasks-button" id="myTasksButton" type="button" hidden>
             <span>Мои задачи</span>
             <b id="myTasksCount">0</b>
+          </button>
+          <button class="top-action" id="mySettingsButton" type="button">
+            <svg viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z"/><path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.8 1.8 0 0 0 15 19.4a1.8 1.8 0 0 0-1 .6V20a2 2 0 1 1-4 0v-.1a1.8 1.8 0 0 0-1-.6 1.8 1.8 0 0 0-1.98.36l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.8 1.8 0 0 0 4.6 15a1.8 1.8 0 0 0-.6-1H4a2 2 0 1 1 0-4h.1a1.8 1.8 0 0 0 .6-1 1.8 1.8 0 0 0-.36-1.98l-.06-.06A2 2 0 1 1 7.1 4.14l.06.06A1.8 1.8 0 0 0 9 4.6a1.8 1.8 0 0 0 1-.6V4a2 2 0 1 1 4 0v.1a1.8 1.8 0 0 0 1 .6 1.8 1.8 0 0 0 1.98-.36l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.8 1.8 0 0 0 19.4 9c.2.36.4.7.6 1H20a2 2 0 1 1 0 4h-.1a1.8 1.8 0 0 0-.5 1Z"/></svg>
+            Настройки
           </button>
           <button class="top-action" id="supportButton" type="button">
             <svg viewBox="0 0 24 24"><path d="M20.5 11.5a7.5 7.5 0 0 1-7.5 7.5H8l-4.5 2 1.4-4.2A7.5 7.5 0 1 1 20.5 11.5Z"/><path d="M10 9.2a2.2 2.2 0 0 1 4.1 1.1c0 1.45-1.7 1.7-2.05 2.65"/><path d="M12 16h.01"/></svg>
@@ -5039,6 +5141,134 @@
           <div class="my-task-list" id="myTasksList"></div>
         </section>
 
+        <section class="panel" id="organizationSettingsPanel">
+          <div class="panel-head">
+            <h2>Настройки организации</h2>
+            <button class="icon-btn" id="closeOrganizationSettingsButton" type="button" aria-label="Закрыть настройки организации" title="Закрыть">
+              <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          </div>
+          <form class="form settings-form" id="organizationSettingsForm">
+            <label class="field">
+              <span>Название для отображения</span>
+              <input id="organizationDisplayNameInput" placeholder="Можно оставить пустым">
+            </label>
+            <div class="settings-logo-row">
+              <div class="settings-logo-preview" id="organizationSettingsLogoPreview">Без логотипа</div>
+              <label class="field">
+                <span>Логотип организации</span>
+                <input id="organizationSettingsLogoInput" type="file" accept="image/*">
+              </label>
+            </div>
+            <div class="feature-list">
+              <label class="feature-row"><span><b>Новые задачи</b><small>Уведомлять при назначении задачи.</small></span><input id="orgNotifyTaskAssigned" type="checkbox"></label>
+              <label class="feature-row"><span><b>Просроченные задачи</b><small>Уведомлять о задачах после срока.</small></span><input id="orgNotifyTaskOverdue" type="checkbox"></label>
+              <label class="feature-row"><span><b>Ответы поддержки</b><small>Уведомлять клиента об ответе в helpdesk.</small></span><input id="orgNotifySupportReplies" type="checkbox"></label>
+              <label class="feature-row"><span><b>Статусы обращений</b><small>Уведомлять при изменении статуса заявки.</small></span><input id="orgNotifySupportStatus" type="checkbox"></label>
+              <label class="feature-row"><span><b>Ближайшие розливы</b><small>Уведомлять о приближении розлива.</small></span><input id="orgNotifyBottlingSoon" type="checkbox"></label>
+              <label class="feature-row"><span><b>Нет распределения</b><small>Уведомлять о циклах без распределения.</small></span><input id="orgNotifyMissingPackaging" type="checkbox"></label>
+              <label class="feature-row"><span><b>Комментарий с ответственным</b><small>Уведомлять при создании задачи из комментария.</small></span><input id="orgNotifyCommentAssigned" type="checkbox"></label>
+            </div>
+            <label class="field">
+              <span>Дополнительный email для системных уведомлений</span>
+              <input id="orgNotificationExtraEmailInput" type="email" placeholder="production@example.ru">
+            </label>
+            <div class="two">
+              <label class="field">
+                <span>Срок задачи из комментария</span>
+                <select id="orgCommentTaskDueInput">
+                  <option value="comment_date">Дата комментария</option>
+                  <option value="cycle_end">Дата розлива</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Напоминать за, дней</span>
+                <input id="orgRemindBeforeDueInput" type="number" min="0" max="30" step="1">
+              </label>
+            </div>
+            <label class="feature-row"><span><b>Редакторы назначают задачи другим</b><small>Если выключено, назначать задачи другим может только администратор.</small></span><input id="orgAllowEditorsAssignInput" type="checkbox"></label>
+            <div class="two">
+              <label class="field">
+                <span>Горизонт розливов, дней</span>
+                <input id="orgBottlingHorizonInput" type="number" min="7" max="90" step="1">
+              </label>
+              <label class="field">
+                <span>Начало недели</span>
+                <select id="orgWeekStartsInput">
+                  <option value="1">Понедельник</option>
+                  <option value="0">Воскресенье</option>
+                </select>
+              </label>
+            </div>
+            <div class="two">
+              <label class="field">
+                <span>Рабочий день с</span>
+                <input id="orgWorkdayStartInput" type="time">
+              </label>
+              <label class="field">
+                <span>до</span>
+                <input id="orgWorkdayEndInput" type="time">
+              </label>
+            </div>
+            <label class="field">
+              <span>Шаблоны комментариев</span>
+              <textarea id="orgCommentTemplatesInput" placeholder="Каждый шаблон с новой строки"></textarea>
+            </label>
+            <label class="field">
+              <span>Шаблоны задач</span>
+              <textarea id="orgTaskTemplatesInput" placeholder="Каждый шаблон с новой строки"></textarea>
+            </label>
+            <button class="primary" type="submit">Сохранить настройки организации</button>
+            <div class="status" id="organizationSettingsStatus"></div>
+          </form>
+        </section>
+
+        <section class="panel" id="mySettingsPanel">
+          <div class="panel-head">
+            <h2>Мои настройки</h2>
+            <button class="icon-btn" id="closeMySettingsButton" type="button" aria-label="Закрыть мои настройки" title="Закрыть">
+              <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          </div>
+          <form class="form settings-form" id="mySettingsForm">
+            <label class="field">
+              <span>Тема</span>
+              <select id="myThemeInput">
+                <option value="light">Светлая</option>
+                <option value="dark">Темная</option>
+              </select>
+            </label>
+            <div class="feature-list">
+              <label class="feature-row"><span><b>Назначенные мне задачи</b><small>Email-уведомления по новым задачам.</small></span><input id="myNotifyTasksInput" type="checkbox"></label>
+              <label class="feature-row"><span><b>Просроченные задачи</b><small>Email-напоминания о просроченных задачах.</small></span><input id="myNotifyOverdueInput" type="checkbox"></label>
+              <label class="feature-row"><span><b>Ответы поддержки</b><small>Уведомления по обращениям в поддержку.</small></span><input id="myNotifySupportInput" type="checkbox"></label>
+            </div>
+            <label class="field">
+              <span>Вид планировщика</span>
+              <select id="myPlannerViewInput">
+                <option value="expanded">Полный</option>
+                <option value="compact">Компактный</option>
+              </select>
+            </label>
+            <div class="two">
+              <label class="field">
+                <span>ФИО</span>
+                <input id="myDisplayNameInput">
+              </label>
+              <label class="field">
+                <span>Телефон</span>
+                <input id="myPhoneInput">
+              </label>
+            </div>
+            <label class="field">
+              <span>Должность/отдел</span>
+              <input id="myDepartmentInput">
+            </label>
+            <button class="primary" type="submit">Сохранить мои настройки</button>
+            <div class="status" id="mySettingsStatus"></div>
+          </form>
+        </section>
+
         <section class="panel" id="actionLogPanel">
           <div class="panel-head">
             <h2>Журнал действий</h2>
@@ -5180,6 +5410,10 @@
           <span>Комментарий</span>
           <textarea id="commentInput" placeholder="Например: контроль плотности"></textarea>
         </label>
+        <label class="field" id="commentAssigneeField">
+          <span>Ответственный</span>
+          <select id="commentAssigneeInput"></select>
+        </label>
         <div class="field">
           <span>Шаблоны задач</span>
           <div class="template-row" id="commentTemplates">
@@ -5284,7 +5518,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.30-saas";
+    const appVersion = "v2026.06.23.35-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -5356,6 +5590,8 @@
     let supportTicketSignature = localStorage.getItem(`${storageKey}-support-ticket-signature`) || "";
     let forcePasswordAttemptId = 0;
     let passwordSetupToken = "";
+    let organizationSettings = null;
+    let pendingOrganizationLogo = null;
     let supportsTankSortOrder = false;
     let supportsPartialBottlings = false;
     let supportsSourceCycles = false;
@@ -5721,6 +5957,34 @@
       if (!loginStatus) return;
       loginStatus.className = "status account-disabled";
       loginStatus.textContent = message;
+    }
+
+    function resizeLogoFile(file, targetHeight = 60) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(reader.error || new Error("Не удалось прочитать логотип"));
+        reader.onload = () => {
+          const image = new Image();
+          image.onerror = () => reject(new Error("Не удалось обработать логотип"));
+          image.onload = () => {
+            const width = Math.max(1, Math.round(Number(image.naturalWidth || image.width || 1) * targetHeight / Number(image.naturalHeight || image.height || targetHeight)));
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = targetHeight;
+            const context = canvas.getContext("2d");
+            context.clearRect(0, 0, width, targetHeight);
+            context.drawImage(image, 0, 0, width, targetHeight);
+            resolve({
+              name: file.name.replace(/\.[^.]+$/, "") + ".png",
+              width,
+              height: targetHeight,
+              dataUrl: canvas.toDataURL("image/png")
+            });
+          };
+          image.src = String(reader.result || "");
+        };
+        reader.readAsDataURL(file);
+      });
     }
 
     async function yandexRequest(path, options = {}) {
@@ -6307,9 +6571,12 @@
           mustChangePassword: Boolean(data.user.mustChangePassword),
           organizationId: data.user.organizationId || "",
           organizationName: data.user.organizationName || "",
+          organizationDisplayName: data.user.organizationDisplayName || "",
           organizationLogoDataUrl: data.user.organizationLogoDataUrl || "",
-          organizationLogoName: data.user.organizationLogoName || ""
+          organizationLogoName: data.user.organizationLogoName || "",
+          organizationSettings: data.user.organizationSettings || null
         };
+        organizationSettings = profile.organizationSettings || organizationSettings;
         if (!data.user.serviceRole && profile.role === "admin" && !profile.organizationId) {
           profile.serviceRole = "super_admin";
         }
@@ -6997,6 +7264,8 @@
     const commentModalText = document.querySelector("#commentModalText");
     const commentDateInput = document.querySelector("#commentDateInput");
     const commentInput = document.querySelector("#commentInput");
+    const commentAssigneeField = document.querySelector("#commentAssigneeField");
+    const commentAssigneeInput = document.querySelector("#commentAssigneeInput");
     const commentTemplates = document.querySelector("#commentTemplates");
     const cancelCommentButton = document.querySelector("#cancelCommentButton");
     const saveCommentButton = document.querySelector("#saveCommentButton");
@@ -7032,11 +7301,22 @@
     const adminMenuButton = document.querySelector("#adminMenuButton");
     const adminMenu = document.querySelector("#adminMenu");
     const usersButton = document.querySelector("#usersButton");
+    const organizationSettingsButton = document.querySelector("#organizationSettingsButton");
+    const mySettingsButton = document.querySelector("#mySettingsButton");
     const closeUsersButton = document.querySelector("#closeUsersButton");
     const featuresButton = document.querySelector("#featuresButton");
     const closeFeaturesButton = document.querySelector("#closeFeaturesButton");
     const featureList = document.querySelector("#featureList");
     const featureStatus = document.querySelector("#featureStatus");
+    const organizationSettingsForm = document.querySelector("#organizationSettingsForm");
+    const closeOrganizationSettingsButton = document.querySelector("#closeOrganizationSettingsButton");
+    const organizationDisplayNameInput = document.querySelector("#organizationDisplayNameInput");
+    const organizationSettingsLogoInput = document.querySelector("#organizationSettingsLogoInput");
+    const organizationSettingsLogoPreview = document.querySelector("#organizationSettingsLogoPreview");
+    const organizationSettingsStatus = document.querySelector("#organizationSettingsStatus");
+    const mySettingsForm = document.querySelector("#mySettingsForm");
+    const closeMySettingsButton = document.querySelector("#closeMySettingsButton");
+    const mySettingsStatus = document.querySelector("#mySettingsStatus");
     const closeMyTasksButton = document.querySelector("#closeMyTasksButton");
     const myTaskTabs = document.querySelector("#myTaskTabs");
     const actionLogButton = document.querySelector("#actionLogButton");
@@ -7079,7 +7359,9 @@
       const admin = canAdmin();
       setEditable([addMenuButton, addBrewButton, addCommentButton, addTankButton, addSiteButton, submitCycleButton], editable);
       setEditable([supportButton], authenticated && featureEnabled("supportTickets"));
+      setEditable([mySettingsButton], authenticated);
       supportButton.hidden = !featureEnabled("supportTickets");
+      mySettingsButton.hidden = !authenticated;
       addCommentButton.hidden = !featureEnabled("comments");
       bottlingsButton.hidden = !featureEnabled("bottlings");
       warehouseButton.hidden = !featureEnabled("warehouseCalendar");
@@ -7090,7 +7372,7 @@
       addSiteButton.disabled = !editable || !featureEnabled("contractBrewery");
       addSiteButton.hidden = !featureEnabled("contractBrewery");
       addSiteButton.style.display = featureEnabled("contractBrewery") ? "" : "none";
-      setEditable([commentDateInput, commentInput, saveCommentButton, deleteCommentButton, confirmDeleteButton, confirmMoveButton, saveCycleChangesButton, copyCycleButton, deriveCycleButton], editable);
+      setEditable([commentDateInput, commentInput, commentAssigneeInput, saveCommentButton, deleteCommentButton, confirmDeleteButton, confirmMoveButton, saveCycleChangesButton, copyCycleButton, deriveCycleButton], editable);
       setEditable([bulkStageInput, bulkApplyStageButton, bulkShiftDaysInput, bulkMoveButton, bulkDeleteButton, bulkClearButton], editable);
       deriveCycleButton.disabled = !editable || !state.selectedCycleId || !featureEnabled("cycleSources");
       deriveCycleButton.hidden = !featureEnabled("cycleSources");
@@ -7101,9 +7383,9 @@
       setEditable([processBrewTab, processFermentationTab], authenticated && Boolean(state.selectedCycleId) && featureEnabled("cycleProcess"));
       fermentationChartButton.disabled = !authenticated || !state.selectedCycleId || !featureEnabled("cycleProcess");
       setEditable(Array.from(cycleTasksPane.querySelectorAll("input, select, textarea, button")), editable);
-      taskAssigneeInput.disabled = !editable || !admin;
+      taskAssigneeInput.disabled = !editable || !canAssignTaskResponsible();
       cycleTaskList.querySelectorAll("[data-task-edit-assignee]").forEach((select) => {
-        select.disabled = !admin;
+        select.disabled = !canAssignTaskResponsible();
       });
       setEditable(Array.from(tankForm.querySelectorAll("input, select, textarea, button")), editable);
       setEditable(Array.from(siteForm.querySelectorAll("input, select, textarea, button")), editable);
@@ -7120,6 +7402,8 @@
       closeUsersButton.disabled = false;
       closeFeaturesButton.disabled = false;
       closeMyTasksButton.disabled = false;
+      closeOrganizationSettingsButton.disabled = false;
+      closeMySettingsButton.disabled = false;
       closeActionLogButton.disabled = false;
       logoutButton.disabled = false;
       cancelCommentButton.disabled = false;
@@ -7130,13 +7414,14 @@
         state.commentMode = false;
       }
       if (state.panelMode === "features") state.panelMode = "hidden";
-      if (!admin && state.panelMode === "users") state.panelMode = "hidden";
+      if (!admin && (state.panelMode === "users" || state.panelMode === "orgSettings")) state.panelMode = "hidden";
+      if (!authenticated && state.panelMode === "mySettings") state.panelMode = "hidden";
       if (!admin) adminMenu.classList.remove("open");
       renderTankCreateMode();
     }
 
     function renderOrganizationBrand() {
-      const name = currentUser?.organizationName || "Планировщик производства";
+      const name = currentUser?.organizationDisplayName || currentUser?.organizationName || "Планировщик производства";
       organizationBrandName.textContent = name;
       if (currentUser?.organizationLogoDataUrl) {
         organizationLogo.src = currentUser.organizationLogoDataUrl;
@@ -7149,6 +7434,195 @@
         organizationLogo.hidden = true;
         organizationBrandName.hidden = false;
       }
+    }
+
+    function templatesFromTextarea(value) {
+      return String(value || "").split(/\n+/).map((item) => item.trim()).filter(Boolean).slice(0, 30);
+    }
+
+    function currentCommentTemplates() {
+      return organizationSettings?.commentTemplates || currentUser?.organizationSettings?.commentTemplates || ["Контроль плотности", "Снять осадок", "Сухое охмеление", "Задача пюре/фруктов/соков"];
+    }
+
+    function currentTaskTemplates() {
+      return organizationSettings?.taskTemplates || currentUser?.organizationSettings?.taskTemplates || ["Зарегистрировать ДС", "Зарегистрировать ФРАП", "Заказать этикетку"];
+    }
+
+    function currentOrganizationTaskSettings() {
+      return organizationSettings?.taskSettings || currentUser?.organizationSettings?.taskSettings || {};
+    }
+
+    function canAssignTaskResponsible() {
+      return Boolean(canAdmin() || currentOrganizationTaskSettings().allowEditorsAssignOthers);
+    }
+
+    function commentTaskDueDate(cycle, commentDate) {
+      return currentOrganizationTaskSettings().commentTaskDue === "cycle_end" ? cycle?.end || commentDate : commentDate;
+    }
+
+    function renderConfigurableTemplates() {
+      if (commentTemplates) {
+        commentTemplates.innerHTML = currentCommentTemplates()
+          .map((template) => `<button class="template-btn" type="button" data-template="${escapeHtml(template)}">${escapeHtml(template)}</button>`)
+          .join("");
+      }
+      if (taskTemplates) {
+        taskTemplates.innerHTML = currentTaskTemplates()
+          .map((template) => `<button class="template-btn" type="button" data-task-template="${escapeHtml(template)}">${escapeHtml(template)}</button>`)
+          .join("");
+      }
+    }
+
+    function renderSettingsLogoPreview(dataUrl) {
+      if (!organizationSettingsLogoPreview) return;
+      organizationSettingsLogoPreview.innerHTML = dataUrl
+        ? `<img src="${escapeHtml(dataUrl)}" alt="Логотип организации">`
+        : "Без логотипа";
+    }
+
+    async function loadOrganizationSettings() {
+      if (!isYandexBackend || !currentUser) return organizationSettings;
+      const data = await yandexRequest("/organization-settings");
+      organizationSettings = data.organization || organizationSettings;
+      return organizationSettings;
+    }
+
+    function renderOrganizationSettings() {
+      const settings = organizationSettings || currentUser?.organizationSettings || {};
+      organizationDisplayNameInput.value = settings.displayName || currentUser?.organizationDisplayName || "";
+      renderSettingsLogoPreview(pendingOrganizationLogo?.dataUrl || settings.logoDataUrl || currentUser?.organizationLogoDataUrl || "");
+      const notifications = settings.notificationSettings || {};
+      document.querySelector("#orgNotifyTaskAssigned").checked = notifications.taskAssigned !== false;
+      document.querySelector("#orgNotifyTaskOverdue").checked = notifications.taskOverdue !== false;
+      document.querySelector("#orgNotifySupportReplies").checked = notifications.supportReplies !== false;
+      document.querySelector("#orgNotifySupportStatus").checked = notifications.supportStatus !== false;
+      document.querySelector("#orgNotifyBottlingSoon").checked = Boolean(notifications.bottlingSoon);
+      document.querySelector("#orgNotifyMissingPackaging").checked = notifications.missingPackaging !== false;
+      document.querySelector("#orgNotifyCommentAssigned").checked = notifications.commentAssigned !== false;
+      document.querySelector("#orgNotificationExtraEmailInput").value = settings.notificationRecipients?.extraEmail || "";
+      document.querySelector("#orgCommentTaskDueInput").value = settings.taskSettings?.commentTaskDue || "comment_date";
+      document.querySelector("#orgRemindBeforeDueInput").value = settings.taskSettings?.remindBeforeDueDays ?? 1;
+      document.querySelector("#orgAllowEditorsAssignInput").checked = Boolean(settings.taskSettings?.allowEditorsAssignOthers);
+      document.querySelector("#orgBottlingHorizonInput").value = settings.calendarSettings?.bottlingHorizonDays || 14;
+      document.querySelector("#orgWeekStartsInput").value = String(settings.calendarSettings?.weekStartsOn ?? 1);
+      document.querySelector("#orgWorkdayStartInput").value = settings.calendarSettings?.workdayStart || "10:00";
+      document.querySelector("#orgWorkdayEndInput").value = settings.calendarSettings?.workdayEnd || "18:00";
+      document.querySelector("#orgCommentTemplatesInput").value = (settings.commentTemplates || ["Контроль плотности", "Снять осадок", "Сухое охмеление", "Задача пюре/фруктов/соков"]).join("\n");
+      document.querySelector("#orgTaskTemplatesInput").value = (settings.taskTemplates || ["Зарегистрировать ДС", "Зарегистрировать ФРАП", "Заказать этикетку"]).join("\n");
+      renderConfigurableTemplates();
+    }
+
+    async function saveOrganizationSettings() {
+      if (!requireAdmin()) return;
+      organizationSettingsStatus.className = "status loading";
+      organizationSettingsStatus.textContent = "Сохраняем настройки организации...";
+      const payload = {
+        displayName: organizationDisplayNameInput.value.trim(),
+        notificationSettings: {
+          taskAssigned: document.querySelector("#orgNotifyTaskAssigned").checked,
+          taskOverdue: document.querySelector("#orgNotifyTaskOverdue").checked,
+          supportReplies: document.querySelector("#orgNotifySupportReplies").checked,
+          supportStatus: document.querySelector("#orgNotifySupportStatus").checked,
+          bottlingSoon: document.querySelector("#orgNotifyBottlingSoon").checked,
+          missingPackaging: document.querySelector("#orgNotifyMissingPackaging").checked,
+          commentAssigned: document.querySelector("#orgNotifyCommentAssigned").checked
+        },
+        notificationRecipients: {
+          extraEmail: document.querySelector("#orgNotificationExtraEmailInput").value.trim()
+        },
+        taskSettings: {
+          commentTaskDue: document.querySelector("#orgCommentTaskDueInput").value,
+          allowEditorsAssignOthers: document.querySelector("#orgAllowEditorsAssignInput").checked,
+          remindBeforeDueDays: Number(document.querySelector("#orgRemindBeforeDueInput").value || 0)
+        },
+        calendarSettings: {
+          bottlingHorizonDays: Number(document.querySelector("#orgBottlingHorizonInput").value || 14),
+          weekStartsOn: Number(document.querySelector("#orgWeekStartsInput").value || 1),
+          workdayStart: document.querySelector("#orgWorkdayStartInput").value || "10:00",
+          workdayEnd: document.querySelector("#orgWorkdayEndInput").value || "18:00"
+        },
+        commentTemplates: templatesFromTextarea(document.querySelector("#orgCommentTemplatesInput").value),
+        taskTemplates: templatesFromTextarea(document.querySelector("#orgTaskTemplatesInput").value)
+      };
+      if (pendingOrganizationLogo) {
+        payload.logoDataUrl = pendingOrganizationLogo.dataUrl;
+        payload.logoName = pendingOrganizationLogo.name;
+      }
+      const data = await yandexRequest("/organization-settings", { method: "PATCH", body: payload });
+      organizationSettings = data.organization;
+      pendingOrganizationLogo = null;
+      if (currentUser) {
+        currentUser.organizationDisplayName = organizationSettings.displayName || "";
+        currentUser.organizationLogoDataUrl = organizationSettings.logoDataUrl || "";
+        currentUser.organizationLogoName = organizationSettings.logoName || "";
+        currentUser.organizationSettings = organizationSettings;
+      }
+      renderOrganizationBrand();
+      renderOrganizationSettings();
+      organizationSettingsStatus.className = "status";
+      organizationSettingsStatus.textContent = "Настройки организации сохранены";
+    }
+
+    function mySettingsKey() {
+      return `${storageKey}-my-settings-${currentUser?.id || currentUser?.login || "guest"}`;
+    }
+
+    function loadMySettings() {
+      try {
+        return JSON.parse(localStorage.getItem(mySettingsKey()) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveMySettingsLocal(settings) {
+      try {
+        localStorage.setItem(mySettingsKey(), JSON.stringify(settings || {}));
+      } catch {
+        // Персональные настройки не должны мешать работе планировщика.
+      }
+    }
+
+    function renderMySettingsForm() {
+      const settings = loadMySettings();
+      document.querySelector("#myThemeInput").value = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+      document.querySelector("#myNotifyTasksInput").checked = settings.notifyTasks !== false;
+      document.querySelector("#myNotifyOverdueInput").checked = settings.notifyOverdue !== false;
+      document.querySelector("#myNotifySupportInput").checked = settings.notifySupport !== false;
+      document.querySelector("#myPlannerViewInput").value = settings.plannerView === "expanded" ? "expanded" : "compact";
+      document.querySelector("#myDisplayNameInput").value = currentUser?.displayName || "";
+      document.querySelector("#myPhoneInput").value = currentUser?.phone || "";
+      document.querySelector("#myDepartmentInput").value = currentUser?.department || "";
+    }
+
+    async function saveMySettings() {
+      if (!currentUser) return;
+      mySettingsStatus.className = "status loading";
+      mySettingsStatus.textContent = "Сохраняем мои настройки...";
+      const settings = {
+        notifyTasks: document.querySelector("#myNotifyTasksInput").checked,
+        notifyOverdue: document.querySelector("#myNotifyOverdueInput").checked,
+        notifySupport: document.querySelector("#myNotifySupportInput").checked,
+        plannerView: document.querySelector("#myPlannerViewInput").value
+      };
+      applyTheme(document.querySelector("#myThemeInput").value === "dark" ? "dark" : "light");
+      state.view = settings.plannerView === "expanded" ? "expanded" : "compact";
+      viewButtons.querySelectorAll("button").forEach((button) => {
+        button.classList.toggle("active", button.dataset.view === state.view);
+      });
+      saveMySettingsLocal(settings);
+      const profile = {
+        displayName: document.querySelector("#myDisplayNameInput").value.trim(),
+        department: document.querySelector("#myDepartmentInput").value.trim(),
+        phone: document.querySelector("#myPhoneInput").value.trim(),
+        comment: currentUser.comment || ""
+      };
+      const updatedUser = await updateUserProfile(currentUser, profile);
+      Object.assign(currentUser, profile, updatedUser || {});
+      currentUserName.textContent = userDisplayName(currentUser);
+      mySettingsStatus.className = "status";
+      mySettingsStatus.textContent = "Мои настройки сохранены";
+      renderUsers();
     }
 
     function selectedCycleIds() {
@@ -7674,6 +8148,15 @@
       taskAssigneeInput.value = nextValue;
     }
 
+    function renderCommentAssigneeOptions(value = "", editable = true) {
+      if (!commentAssigneeField || !commentAssigneeInput) return;
+      const enabled = featureEnabled("cycleTasks") && editable;
+      commentAssigneeField.hidden = !enabled;
+      commentAssigneeInput.innerHTML = taskAssigneeOptionsHtml(value);
+      commentAssigneeInput.value = value && Array.from(commentAssigneeInput.options).some((option) => option.value === value) ? value : "";
+      commentAssigneeInput.disabled = !enabled || !canAssignTaskResponsible();
+    }
+
     function isTaskAssignedToCurrentUser(task) {
       return Boolean(currentUser && userMatchesTaskAssignee(currentUser, task.assignee));
     }
@@ -7844,8 +8327,8 @@
     function resetTaskForm(cycle = selectedCycle()) {
       state.taskEditId = null;
       taskTitleInput.value = "";
-      setTaskAssigneeInputValue(canAdmin() ? "" : currentUserTaskAssigneeValue());
-      taskAssigneeInput.disabled = !canAdmin();
+      setTaskAssigneeInputValue(canAssignTaskResponsible() ? "" : currentUserTaskAssigneeValue());
+      taskAssigneeInput.disabled = !canAssignTaskResponsible();
       taskDueInput.value = cycle?.end || "";
       taskDueInput.min = cycle?.start || "";
       taskDueInput.max = cycle?.end || "";
@@ -7911,7 +8394,7 @@
           <div class="two">
             <label class="field">
               <span>Ответственный</span>
-              <select data-task-edit-assignee="${escapeHtml(task.id)}" ${canAdmin() ? "" : "disabled"}>
+              <select data-task-edit-assignee="${escapeHtml(task.id)}" ${canAssignTaskResponsible() ? "" : "disabled"}>
                 ${taskAssigneeOptionsHtml(assigneeValue)}
               </select>
             </label>
@@ -7940,7 +8423,7 @@
       cycleTasksTab.textContent = openTasks ? `Задачи (${formatNumber(openTasks)})` : "Задачи";
       const editable = Boolean(cycle) && canEdit();
       setEditable([taskTitleInput, taskDueInput, addTaskButton], editable);
-      taskAssigneeInput.disabled = !editable || !canAdmin();
+      taskAssigneeInput.disabled = !editable || !canAssignTaskResponsible();
       setEditable(Array.from(taskTemplates?.querySelectorAll("button") || []), editable);
       updateAddTaskButtonState();
 
@@ -8020,7 +8503,7 @@
       const task = {
         id: newId(),
         title,
-        assignee: canAdmin() ? taskAssigneeInput.value.trim() : currentUserTaskAssigneeValue(),
+        assignee: canAssignTaskResponsible() ? taskAssigneeInput.value.trim() : currentUserTaskAssigneeValue(),
         dueDate,
         done: false,
         createdAt: new Date().toISOString(),
@@ -8088,7 +8571,7 @@
       }
       pushUndoSnapshot("редактирование задачи");
       task.title = title;
-      task.assignee = canAdmin() ? assignee : task.assignee;
+      task.assignee = canAssignTaskResponsible() ? assignee : task.assignee;
       task.dueDate = dueDate;
       cycle.tasks = tasks;
       savePlan();
@@ -8891,7 +9374,7 @@
       cycleTasksTab.textContent = openTasks ? `Задачи (${formatNumber(openTasks)})` : "Задачи";
       const editable = Boolean(cycle) && canEdit();
       setEditable([taskTitleInput, taskDueInput, addTaskButton], editable);
-      taskAssigneeInput.disabled = !editable || !canAdmin();
+      taskAssigneeInput.disabled = !editable || !canAssignTaskResponsible();
       setEditable(Array.from(taskTemplates?.querySelectorAll("button") || []), editable);
       updateAddTaskButtonState();
       if (!cycle) {
@@ -9038,6 +9521,7 @@
     function showPasswordSetupFromLink(token) {
       passwordSetupToken = String(token || "");
       if (!passwordSetupToken) return false;
+      document.documentElement.dataset.passwordSetup = "true";
       document.body.dataset.passwordSetup = "true";
       setYandexToken("");
       currentUser = null;
@@ -9127,6 +9611,7 @@
       forcePasswordModal.classList.remove("open");
       if (passwordSetupToken) clearPasswordSetupTokenFromLocation();
       passwordSetupToken = "";
+      delete document.documentElement.dataset.passwordSetup;
       delete document.body.dataset.passwordSetup;
       setYandexToken("");
       currentUser = null;
@@ -9188,6 +9673,7 @@
         forcePasswordModal.classList.remove("open");
         if (passwordSetupToken) clearPasswordSetupTokenFromLocation();
         passwordSetupToken = "";
+        delete document.documentElement.dataset.passwordSetup;
         delete document.body.dataset.passwordSetup;
         forcePasswordStatus.className = "status";
         forcePasswordStatus.textContent = "";
@@ -10739,6 +11225,13 @@
       } catch {
         state.siteOrder = normalizedSiteOrder([]);
       }
+      const personalSettings = loadMySettings();
+      if (personalSettings.plannerView === "expanded" || personalSettings.plannerView === "compact") {
+        state.view = personalSettings.plannerView;
+        viewButtons.querySelectorAll("button").forEach((button) => {
+          button.classList.toggle("active", button.dataset.view === state.view);
+        });
+      }
     }
 
     function saveUserUiPreferences() {
@@ -11621,6 +12114,7 @@
       commentDateInput.max = cycle.end;
       commentDateInput.value = date;
       commentInput.value = "";
+      renderCommentAssigneeOptions("", true);
       deleteCommentButton.style.display = "none";
       render();
       commentModal.classList.add("open");
@@ -11639,6 +12133,7 @@
       commentDateInput.max = cycle.end;
       commentDateInput.value = comment.date;
       commentInput.value = comment.text;
+      renderCommentAssigneeOptions("", false);
       deleteCommentButton.style.display = "inline-flex";
       renderPickedCell();
       commentModal.classList.add("open");
@@ -12411,7 +12906,8 @@
       addBrewButton.classList.toggle("active", state.addMode);
       addCommentButton.classList.toggle("active", state.commentMode);
       filterButton.classList.toggle("active", filterMenu.classList.contains("open") || activeFiltersCount() > 0);
-      adminMenuButton.classList.toggle("active", adminMenu.classList.contains("open") || state.panelMode === "log" || state.panelMode === "users" || state.panelMode === "features");
+      adminMenuButton.classList.toggle("active", adminMenu.classList.contains("open") || state.panelMode === "log" || state.panelMode === "users" || state.panelMode === "features" || state.panelMode === "orgSettings");
+      mySettingsButton.classList.toggle("active", state.panelMode === "mySettings");
       bottlingsButton.classList.toggle("active", state.panelMode === "bottlings");
       warehouseButton.classList.toggle("active", state.panelMode === "warehouse");
       templatesButton.classList.toggle("active", state.panelMode === "templates");
@@ -12425,6 +12921,7 @@
       renderMetrics();
       renderBulkActions();
       renderMyTasksButton();
+      renderConfigurableTemplates();
       renderCycleTabs();
       if (featureEnabled("cycleProcess")) renderCycleProcess();
       renderCycleTasks();
@@ -12437,6 +12934,8 @@
       if (state.panelMode === "templates") renderTemplateList();
       if (state.panelMode === "users") renderUsers();
       if (state.panelMode === "log") renderActionLog();
+      if (state.panelMode === "orgSettings") renderOrganizationSettings();
+      if (state.panelMode === "mySettings") renderMySettingsForm();
       if (state.panelMode === "features") {
         state.panelMode = "hidden";
         workspace.dataset.panel = state.panelMode;
@@ -13503,7 +14002,35 @@
         render();
       });
 
+      organizationSettingsButton.addEventListener("click", async () => {
+        if (!requireAdmin()) return;
+        const isOpen = state.panelMode === "orgSettings";
+        state.panelMode = isOpen ? "hidden" : "orgSettings";
+        state.addMode = false;
+        state.commentMode = false;
+        state.selectedCycleId = null;
+        state.selectedTankId = null;
+        state.pickedTankId = null;
+        state.pickedDate = null;
+        addMenu.classList.remove("open");
+        adminMenu.classList.remove("open");
+        if (!isOpen) {
+          try {
+            await loadOrganizationSettings();
+          } catch (error) {
+            organizationSettingsStatus.className = "status error";
+            organizationSettingsStatus.textContent = `Не удалось загрузить настройки организации: ${error.message}`;
+          }
+        }
+        render();
+      });
+
       closeUsersButton.addEventListener("click", () => {
+        state.panelMode = "hidden";
+        render();
+      });
+
+      closeOrganizationSettingsButton.addEventListener("click", () => {
         state.panelMode = "hidden";
         render();
       });
@@ -13525,9 +14052,65 @@
         render();
       });
 
+      mySettingsButton.addEventListener("click", () => {
+        if (!currentUser) return;
+        const isOpen = state.panelMode === "mySettings";
+        state.panelMode = isOpen ? "hidden" : "mySettings";
+        state.addMode = false;
+        state.commentMode = false;
+        state.selectedCycleId = null;
+        state.selectedTankId = null;
+        state.pickedTankId = null;
+        state.pickedDate = null;
+        addMenu.classList.remove("open");
+        adminMenu.classList.remove("open");
+        render();
+      });
+
+      closeMySettingsButton.addEventListener("click", () => {
+        state.panelMode = "hidden";
+        render();
+      });
+
       closeActionLogButton.addEventListener("click", () => {
         state.panelMode = "hidden";
         render();
+      });
+
+      organizationSettingsLogoInput.addEventListener("change", async () => {
+        const file = organizationSettingsLogoInput.files?.[0];
+        organizationSettingsLogoInput.value = "";
+        if (!file) return;
+        try {
+          const dataUrl = await resizeLogoFile(file, 60);
+          pendingOrganizationLogo = { dataUrl, name: file.name };
+          renderSettingsLogoPreview(dataUrl);
+        } catch (error) {
+          organizationSettingsStatus.className = "status error";
+          organizationSettingsStatus.textContent = `Не удалось подготовить логотип: ${error.message}`;
+        }
+      });
+
+      organizationSettingsForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        try {
+          await saveOrganizationSettings();
+          render();
+        } catch (error) {
+          organizationSettingsStatus.className = "status error";
+          organizationSettingsStatus.textContent = `Не удалось сохранить настройки организации: ${error.message}`;
+        }
+      });
+
+      mySettingsForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        try {
+          await saveMySettings();
+          render();
+        } catch (error) {
+          mySettingsStatus.className = "status error";
+          mySettingsStatus.textContent = `Не удалось сохранить мои настройки: ${error.message}`;
+        }
       });
 
       document.addEventListener("click", (event) => {
@@ -13537,7 +14120,7 @@
         }
         if (!event.target.closest(".admin-menu-wrap")) {
           adminMenu.classList.remove("open");
-          adminMenuButton.classList.toggle("active", state.panelMode === "log" || state.panelMode === "users" || state.panelMode === "features");
+          adminMenuButton.classList.toggle("active", state.panelMode === "log" || state.panelMode === "users" || state.panelMode === "features" || state.panelMode === "orgSettings");
         }
         if (!event.target.closest(".filter-menu-wrap")) {
           filterMenu.classList.remove("open");
@@ -14101,6 +14684,27 @@
           logAction("comment_created", "comment", comment.id, cycle.product, {
             start: commentDate
           });
+          const assignee = String(commentAssigneeInput?.value || "").trim();
+          if (assignee && featureEnabled("cycleTasks")) {
+            const task = {
+              id: newId(),
+              title: text,
+              assignee,
+              dueDate: commentTaskDueDate(cycle, commentDate),
+              done: false,
+              createdAt: new Date().toISOString(),
+              completedAt: "",
+              attachments: [],
+              sourceCommentId: comment.id
+            };
+            cycle.tasks = tasksForCycle(cycle).concat(task);
+            logAction("cycle_task_created", "task", task.id, cycle.product, {
+              task: task.title,
+              assignee: task.assignee,
+              dueDate: task.dueDate,
+              source: "comment"
+            });
+          }
         }
         state.pendingComment = null;
         state.commentMode = false;
@@ -14109,7 +14713,8 @@
         commentModal.classList.remove("open");
         savePlan();
         formStatus.className = "status";
-        formStatus.textContent = "Комментарий сохранен";
+        formStatus.textContent = commentAssigneeInput?.value ? "Комментарий сохранен, задача создана" : "Комментарий сохранен";
+        refreshTaskViews();
         render();
       });
 
