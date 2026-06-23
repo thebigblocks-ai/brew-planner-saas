@@ -171,7 +171,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.23.23-saas";
+      content: "v2026.06.23.24-saas";
     }
 
     .toolbar {
@@ -4334,9 +4334,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.23.23-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.23.24-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.23-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.24-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -4346,11 +4346,11 @@
       <form class="password-modal-form" id="forcePasswordForm">
         <label class="field">
           <span>Новый пароль</span>
-          <input id="forceNewPasswordInput" type="password" autocomplete="new-password" required>
+          <input id="forceNewPasswordInput" type="password" autocomplete="new-password" minlength="8" required>
         </label>
         <label class="field">
           <span>Повторите новый пароль</span>
-          <input id="forceRepeatPasswordInput" type="password" autocomplete="new-password" required>
+          <input id="forceRepeatPasswordInput" type="password" autocomplete="new-password" minlength="8" required>
         </label>
         <p class="force-password-hint">Пароль должен быть не короче 8 символов.</p>
         <div class="status" id="forcePasswordStatus"></div>
@@ -5274,7 +5274,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.23-saas";
+    const appVersion = "v2026.06.23.24-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -8986,6 +8986,8 @@
         await saveForcedPasswordChange();
       };
       cancelForcePasswordButton.onclick = cancelForcedPasswordChange;
+      forceNewPasswordInput.oninput = validateForcedPasswordFields;
+      forceRepeatPasswordInput.oninput = validateForcedPasswordFields;
       forcePasswordModal.classList.add("open");
       requestAnimationFrame(() => forceNewPasswordInput.focus());
     }
@@ -8995,6 +8997,35 @@
       forceRepeatPasswordInput.disabled = false;
       saveForcePasswordButton.disabled = false;
       cancelForcePasswordButton.disabled = false;
+    }
+
+    function validateForcedPasswordFields() {
+      resetForcePasswordControls();
+      const newPassword = String(forceNewPasswordInput?.value || "");
+      const repeatPassword = String(forceRepeatPasswordInput?.value || "");
+      if (!newPassword && !repeatPassword) {
+        forcePasswordStatus.className = "status";
+        forcePasswordStatus.textContent = "";
+        return false;
+      }
+      if (newPassword.trim().length > 0 && newPassword.trim().length < 8) {
+        forcePasswordStatus.className = "status error";
+        forcePasswordStatus.textContent = "Пароль слишком короткий. Укажите минимум 8 символов.";
+        return false;
+      }
+      if (newPassword.trim().length >= 8 && !repeatPassword) {
+        forcePasswordStatus.className = "status error";
+        forcePasswordStatus.textContent = "Повторите новый пароль.";
+        return false;
+      }
+      if (repeatPassword && newPassword !== repeatPassword) {
+        forcePasswordStatus.className = "status error";
+        forcePasswordStatus.textContent = "Новые пароли не совпадают";
+        return false;
+      }
+      forcePasswordStatus.className = "status";
+      forcePasswordStatus.textContent = "";
+      return newPassword.length >= 8 && repeatPassword.length >= 8 && newPassword === repeatPassword;
     }
 
     function cancelForcedPasswordChange() {
@@ -9025,20 +9056,8 @@
           repeatLength: repeatPassword.length,
           matches: newPassword === repeatPassword
         });
-        if (newPassword.trim().length < 8) {
-          console.warn("force-password-validation-error", "too-short");
-          resetForcePasswordControls();
-          forcePasswordStatus.className = "status error";
-          forcePasswordStatus.textContent = "Пароль слишком короткий. Укажите минимум 8 символов.";
-          forceNewPasswordInput.focus();
-          return;
-        }
-        if (newPassword !== repeatPassword) {
-          console.warn("force-password-validation-error", "mismatch");
-          resetForcePasswordControls();
-          forcePasswordStatus.className = "status error";
-          forcePasswordStatus.textContent = "Новые пароли не совпадают";
-          forceRepeatPasswordInput.focus();
+        if (!validateForcedPasswordFields()) {
+          console.warn("force-password-validation-error", "invalid-fields");
           return;
         }
         forcePasswordStatus.className = "status loading";
