@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.23.36-saas";
+      content: "v2026.06.24.39-saas";
     }
 
     .toolbar {
@@ -281,10 +281,10 @@
     .user-menu button {
       width: 100%;
       min-height: 38px;
-      display: inline-flex;
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr) auto;
       align-items: center;
-      justify-content: flex-start;
-      gap: 9px;
+      column-gap: 10px;
       padding: 0 10px;
       border-radius: 7px;
       background: transparent;
@@ -304,11 +304,10 @@
     .user-menu button svg {
       width: 18px;
       height: 18px;
-      flex: 0 0 18px;
+      justify-self: center;
     }
 
     .user-menu .my-tasks-button {
-      justify-content: flex-start;
       border: 0;
       border-radius: 7px;
       padding: 0 10px;
@@ -323,6 +322,7 @@
 
     .user-menu .my-tasks-button b {
       margin-left: auto;
+      grid-column: 3;
     }
 
     .my-tasks-button {
@@ -363,7 +363,7 @@
       font-weight: 900;
     }
 
-    #supportButton {
+    .account-tools > #supportButton {
       position: relative;
       display: inline-flex;
       align-items: center;
@@ -1299,7 +1299,7 @@
     }
 
     .workspace[data-panel="users"] {
-      grid-template-columns: minmax(0, 1fr) 520px;
+      grid-template-columns: minmax(0, 1fr) 572px;
     }
 
     .workspace[data-panel="users"] #cyclePanel,
@@ -1387,7 +1387,19 @@
       padding-bottom: 2px;
     }
 
-    .workspace[data-panel="orgSettings"],
+    .workspace[data-panel="orgSettings"] {
+      grid-template-columns: 1fr;
+    }
+
+    .workspace[data-panel="orgSettings"] aside {
+      display: block;
+      min-width: 0;
+      width: 0;
+      padding: 0;
+      border: 0;
+      overflow: visible;
+    }
+
     .workspace[data-panel="mySettings"] {
       grid-template-columns: minmax(0, 1fr) 560px;
     }
@@ -3318,9 +3330,9 @@
 
     .user-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 124px 38px 38px 38px;
-      align-items: center;
-      gap: 8px;
+      grid-template-columns: minmax(0, 1fr) 188px;
+      align-items: start;
+      gap: 12px;
       padding: 10px;
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -3337,14 +3349,51 @@
       color: var(--muted);
     }
 
-    .user-row input {
+    .user-row input,
+    .user-row select {
       width: 100%;
       min-width: 0;
     }
 
-    .user-row .icon-btn {
-      width: 38px;
-      height: 38px;
+    .user-controls {
+      display: grid;
+      gap: 7px;
+    }
+
+    .user-actions {
+      display: grid;
+      gap: 6px;
+    }
+
+    .user-action-button {
+      width: 100%;
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 8px;
+      padding: 0 9px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: left;
+    }
+
+    .user-action-button:hover {
+      background: var(--soft-bg);
+    }
+
+    .user-action-button svg {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+    }
+
+    .user-action-button.danger {
+      color: var(--danger);
     }
 
     .password-modal-form {
@@ -4546,9 +4595,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.23.36-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.39-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.36-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.39-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5167,10 +5216,16 @@
           </div>
           <div class="user-list" id="userList"></div>
           <form class="form" id="userForm">
-            <label class="field">
-              <span>Имя</span>
-              <input id="newUserDisplayNameInput" autocomplete="off" placeholder="Например: Иван">
-            </label>
+            <div class="two">
+              <label class="field">
+                <span>Имя</span>
+                <input id="newUserFirstNameInput" autocomplete="given-name" placeholder="Иван">
+              </label>
+              <label class="field">
+                <span>Фамилия</span>
+                <input id="newUserLastNameInput" autocomplete="family-name" placeholder="Петров">
+              </label>
+            </div>
             <div class="two">
               <label class="field">
                 <span>Email</span>
@@ -5431,10 +5486,16 @@
       <h2 id="userProfileModalTitle">Редактировать профиль</h2>
       <p id="userProfileModalText">Данные будут видны в списке пользователей и в онлайн-индикаторе.</p>
       <form class="password-modal-form" id="userProfileForm">
-        <label class="field">
-          <span>Имя</span>
-          <input id="userProfileDisplayNameInput" autocomplete="off">
-        </label>
+        <div class="two">
+          <label class="field">
+            <span>Имя</span>
+            <input id="userProfileFirstNameInput" autocomplete="given-name">
+          </label>
+          <label class="field">
+            <span>Фамилия</span>
+            <input id="userProfileLastNameInput" autocomplete="family-name">
+          </label>
+        </div>
         <div class="two">
           <label class="field">
             <span>Отдел</span>
@@ -5633,7 +5694,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.36-saas";
+    const appVersion = "v2026.06.24.39-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -5707,6 +5768,7 @@
     let passwordSetupToken = "";
     let organizationSettings = null;
     let pendingOrganizationLogo = null;
+    let mySettingsFormDirty = false;
     let supportsTankSortOrder = false;
     let supportsPartialBottlings = false;
     let supportsSourceCycles = false;
@@ -6662,7 +6724,7 @@
 
     async function createAuthUser(email, password) {
       if (isYandexBackend) {
-        const data = await createYandexUser(email, password, newUserDisplayNameInput.value.trim(), newUserRoleInput.value);
+        const data = await createYandexUser(email, password, fullNameFromParts(newUserFirstNameInput.value, newUserLastNameInput.value), newUserRoleInput.value);
         return data.user;
       }
       throw new Error("Создание пользователей доступно только через Yandex API");
@@ -7350,7 +7412,8 @@
     const userProfileModal = document.querySelector("#userProfileModal");
     const userProfileForm = document.querySelector("#userProfileForm");
     const userProfileModalText = document.querySelector("#userProfileModalText");
-    const userProfileDisplayNameInput = document.querySelector("#userProfileDisplayNameInput");
+    const userProfileFirstNameInput = document.querySelector("#userProfileFirstNameInput");
+    const userProfileLastNameInput = document.querySelector("#userProfileLastNameInput");
     const userProfileDepartmentInput = document.querySelector("#userProfileDepartmentInput");
     const userProfilePhoneInput = document.querySelector("#userProfilePhoneInput");
     const userProfileCommentInput = document.querySelector("#userProfileCommentInput");
@@ -7443,7 +7506,8 @@
     const actionLogList = document.querySelector("#actionLogList");
     const userList = document.querySelector("#userList");
     const userForm = document.querySelector("#userForm");
-    const newUserDisplayNameInput = document.querySelector("#newUserDisplayNameInput");
+    const newUserFirstNameInput = document.querySelector("#newUserFirstNameInput");
+    const newUserLastNameInput = document.querySelector("#newUserLastNameInput");
     const newUserLoginInput = document.querySelector("#newUserLoginInput");
     const newUserPasswordInput = document.querySelector("#newUserPasswordInput");
     const newUserRoleInput = document.querySelector("#newUserRoleInput");
@@ -7703,7 +7767,8 @@
       }
     }
 
-    function renderMySettingsForm() {
+    function renderMySettingsForm(options = {}) {
+      if (!options.force && mySettingsFormDirty) return;
       const settings = loadMySettings();
       document.querySelector("#myThemeInput").value = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
       document.querySelector("#myNotifyTasksInput").checked = settings.notifyTasks !== false;
@@ -7713,6 +7778,7 @@
       document.querySelector("#myDisplayNameInput").value = currentUser?.displayName || "";
       document.querySelector("#myPhoneInput").value = currentUser?.phone || "";
       document.querySelector("#myDepartmentInput").value = currentUser?.department || "";
+      mySettingsFormDirty = false;
     }
 
     async function saveMySettings() {
@@ -7742,6 +7808,7 @@
       currentUserName.textContent = userDisplayName(currentUser);
       mySettingsStatus.className = "status";
       mySettingsStatus.textContent = "Мои настройки сохранены";
+      mySettingsFormDirty = false;
       renderUsers();
     }
 
@@ -8186,6 +8253,20 @@
 
     function userDisplayName(user) {
       return user?.displayName || user?.login || user?.email || "Пользователь";
+    }
+
+    function fullNameFromParts(firstName, lastName) {
+      return [firstName, lastName].map((item) => String(item || "").trim()).filter(Boolean).join(" ");
+    }
+
+    function namePartsFromDisplayName(displayName) {
+      const parts = String(displayName || "").trim().split(/\s+/).filter(Boolean);
+      if (!parts.length) return { firstName: "", lastName: "" };
+      if (parts.length === 1) return { firstName: parts[0], lastName: "" };
+      return {
+        firstName: parts.slice(0, -1).join(" "),
+        lastName: parts[parts.length - 1]
+      };
     }
 
     function featureEnabled(key) {
@@ -9849,12 +9930,14 @@
       userProfileStatus.className = "status";
       userProfileStatus.textContent = "";
       userProfileModalText.textContent = `Пользователь: ${user.login}`;
-      userProfileDisplayNameInput.value = user.displayName || "";
+      const nameParts = namePartsFromDisplayName(user.displayName || "");
+      userProfileFirstNameInput.value = nameParts.firstName;
+      userProfileLastNameInput.value = nameParts.lastName;
       userProfileDepartmentInput.value = user.department || "";
       userProfilePhoneInput.value = user.phone || "";
       userProfileCommentInput.value = user.comment || "";
       userProfileModal.classList.add("open");
-      requestAnimationFrame(() => userProfileDisplayNameInput.focus());
+      requestAnimationFrame(() => userProfileFirstNameInput.focus());
     }
 
     async function saveUserProfileFromModal() {
@@ -9866,7 +9949,7 @@
         return;
       }
       const profile = {
-        displayName: userProfileDisplayNameInput.value.trim(),
+        displayName: fullNameFromParts(userProfileFirstNameInput.value, userProfileLastNameInput.value),
         department: userProfileDepartmentInput.value.trim(),
         phone: userProfilePhoneInput.value.trim(),
         comment: userProfileCommentInput.value.trim()
@@ -9908,18 +9991,25 @@
             <small>${escapeHtml(user.login)}${user.login === currentUser.login ? " · текущий пользователь" : ""}</small>
             ${(user.department || user.phone) ? `<div class="user-meta">${[user.department, user.phone].filter(Boolean).map(escapeHtml).join(" · ")}</div>` : ""}
           </div>
-          <select data-role-select="${user.login}" ${user.login === currentUser.login ? "disabled" : ""}>
-            ${Object.entries(roleLabels).map(([value, label]) => `<option value="${value}" ${user.role === value ? "selected" : ""}>${label}</option>`).join("")}
-          </select>
-          <button class="icon-btn" type="button" data-profile-user="${user.login}" aria-label="Редактировать профиль пользователя" title="Редактировать профиль">
-            <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/></svg>
-          </button>
-          <button class="icon-btn" type="button" data-password-user="${user.login}" aria-label="Сменить пароль пользователя" title="Сменить пароль">
-            <svg viewBox="0 0 24 24"><path d="M15 7a4 4 0 1 0-3.7 5.98L9 15.3V18h2.7l1-1H15v-2.3l1.3-1.3A4 4 0 0 0 15 7Z"/><path d="M18 7h.01"/></svg>
-          </button>
-          <button class="icon-btn danger-btn" type="button" data-delete-user="${user.login}" aria-label="Удалить пользователя" title="Удалить пользователя" ${user.login === currentUser.login ? "disabled" : ""}>
-            <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 15H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-          </button>
+          <div class="user-controls">
+            <select data-role-select="${user.login}" ${user.login === currentUser.login ? "disabled" : ""}>
+              ${Object.entries(roleLabels).map(([value, label]) => `<option value="${value}" ${user.role === value ? "selected" : ""}>${label}</option>`).join("")}
+            </select>
+            <div class="user-actions">
+              <button class="user-action-button" type="button" data-profile-user="${user.login}">
+                <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/></svg>
+                Редактировать
+              </button>
+              <button class="user-action-button" type="button" data-password-user="${user.login}">
+                <svg viewBox="0 0 24 24"><path d="M15 7a4 4 0 1 0-3.7 5.98L9 15.3V18h2.7l1-1H15v-2.3l1.3-1.3A4 4 0 0 0 15 7Z"/><path d="M18 7h.01"/></svg>
+                Сменить пароль
+              </button>
+              <button class="user-action-button danger" type="button" data-delete-user="${user.login}" ${user.login === currentUser.login ? "disabled" : ""}>
+                <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 15H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                Удалить пользователя
+              </button>
+            </div>
+          </div>
         </div>
       `).join("");
 
@@ -13021,7 +13111,7 @@
         setPartialBottlingFields(null);
       }
       updateUndoButton();
-      workspace.dataset.panel = state.panelMode === "orgSettings" ? "hidden" : state.panelMode;
+      workspace.dataset.panel = state.panelMode;
       organizationSettingsPanel.classList.toggle("open", state.panelMode === "orgSettings");
       userMenuButton.setAttribute("aria-expanded", userBox.classList.contains("open") ? "true" : "false");
       addMenuButton.classList.toggle("active", addMenu.classList.contains("open"));
@@ -14186,6 +14276,7 @@
         if (!currentUser) return;
         userBox.classList.remove("open");
         const isOpen = state.panelMode === "mySettings";
+        mySettingsFormDirty = false;
         state.panelMode = isOpen ? "hidden" : "mySettings";
         state.addMode = false;
         state.commentMode = false;
@@ -14195,10 +14286,12 @@
         state.pickedDate = null;
         addMenu.classList.remove("open");
         adminMenu.classList.remove("open");
+        if (!isOpen) renderMySettingsForm({ force: true });
         render();
       });
 
       closeMySettingsButton.addEventListener("click", () => {
+        mySettingsFormDirty = false;
         state.panelMode = "hidden";
         render();
       });
@@ -14242,6 +14335,14 @@
           mySettingsStatus.className = "status error";
           mySettingsStatus.textContent = `Не удалось сохранить мои настройки: ${error.message}`;
         }
+      });
+
+      mySettingsForm.addEventListener("input", () => {
+        mySettingsFormDirty = true;
+      });
+
+      mySettingsForm.addEventListener("change", () => {
+        mySettingsFormDirty = true;
       });
 
       document.addEventListener("click", (event) => {
@@ -15043,7 +15144,7 @@
         if (!requireAdmin()) return;
         const email = newUserLoginInput.value.trim();
         const password = newUserPasswordInput.value;
-        const displayName = newUserDisplayNameInput.value.trim();
+        const displayName = fullNameFromParts(newUserFirstNameInput.value, newUserLastNameInput.value);
         if (!email.includes("@")) {
           userStatus.className = "status error";
           userStatus.textContent = "Укажите email пользователя, например user@company.ru";
