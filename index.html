@@ -171,7 +171,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.23.21-saas";
+      content: "v2026.06.23.22-saas";
     }
 
     .toolbar {
@@ -2934,6 +2934,25 @@
       font-weight: 750;
     }
 
+    .force-password-hint {
+      margin: -2px 0 2px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    #forcePasswordStatus.error {
+      min-height: 0;
+      padding: 10px 12px;
+      border: 1px solid rgba(220, 38, 38, .22);
+      border-left: 4px solid var(--danger);
+      border-radius: 8px;
+      background: #fff1f2;
+      color: var(--danger);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
     .status.account-disabled {
       min-height: 0;
       margin-top: 2px;
@@ -4327,9 +4346,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.23.21-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.23.22-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.21-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.22-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -4345,6 +4364,7 @@
           <span>Повторите новый пароль</span>
           <input id="forceRepeatPasswordInput" type="password" autocomplete="new-password" required>
         </label>
+        <p class="force-password-hint">Пароль должен быть не короче 8 символов.</p>
         <div class="status" id="forcePasswordStatus"></div>
       </form>
       <div class="modal-actions">
@@ -5266,7 +5286,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.21-saas";
+    const appVersion = "v2026.06.23.22-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -9012,15 +9032,21 @@
           matches: newPassword === repeatPassword
         });
         if (newPassword.trim().length < 8) {
+          console.warn("force-password-validation-error", "too-short");
+          saveForcePasswordButton.disabled = false;
+          cancelForcePasswordButton.disabled = false;
           forcePasswordStatus.className = "status error";
-          forcePasswordStatus.textContent = "Новый пароль должен быть не короче 8 символов";
-          forcePasswordStatus.scrollIntoView({ behavior: "smooth", block: "center" });
+          forcePasswordStatus.textContent = "Пароль слишком короткий. Укажите минимум 8 символов.";
+          forceNewPasswordInput.focus();
           return;
         }
         if (newPassword !== repeatPassword) {
+          console.warn("force-password-validation-error", "mismatch");
+          saveForcePasswordButton.disabled = false;
+          cancelForcePasswordButton.disabled = false;
           forcePasswordStatus.className = "status error";
           forcePasswordStatus.textContent = "Новые пароли не совпадают";
-          forcePasswordStatus.scrollIntoView({ behavior: "smooth", block: "center" });
+          forceRepeatPasswordInput.focus();
           return;
         }
         forcePasswordStatus.className = "status loading";
