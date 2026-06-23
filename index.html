@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.24.39-saas";
+      content: "v2026.06.24.40-saas";
     }
 
     .toolbar {
@@ -1385,6 +1385,19 @@
 
     #organizationSettingsPanel.open .settings-form {
       padding-bottom: 2px;
+    }
+
+    .settings-tabs {
+      margin: 0;
+    }
+
+    .settings-tab-pane {
+      display: grid;
+      gap: 12px;
+    }
+
+    .settings-tab-pane[hidden] {
+      display: none;
     }
 
     .workspace[data-panel="orgSettings"] {
@@ -4595,9 +4608,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.39-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.40-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.39-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.40-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5319,75 +5332,77 @@
             </button>
           </div>
           <form class="form settings-form" id="organizationSettingsForm">
-            <label class="field">
-              <span>Название для отображения</span>
-              <input id="organizationDisplayNameInput" placeholder="Можно оставить пустым">
-            </label>
-            <div class="settings-logo-row">
-              <div class="settings-logo-preview" id="organizationSettingsLogoPreview">Без логотипа</div>
+            <div class="cycle-tabs settings-tabs" id="organizationSettingsTabs" role="tablist" aria-label="Разделы настроек организации">
+              <button class="cycle-tab" type="button" data-org-settings-tab="main" role="tab" aria-controls="organizationSettingsMainPane" data-active="true">Главная</button>
+              <button class="cycle-tab" type="button" data-org-settings-tab="email" role="tab" aria-controls="organizationSettingsEmailPane" data-active="false">Email-уведомления</button>
+              <button class="cycle-tab" type="button" data-org-settings-tab="planner" role="tab" aria-controls="organizationSettingsPlannerPane" data-active="false">Настройки планировщика</button>
+            </div>
+            <div class="settings-tab-pane" id="organizationSettingsMainPane" data-org-settings-pane="main" role="tabpanel">
               <label class="field">
-                <span>Логотип организации</span>
-                <input id="organizationSettingsLogoInput" type="file" accept="image/*">
+                <span>Название компании</span>
+                <input id="organizationDisplayNameInput" placeholder="Можно оставить пустым">
               </label>
-            </div>
-            <div class="feature-list">
-              <label class="feature-row"><span><b>Новые задачи</b><small>Уведомлять при назначении задачи.</small></span><input id="orgNotifyTaskAssigned" type="checkbox"></label>
-              <label class="feature-row"><span><b>Просроченные задачи</b><small>Уведомлять о задачах после срока.</small></span><input id="orgNotifyTaskOverdue" type="checkbox"></label>
-              <label class="feature-row"><span><b>Ответы поддержки</b><small>Уведомлять клиента об ответе в helpdesk.</small></span><input id="orgNotifySupportReplies" type="checkbox"></label>
-              <label class="feature-row"><span><b>Статусы обращений</b><small>Уведомлять при изменении статуса заявки.</small></span><input id="orgNotifySupportStatus" type="checkbox"></label>
-              <label class="feature-row"><span><b>Ближайшие розливы</b><small>Уведомлять о приближении розлива.</small></span><input id="orgNotifyBottlingSoon" type="checkbox"></label>
-              <label class="feature-row"><span><b>Нет распределения</b><small>Уведомлять о циклах без распределения.</small></span><input id="orgNotifyMissingPackaging" type="checkbox"></label>
-              <label class="feature-row"><span><b>Комментарий с ответственным</b><small>Уведомлять при создании задачи из комментария.</small></span><input id="orgNotifyCommentAssigned" type="checkbox"></label>
-            </div>
-            <label class="field">
-              <span>Дополнительный email для системных уведомлений</span>
-              <input id="orgNotificationExtraEmailInput" type="email" placeholder="production@example.ru">
-            </label>
-            <div class="two">
+              <div class="settings-logo-row">
+                <div class="settings-logo-preview" id="organizationSettingsLogoPreview">Без логотипа</div>
+                <label class="field">
+                  <span>Логотип организации</span>
+                  <input id="organizationSettingsLogoInput" type="file" accept="image/*">
+                </label>
+              </div>
+              <div class="selected-summary">
+                <b>Реквизиты</b>
+                <span>Раздел для будущего заполнения</span>
+              </div>
+              <div class="two">
+                <label class="field">
+                  <span>Рабочий день с</span>
+                  <input id="orgWorkdayStartInput" type="time">
+                </label>
+                <label class="field">
+                  <span>до</span>
+                  <input id="orgWorkdayEndInput" type="time">
+                </label>
+              </div>
               <label class="field">
-                <span>Срок задачи из комментария</span>
-                <select id="orgCommentTaskDueInput">
-                  <option value="comment_date">Дата комментария</option>
-                  <option value="cycle_end">Дата розлива</option>
+                <span>Часовой пояс</span>
+                <select id="orgTimezoneInput">
+                  <option value="Europe/Moscow">Москва, UTC+3</option>
                 </select>
               </label>
+            </div>
+            <div class="settings-tab-pane" id="organizationSettingsEmailPane" data-org-settings-pane="email" role="tabpanel" hidden>
+              <div class="feature-list">
+                <label class="feature-row"><span><b>Новые задачи</b><small>Email при назначении задачи.</small></span><input id="orgNotifyTaskAssigned" type="checkbox"></label>
+                <label class="feature-row"><span><b>Просроченные задачи</b><small>Email о задачах после срока.</small></span><input id="orgNotifyTaskOverdue" type="checkbox"></label>
+                <label class="feature-row"><span><b>Ответы поддержки</b><small>Email клиенту об ответе в helpdesk.</small></span><input id="orgNotifySupportReplies" type="checkbox"></label>
+                <label class="feature-row"><span><b>Статусы обращений</b><small>Email при изменении статуса заявки.</small></span><input id="orgNotifySupportStatus" type="checkbox"></label>
+                <label class="feature-row"><span><b>Ближайшие розливы</b><small>Email о приближении розлива.</small></span><input id="orgNotifyBottlingSoon" type="checkbox"></label>
+                <label class="feature-row"><span><b>Нет распределения</b><small>Email о циклах без распределения.</small></span><input id="orgNotifyMissingPackaging" type="checkbox"></label>
+                <label class="feature-row"><span><b>Комментарий с ответственным</b><small>Email при создании задачи из комментария.</small></span><input id="orgNotifyCommentAssigned" type="checkbox"></label>
+              </div>
               <label class="field">
-                <span>Напоминать за, дней</span>
+                <span>Дополнительный email для системных уведомлений</span>
+                <input id="orgNotificationExtraEmailInput" type="email" placeholder="production@example.ru">
+              </label>
+              <label class="field">
+                <span>Напоминать о задачах за, дней</span>
                 <input id="orgRemindBeforeDueInput" type="number" min="0" max="30" step="1">
               </label>
             </div>
-            <label class="feature-row"><span><b>Редакторы назначают задачи другим</b><small>Если выключено, назначать задачи другим может только администратор.</small></span><input id="orgAllowEditorsAssignInput" type="checkbox"></label>
-            <div class="two">
+            <div class="settings-tab-pane" id="organizationSettingsPlannerPane" data-org-settings-pane="planner" role="tabpanel" hidden>
               <label class="field">
                 <span>Горизонт розливов, дней</span>
                 <input id="orgBottlingHorizonInput" type="number" min="7" max="90" step="1">
               </label>
               <label class="field">
-                <span>Начало недели</span>
-                <select id="orgWeekStartsInput">
-                  <option value="1">Понедельник</option>
-                  <option value="0">Воскресенье</option>
-                </select>
-              </label>
-            </div>
-            <div class="two">
-              <label class="field">
-                <span>Рабочий день с</span>
-                <input id="orgWorkdayStartInput" type="time">
+                <span>Шаблоны комментариев</span>
+                <textarea id="orgCommentTemplatesInput" placeholder="Каждый шаблон с новой строки"></textarea>
               </label>
               <label class="field">
-                <span>до</span>
-                <input id="orgWorkdayEndInput" type="time">
+                <span>Шаблоны задач</span>
+                <textarea id="orgTaskTemplatesInput" placeholder="Каждый шаблон с новой строки"></textarea>
               </label>
             </div>
-            <label class="field">
-              <span>Шаблоны комментариев</span>
-              <textarea id="orgCommentTemplatesInput" placeholder="Каждый шаблон с новой строки"></textarea>
-            </label>
-            <label class="field">
-              <span>Шаблоны задач</span>
-              <textarea id="orgTaskTemplatesInput" placeholder="Каждый шаблон с новой строки"></textarea>
-            </label>
             <button class="primary" type="submit">Сохранить настройки организации</button>
             <div class="status" id="organizationSettingsStatus"></div>
           </form>
@@ -5694,7 +5709,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.24.39-saas";
+    const appVersion = "v2026.06.24.40-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -5768,6 +5783,7 @@
     let passwordSetupToken = "";
     let organizationSettings = null;
     let pendingOrganizationLogo = null;
+    let organizationSettingsTab = "main";
     let mySettingsFormDirty = false;
     let supportsTankSortOrder = false;
     let supportsPartialBottlings = false;
@@ -7491,6 +7507,7 @@
     const featureStatus = document.querySelector("#featureStatus");
     const organizationSettingsPanel = document.querySelector("#organizationSettingsPanel");
     const organizationSettingsForm = document.querySelector("#organizationSettingsForm");
+    const organizationSettingsTabs = document.querySelector("#organizationSettingsTabs");
     const closeOrganizationSettingsButton = document.querySelector("#closeOrganizationSettingsButton");
     const organizationDisplayNameInput = document.querySelector("#organizationDisplayNameInput");
     const organizationSettingsLogoInput = document.querySelector("#organizationSettingsLogoInput");
@@ -7632,16 +7649,12 @@
       return organizationSettings?.taskTemplates || currentUser?.organizationSettings?.taskTemplates || ["Зарегистрировать ДС", "Зарегистрировать ФРАП", "Заказать этикетку"];
     }
 
-    function currentOrganizationTaskSettings() {
-      return organizationSettings?.taskSettings || currentUser?.organizationSettings?.taskSettings || {};
-    }
-
     function canAssignTaskResponsible() {
-      return Boolean(canAdmin() || currentOrganizationTaskSettings().allowEditorsAssignOthers);
+      return true;
     }
 
     function commentTaskDueDate(cycle, commentDate) {
-      return currentOrganizationTaskSettings().commentTaskDue === "cycle_end" ? cycle?.end || commentDate : commentDate;
+      return commentDate;
     }
 
     function renderConfigurableTemplates() {
@@ -7664,6 +7677,24 @@
         : "Без логотипа";
     }
 
+    function renderOrganizationSettingsTabs() {
+      if (!organizationSettingsTabs) return;
+      organizationSettingsTabs.querySelectorAll("[data-org-settings-tab]").forEach((button) => {
+        const active = button.dataset.orgSettingsTab === organizationSettingsTab;
+        button.dataset.active = active ? "true" : "false";
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-selected", active ? "true" : "false");
+      });
+      organizationSettingsForm.querySelectorAll("[data-org-settings-pane]").forEach((pane) => {
+        pane.hidden = pane.dataset.orgSettingsPane !== organizationSettingsTab;
+      });
+    }
+
+    function setOrganizationSettingsTab(tab) {
+      organizationSettingsTab = ["main", "email", "planner"].includes(tab) ? tab : "main";
+      renderOrganizationSettingsTabs();
+    }
+
     async function loadOrganizationSettings() {
       if (!isYandexBackend || !currentUser) return organizationSettings;
       const data = await yandexRequest("/organization-settings");
@@ -7684,15 +7715,14 @@
       document.querySelector("#orgNotifyMissingPackaging").checked = notifications.missingPackaging !== false;
       document.querySelector("#orgNotifyCommentAssigned").checked = notifications.commentAssigned !== false;
       document.querySelector("#orgNotificationExtraEmailInput").value = settings.notificationRecipients?.extraEmail || "";
-      document.querySelector("#orgCommentTaskDueInput").value = settings.taskSettings?.commentTaskDue || "comment_date";
       document.querySelector("#orgRemindBeforeDueInput").value = settings.taskSettings?.remindBeforeDueDays ?? 1;
-      document.querySelector("#orgAllowEditorsAssignInput").checked = Boolean(settings.taskSettings?.allowEditorsAssignOthers);
       document.querySelector("#orgBottlingHorizonInput").value = settings.calendarSettings?.bottlingHorizonDays || 14;
-      document.querySelector("#orgWeekStartsInput").value = String(settings.calendarSettings?.weekStartsOn ?? 1);
       document.querySelector("#orgWorkdayStartInput").value = settings.calendarSettings?.workdayStart || "10:00";
       document.querySelector("#orgWorkdayEndInput").value = settings.calendarSettings?.workdayEnd || "18:00";
+      document.querySelector("#orgTimezoneInput").value = settings.calendarSettings?.timezone || "Europe/Moscow";
       document.querySelector("#orgCommentTemplatesInput").value = (settings.commentTemplates || ["Контроль плотности", "Снять осадок", "Сухое охмеление", "Задача пюре/фруктов/соков"]).join("\n");
       document.querySelector("#orgTaskTemplatesInput").value = (settings.taskTemplates || ["Зарегистрировать ДС", "Зарегистрировать ФРАП", "Заказать этикетку"]).join("\n");
+      renderOrganizationSettingsTabs();
       renderConfigurableTemplates();
     }
 
@@ -7715,13 +7745,13 @@
           extraEmail: document.querySelector("#orgNotificationExtraEmailInput").value.trim()
         },
         taskSettings: {
-          commentTaskDue: document.querySelector("#orgCommentTaskDueInput").value,
-          allowEditorsAssignOthers: document.querySelector("#orgAllowEditorsAssignInput").checked,
+          commentTaskDue: "comment_date",
+          allowEditorsAssignOthers: true,
           remindBeforeDueDays: Number(document.querySelector("#orgRemindBeforeDueInput").value || 0)
         },
         calendarSettings: {
           bottlingHorizonDays: Number(document.querySelector("#orgBottlingHorizonInput").value || 14),
-          weekStartsOn: Number(document.querySelector("#orgWeekStartsInput").value || 1),
+          timezone: document.querySelector("#orgTimezoneInput").value || "Europe/Moscow",
           workdayStart: document.querySelector("#orgWorkdayStartInput").value || "10:00",
           workdayEnd: document.querySelector("#orgWorkdayEndInput").value || "18:00"
         },
@@ -14235,6 +14265,7 @@
         addMenu.classList.remove("open");
         adminMenu.classList.remove("open");
         if (!isOpen) {
+          organizationSettingsTab = "main";
           try {
             await loadOrganizationSettings();
           } catch (error) {
@@ -14265,6 +14296,12 @@
         const key = featureKeyForInput(input);
         if (!key) return;
         toggleFeature(key, input.checked);
+      });
+
+      organizationSettingsTabs.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-org-settings-tab]");
+        if (!button) return;
+        setOrganizationSettingsTab(button.dataset.orgSettingsTab);
       });
 
       closeMyTasksButton.addEventListener("click", () => {
