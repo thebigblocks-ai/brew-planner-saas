@@ -171,7 +171,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.23.17-saas";
+      content: "v2026.06.23.19-saas";
     }
 
     .toolbar {
@@ -4315,7 +4315,7 @@
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.17-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.19-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -4335,7 +4335,7 @@
       </form>
       <div class="modal-actions">
         <button class="secondary" id="cancelForcePasswordButton" type="button">Отменить</button>
-        <button class="primary" id="saveForcePasswordButton" type="submit" form="forcePasswordForm">Сменить пароль</button>
+        <button class="primary" id="saveForcePasswordButton" type="button">Сменить пароль</button>
       </div>
     </div>
   </div>
@@ -5252,7 +5252,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.17-saas";
+    const appVersion = "v2026.06.23.19-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -8953,8 +8953,13 @@
       forcePasswordStatus.textContent = "";
       saveForcePasswordButton.disabled = false;
       cancelForcePasswordButton.disabled = false;
+      console.info("force-password-modal-ready");
       forcePasswordForm.onsubmit = async (event) => {
         event.preventDefault();
+        await saveForcedPasswordChange();
+      };
+      saveForcePasswordButton.onclick = async () => {
+        console.info("force-password-click");
         await saveForcedPasswordChange();
       };
       cancelForcePasswordButton.onclick = cancelForcedPasswordChange;
@@ -8979,6 +8984,7 @@
     }
 
     async function saveForcedPasswordChange() {
+      console.info("force-password-handler-start");
       const newPassword = forceNewPasswordInput.value;
       const repeatPassword = forceRepeatPasswordInput.value;
       if (newPassword.trim().length < 8) {
@@ -9450,6 +9456,26 @@
 
     function packagingLitersTotal(packaging = packagingFromForm()) {
       return Number(packaging.can045.liters || 0) + Number(packaging.keg20.liters || 0);
+    }
+
+    function packagingFormHasDistribution() {
+      const packaging = packagingFromForm();
+      return Number(packaging.can045.quantity || 0) > 0
+        || Number(packaging.can045.liters || 0) > 0
+        || Number(packaging.keg20.quantity || 0) > 0
+        || Number(packaging.keg20.liters || 0) > 0;
+    }
+
+    function clearPackagingDistribution(message = "") {
+      setPackagingFields({
+        can045: { quantity: 0, liters: 0 },
+        keg20: { quantity: 0, liters: 0 }
+      });
+      state.packagingSource = null;
+      if (message) {
+        formStatus.className = "status";
+        formStatus.textContent = message;
+      }
     }
 
     function normalizePartialBottlings(value) {
@@ -10101,12 +10127,8 @@
       const kegLitersValue = Math.max(0, numberValue(kegLitersInput));
 
       if (source === "plannedOutput") {
-        if (state.packagingSource === "kegLiters" && kegLitersValue > 0) {
-          syncPackagingFrom("kegLiters");
-        } else if (canQty > 0) {
-          syncPackagingFrom("canQty");
-        } else if (kegLitersValue > 0) {
-          syncPackagingFrom("kegLiters");
+        if (packagingFormHasDistribution()) {
+          clearPackagingDistribution("Плановый выход изменен. Распределение по таре сброшено, укажите его заново.");
         }
         return;
       }
