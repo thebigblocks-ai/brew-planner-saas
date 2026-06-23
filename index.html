@@ -171,7 +171,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.23.27-saas";
+      content: "v2026.06.23.29-saas";
     }
 
     .toolbar {
@@ -3358,8 +3358,9 @@
     .support-ticket-message {
       display: grid;
       gap: 5px;
-      width: fit-content;
-      max-width: min(92%, 520px);
+      width: min(100%, 640px);
+      max-width: 100%;
+      justify-self: start;
       border-radius: 14px 14px 14px 4px;
       padding: 8px 11px 9px;
       background: var(--panel);
@@ -3382,6 +3383,7 @@
     }
 
     .support-ticket-message[data-own="true"] {
+      width: 50%;
       justify-self: end;
       border-radius: 14px 14px 4px 14px;
       background: #fff4e5;
@@ -4334,15 +4336,15 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.23.27-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.23.29-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.27-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.29-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
     <div class="modal">
       <h2 id="forcePasswordModalTitle">Смените временный пароль</h2>
-      <p>Введите новый постоянный пароль. После сохранения администратор больше не будет его знать.</p>
+      <p id="forcePasswordModalText">Введите новый постоянный пароль. После сохранения администратор больше не будет его знать.</p>
       <form class="password-modal-form" id="forcePasswordForm">
         <label class="field">
           <span>Новый пароль</span>
@@ -4951,7 +4953,7 @@
               </label>
               <label class="field">
                 <span>Пароль</span>
-                <input id="newUserPasswordInput" value="Будет создан временный пароль" disabled>
+                <input id="newUserPasswordInput" value="Ссылка установки будет отправлена на email" disabled>
               </label>
             </div>
             <label class="field">
@@ -5059,8 +5061,8 @@
 
   <div class="modal-backdrop" id="userPasswordModal" role="dialog" aria-modal="true" aria-labelledby="userPasswordModalTitle">
     <div class="modal">
-      <h2 id="userPasswordModalTitle">Временный пароль</h2>
-      <p id="userPasswordModalText">Пользователю будет отправлен новый временный пароль. Он должен сменить его при следующем входе.</p>
+      <h2 id="userPasswordModalTitle">Установка пароля</h2>
+      <p id="userPasswordModalText">Пользователю будет отправлена одноразовая ссылка для установки пароля.</p>
       <form class="password-modal-form" id="userPasswordForm">
         <div class="status" id="userPasswordStatus"></div>
       </form>
@@ -5274,7 +5276,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.27-saas";
+    const appVersion = "v2026.06.23.29-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -5345,6 +5347,7 @@
     let suppressRealtimeUntil = 0;
     let supportTicketSignature = localStorage.getItem(`${storageKey}-support-ticket-signature`) || "";
     let forcePasswordAttemptId = 0;
+    let passwordSetupToken = "";
     let supportsTankSortOrder = false;
     let supportsPartialBottlings = false;
     let supportsSourceCycles = false;
@@ -5595,7 +5598,7 @@
               </span>
               <span class="support-ticket-status" data-status="${escapeHtml(ticket.status || "new")}">${escapeHtml(supportTicketStatusLabel(ticket.status || "new"))}</span>
             </summary>
-            <div class="support-ticket-message">
+            <div class="support-ticket-message" data-own="${ticket.createdByUserId === currentUser?.id ? "true" : "false"}">
               <div class="support-ticket-message-body">${escapeHtml(ticket.description || "")}</div>
             </div>
             ${messages.map((message) => `
@@ -6941,6 +6944,8 @@
     const cancelDeleteButton = document.querySelector("#cancelDeleteButton");
     const confirmDeleteButton = document.querySelector("#confirmDeleteButton");
     const forcePasswordModal = document.querySelector("#forcePasswordModal");
+    const forcePasswordModalTitle = document.querySelector("#forcePasswordModalTitle");
+    const forcePasswordModalText = document.querySelector("#forcePasswordModalText");
     const forcePasswordForm = document.querySelector("#forcePasswordForm");
     const forceNewPasswordInput = document.querySelector("#forceNewPasswordInput");
     const forceRepeatPasswordInput = document.querySelector("#forceRepeatPasswordInput");
@@ -8940,7 +8945,7 @@
       userPasswordForm.reset();
       userPasswordStatus.className = "status";
       userPasswordStatus.textContent = "";
-      userPasswordModalText.textContent = `Пользователь: ${userDisplayName(user)} (${user.login}). Новый временный пароль будет отправлен на email.`;
+      userPasswordModalText.textContent = `Пользователь: ${userDisplayName(user)} (${user.login}). Ссылка установки пароля будет отправлена на email.`;
       userPasswordModal.classList.add("open");
     }
 
@@ -8953,21 +8958,21 @@
         return;
       }
       userPasswordStatus.className = "status loading";
-      userPasswordStatus.innerHTML = '<span class="loading-spinner"></span><span>Отправляем временный пароль...</span>';
+      userPasswordStatus.innerHTML = '<span class="loading-spinner"></span><span>Отправляем ссылку установки пароля...</span>';
       try {
         const data = await resetUserTemporaryPassword(user);
         logAction("user_temporary_password_reset", "user", user.id, userDisplayName(user), {
           email: user.login
         });
         userStatus.className = "status";
-        userStatus.textContent = data.emailSent ? "Временный пароль отправлен пользователю на email" : "Временный пароль обновлен";
+        userStatus.textContent = data.emailSent ? "Ссылка установки пароля отправлена пользователю на email" : "Пароль обновлен";
         userPasswordStatus.className = "status";
-        userPasswordStatus.textContent = data.emailSent ? "Временный пароль отправлен пользователю на email" : "Временный пароль обновлен";
+        userPasswordStatus.textContent = data.emailSent ? "Ссылка установки пароля отправлена пользователю на email" : "Пароль обновлен";
         await loadProfiles();
         renderUsers();
       } catch (error) {
         userPasswordStatus.className = "status error";
-        userPasswordStatus.textContent = `Не удалось отправить временный пароль: ${error.message}`;
+        userPasswordStatus.textContent = `Не удалось отправить ссылку установки пароля: ${error.message}`;
       }
     }
 
@@ -8975,6 +8980,11 @@
       forcePasswordForm.reset();
       forcePasswordStatus.className = "status";
       forcePasswordStatus.textContent = "";
+      forcePasswordModalTitle.textContent = passwordSetupToken ? "Установите пароль" : "Смените временный пароль";
+      forcePasswordModalText.textContent = passwordSetupToken
+        ? "Введите новый постоянный пароль для входа в Brew Planner."
+        : "Введите новый постоянный пароль. После сохранения администратор больше не будет его знать.";
+      saveForcePasswordButton.textContent = passwordSetupToken ? "Установить пароль" : "Сменить пароль";
       resetForcePasswordControls();
       console.info("force-password-modal-ready");
       forcePasswordForm.onsubmit = async (event) => {
@@ -8992,8 +9002,48 @@
       requestAnimationFrame(() => forceNewPasswordInput.focus());
     }
 
+    function setupTokenFromLocation() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        return params.get("passwordSetupToken") || params.get("setupToken") || "";
+      } catch {
+        return "";
+      }
+    }
+
+    function clearPasswordSetupTokenFromLocation() {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("passwordSetupToken");
+        url.searchParams.delete("setupToken");
+        window.history.replaceState({}, document.title, `${url.pathname}${url.search}${url.hash}`);
+      } catch {
+        // Некритично: ссылка просто останется в адресной строке.
+      }
+    }
+
+    function showPasswordSetupFromLink(token) {
+      passwordSetupToken = String(token || "");
+      if (!passwordSetupToken) return false;
+      setYandexToken("");
+      currentUser = null;
+      remoteReady = false;
+      state.siteOrder = [];
+      forcePasswordAttemptId += 1;
+      teardownRealtime();
+      clearAuthLoading();
+      setLoginBusy(false);
+      loginStatus.className = "status";
+      loginStatus.textContent = "";
+      passwordInput.value = "";
+      document.body.dataset.auth = "locked";
+      showForcePasswordModal();
+      return true;
+    }
+
     function enterTemporaryPasswordMode(user) {
       console.info("temporary-password-mode", { userId: user?.id, email: user?.email });
+      passwordSetupToken = "";
       currentUser = user;
       remoteReady = false;
       state.siteOrder = [];
@@ -9061,6 +9111,8 @@
       forcePasswordStatus.className = "status";
       forcePasswordStatus.textContent = "";
       forcePasswordModal.classList.remove("open");
+      if (passwordSetupToken) clearPasswordSetupTokenFromLocation();
+      passwordSetupToken = "";
       setYandexToken("");
       currentUser = null;
       remoteReady = false;
@@ -9102,7 +9154,14 @@
           forcePasswordStatus.textContent = "Смена пароля заняла больше 15 секунд. Попробуйте еще раз.";
         }, 15000);
         console.info("force-password-submit");
-        const data = await changeOwnYandexPassword(newPassword, { forceTemporary: true, timeoutMs: 12000 });
+        const data = passwordSetupToken
+          ? await yandexRequest("/auth/setup-password", {
+            method: "POST",
+            token: "",
+            timeoutMs: 12000,
+            body: { token: passwordSetupToken, newPassword }
+          })
+          : await changeOwnYandexPassword(newPassword, { forceTemporary: true, timeoutMs: 12000 });
         if (attemptId && attemptId !== forcePasswordAttemptId) return;
         clearTimeout(watchdog);
         console.info("force-password-response", { hasToken: Boolean(data.token), mustChangePassword: Boolean(data.user?.mustChangePassword) });
@@ -9112,6 +9171,8 @@
         if (!currentUser) throw new Error("Не удалось загрузить профиль после смены пароля");
         if (currentUser.mustChangePassword) throw new Error("Сервер не подтвердил смену временного пароля");
         forcePasswordModal.classList.remove("open");
+        if (passwordSetupToken) clearPasswordSetupTokenFromLocation();
+        passwordSetupToken = "";
         forcePasswordStatus.className = "status";
         forcePasswordStatus.textContent = "";
         loginStatus.className = "status";
@@ -13044,6 +13105,10 @@
       rangeSelect.value = state.rangeMode;
       syncEndDate();
       planner.addEventListener("scroll", hideCommentTooltip);
+      const initialPasswordSetupToken = setupTokenFromLocation();
+      if (initialPasswordSetupToken) {
+        showPasswordSetupFromLink(initialPasswordSetupToken);
+      } else
       if (db || isYandexBackend) {
         try {
           currentUser = await timedLoadStep(
@@ -14249,7 +14314,7 @@
           userForm.reset();
           newUserRoleInput.value = "manager";
           userStatus.className = "status";
-          userStatus.textContent = emailSent ? "Пользователь добавлен. Временный пароль отправлен на email" : "Пользователь добавлен";
+          userStatus.textContent = emailSent ? "Пользователь добавлен. Ссылка установки пароля отправлена на email" : "Пользователь добавлен";
           renderUsers();
         } catch (error) {
           userStatus.className = "status error";

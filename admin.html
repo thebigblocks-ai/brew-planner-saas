@@ -592,6 +592,18 @@
       border-color: rgba(255, 139, 0, .35);
     }
 
+    .ticket-message[data-side="support"] {
+      width: 50%;
+      justify-self: end;
+      background: #fff7ed;
+      border-color: rgba(255, 139, 0, .35);
+    }
+
+    .ticket-message[data-side="customer"] {
+      width: min(100%, 640px);
+      justify-self: start;
+    }
+
     .ticket-card {
       display: grid;
       gap: 10px;
@@ -638,6 +650,7 @@
     .message-list {
       display: grid;
       gap: 8px;
+      align-items: start;
     }
 
     .hidden { display: none !important; }
@@ -693,7 +706,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.23.10-saas</span>
+        <span>v2026.06.23.12-saas</span>
       </div>
     </aside>
 
@@ -779,7 +792,7 @@
                   </label>
                   <label class="field">
                     <span>Пароль</span>
-                    <input value="Будет создан временный пароль" disabled>
+                    <input value="Ссылка установки будет отправлена на email" disabled>
                   </label>
                   <label class="field">
                     <span>Имя</span>
@@ -1085,6 +1098,10 @@
       return `Дедлайн приема в работу: ${formatDateTime(ticket.responseDeadlineAt)} · SLA ${level}`;
     }
 
+    function ticketMessageSide(message, ticket) {
+      return message?.isInternal || (ticket?.createdByUserId && message?.authorUserId !== ticket.createdByUserId) ? "support" : "customer";
+    }
+
     function ticketCardHtml(ticket) {
       const messages = Array.isArray(ticket.messages) ? ticket.messages : [];
       const deadline = ticketDeadlineText(ticket);
@@ -1101,7 +1118,7 @@
           <div class="ticket-description">${escapeHtml(ticket.description || "")}</div>
           <div class="message-list">
             ${messages.length ? messages.map((message) => `
-              <div class="ticket-message" data-internal="${message.isInternal ? "true" : "false"}">
+              <div class="ticket-message" data-side="${ticketMessageSide(message, ticket)}" data-internal="${message.isInternal ? "true" : "false"}">
                 <div class="ticket-message-meta">${escapeHtml(message.authorName || message.authorEmail)} · ${escapeHtml(formatDateTime(message.createdAt))}${message.isInternal ? " · внутреннее" : ""}</div>
                 <div class="ticket-message-body">${escapeHtml(message.text || "")}</div>
               </div>
@@ -1255,7 +1272,7 @@
             </div>
           </div>
           <div class="user-actions">
-            <button class="user-soft-action" type="button" data-reset-password>Отправить временный пароль</button>
+            <button class="user-soft-action" type="button" data-reset-password>Отправить ссылку пароля</button>
             <button class="compact-danger" type="button" data-remove>Удалить пользователя</button>
           </div>
         </div>
@@ -1280,11 +1297,11 @@
           await loadSelectedOrganizationUsers();
         });
         row.querySelector("[data-reset-password]").addEventListener("click", async () => {
-          if (!confirm("Отправить пользователю новый временный пароль? Старый пароль перестанет работать.")) return;
+          if (!confirm("Отправить пользователю ссылку для установки пароля? Старый пароль перестанет работать.")) return;
           const data = await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users/${encodeURIComponent(row.dataset.userId)}/password`, {
             method: "POST"
           });
-          setStatus($("#usersStatus"), data.emailSent ? "Временный пароль отправлен пользователю на email" : "Временный пароль обновлен", "ok");
+          setStatus($("#usersStatus"), data.emailSent ? "Ссылка установки пароля отправлена пользователю на email" : "Пароль обновлен", "ok");
           await loadSelectedOrganizationUsers();
         });
         row.querySelector("[data-remove]").addEventListener("click", async () => {
@@ -1393,7 +1410,7 @@
             <b>Переписка</b>
             <div class="message-list">
               ${messages.length ? messages.map((message) => `
-                <div class="ticket-message" data-internal="${message.isInternal ? "true" : "false"}">
+                <div class="ticket-message" data-side="${ticketMessageSide(message, ticket)}" data-internal="${message.isInternal ? "true" : "false"}">
                   <div class="ticket-message-meta">${escapeHtml(message.authorName || message.authorEmail)} · ${escapeHtml(formatDateTime(message.createdAt))}${message.isInternal ? " · внутреннее" : ""}</div>
                   <div class="ticket-message-body">${escapeHtml(message.text || "")}</div>
                 </div>
@@ -1684,7 +1701,7 @@
           }
         });
         event.target.reset();
-        setStatus($("#usersStatus"), data.emailSent ? "Пользователь добавлен. Временный пароль отправлен на email" : "Пользователь добавлен", "ok");
+        setStatus($("#usersStatus"), data.emailSent ? "Пользователь добавлен. Ссылка установки пароля отправлена на email" : "Пользователь добавлен", "ok");
         await loadSelectedOrganizationUsers();
       } catch (error) {
         setStatus($("#usersStatus"), error.message, "error");
