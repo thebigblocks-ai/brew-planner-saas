@@ -155,17 +155,23 @@
       pointer-events: none;
     }
 
-    .login-version {
+    .login-version,
+    .login-backdrop::after {
       position: fixed;
-      right: 10px;
-      bottom: 8px;
-      z-index: 101;
-      color: rgba(248, 250, 252, .72);
+      right: 14px;
+      bottom: 12px;
+      z-index: 102;
+      color: rgba(248, 250, 252, .92);
       font-size: 8px;
       font-weight: 700;
       line-height: 1;
       white-space: nowrap;
       pointer-events: none;
+      text-shadow: 0 1px 2px rgba(15, 23, 42, .38);
+    }
+
+    .login-backdrop::after {
+      content: "v2026.06.23.17-saas";
     }
 
     .toolbar {
@@ -4309,7 +4315,7 @@
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.15-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.17-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5246,7 +5252,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.15-saas";
+    const appVersion = "v2026.06.23.17-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -9005,23 +9011,30 @@
         loginStatus.textContent = "";
         setLoginBusy(false);
         console.info("force-password-changed", { userId: currentUser.id, email: currentUser.email });
-        try {
-          await Promise.all([
-            loadProfiles(),
-            loadRemotePlan(setAuthLoading)
-          ]);
-          loadUserUiPreferences();
-          setupRealtime();
-          setupPresence();
-        } catch (loadError) {
-          console.warn("force-password-post-load-error", loadError);
-          setSyncStatus("Ошибка загрузки", "error");
-          formStatus.className = "status error";
-          formStatus.textContent = `Пароль сохранен, но данные не загрузились: ${loadError.message}`;
-        }
         clearAuthLoading();
         applyAccessControl();
         render();
+        forcePasswordStatus.className = "status";
+        forcePasswordStatus.textContent = "";
+        Promise.race([
+          Promise.all([loadProfiles(), loadRemotePlan(setAuthLoading)]),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("Загрузка данных после смены пароля заняла больше 10 сек")), 10000))
+        ])
+          .then(() => {
+            loadUserUiPreferences();
+            setupRealtime();
+            setupPresence();
+            clearAuthLoading();
+            applyAccessControl();
+            render();
+          })
+          .catch((loadError) => {
+            console.warn("force-password-post-load-error", loadError);
+            clearAuthLoading();
+            setSyncStatus("Ошибка загрузки", "error");
+            formStatus.className = "status error";
+            formStatus.textContent = `Пароль сохранен, но данные не загрузились: ${loadError.message}`;
+          });
       } catch (error) {
         saveForcePasswordButton.disabled = false;
         cancelForcePasswordButton.disabled = false;
