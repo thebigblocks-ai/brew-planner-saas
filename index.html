@@ -4301,12 +4301,8 @@
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
     <div class="modal">
       <h2 id="forcePasswordModalTitle">Смените временный пароль</h2>
-      <p>После смены пароля администратор больше не будет знать ваш постоянный пароль.</p>
+      <p>Введите новый постоянный пароль. После сохранения администратор больше не будет его знать.</p>
       <form class="password-modal-form" id="forcePasswordForm">
-        <label class="field">
-          <span>Текущий временный пароль</span>
-          <input id="forceCurrentPasswordInput" type="password" autocomplete="current-password" required>
-        </label>
         <label class="field">
           <span>Новый пароль</span>
           <input id="forceNewPasswordInput" type="password" autocomplete="new-password" required>
@@ -4318,6 +4314,7 @@
         <div class="status" id="forcePasswordStatus"></div>
       </form>
       <div class="modal-actions">
+        <button class="secondary" id="cancelForcePasswordButton" type="button">Отменить</button>
         <button class="primary" id="saveForcePasswordButton" type="submit" form="forcePasswordForm">Сменить пароль</button>
       </div>
     </div>
@@ -5235,7 +5232,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.7-saas";
+    const appVersion = "v2026.06.23.12-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -5389,6 +5386,13 @@
       });
     }
 
+    function unlockLoginForm() {
+      [loginInput, passwordInput, passwordToggle].forEach((element) => {
+        if (element) element.disabled = false;
+      });
+      loginForm?.querySelector("button[type='submit']")?.removeAttribute("disabled");
+    }
+
     function setAuthLoading(message) {
       if (!loginStatus) return;
       loginStatus.className = "status loading";
@@ -5398,7 +5402,7 @@
     function loginErrorMessage(error) {
       const message = error?.message || String(error || "");
       const normalized = message.toLowerCase();
-      if (normalized.includes("учетная запись отключена")) return message;
+      if (isAccountDisabledMessage(message)) return message;
       const isNetworkFailure = normalized.includes("load failed")
         || normalized.includes("failed to fetch")
         || normalized.includes("networkerror")
@@ -5412,6 +5416,24 @@
           : "Не удалось подключиться к базе. Проверьте доступ к интернету.";
       }
       return message;
+    }
+
+    function showLoginError(message, options = {}) {
+      currentUser = null;
+      remoteReady = false;
+      document.body.dataset.auth = "locked";
+      if (loginStatus) {
+        loginStatus.className = "status";
+        loginStatus.textContent = "";
+      }
+      unlockLoginForm();
+      if (isAccountDisabledMessage(message)) {
+        showAccountDisabledMessage(message);
+      } else if (loginStatus) {
+        loginStatus.className = "status error";
+        loginStatus.textContent = options.prefix === false ? message : `Ошибка входа: ${message}`;
+      }
+      console.info("login-error-rendered", { message });
     }
 
     function readSupportAttachment(file) {
@@ -5613,7 +5635,10 @@
       }
     }
 
+    let transientYandexToken = "";
+
     function yandexToken() {
+      if (transientYandexToken) return transientYandexToken;
       try {
         return localStorage.getItem(yandexTokenKey) || "";
       } catch {
@@ -5621,9 +5646,10 @@
       }
     }
 
-    function setYandexToken(token) {
+    function setYandexToken(token, options = {}) {
+      transientYandexToken = token || "";
       try {
-        if (token) {
+        if (token && options.persist !== false) {
           localStorage.setItem(yandexTokenKey, token);
         } else {
           localStorage.removeItem(yandexTokenKey);
@@ -5631,6 +5657,16 @@
       } catch {
         // Сессия просто не сохранится между перезагрузками.
       }
+    }
+
+    function isAccountDisabledMessage(message) {
+      return String(message || "").toLowerCase().includes("учетная запись отключена");
+    }
+
+    function showAccountDisabledMessage(message) {
+      if (!loginStatus) return;
+      loginStatus.className = "status account-disabled";
+      loginStatus.textContent = message;
     }
 
     async function yandexRequest(path, options = {}) {
@@ -5665,13 +5701,15 @@
       const text = await response.text();
       const data = text ? JSON.parse(text) : {};
       if (!response.ok) {
-        throw new Error(data.message || data.error || `Ошибка Yandex API: ${response.status}`);
+        const message = data.message || data.error || `Ошибка Yandex API: ${response.status}`;
+        if (isAccountDisabledMessage(message)) setYandexToken("");
+        throw new Error(message);
       }
       return data;
     }
 
     function clearAuthLoading() {
-      if (!loginStatus || loginStatus.classList.contains("error")) return;
+      if (!loginStatus || loginStatus.classList.contains("error") || loginStatus.classList.contains("account-disabled")) return;
       loginStatus.className = "status";
       loginStatus.textContent = "";
     }
@@ -6164,10 +6202,10 @@
       throw new Error("Смена пароля из интерфейса доступна в Yandex-only контуре");
     }
 
-    async function changeOwnYandexPassword(currentPassword, newPassword) {
+    async function changeOwnYandexPassword(newPassword, options = {}) {
       return yandexRequest("/auth/change-password", {
         method: "POST",
-        body: { currentPassword, newPassword }
+        body: { newPassword, forceTemporary: Boolean(options.forceTemporary) }
       });
     }
 
@@ -6858,10 +6896,10 @@
     const confirmDeleteButton = document.querySelector("#confirmDeleteButton");
     const forcePasswordModal = document.querySelector("#forcePasswordModal");
     const forcePasswordForm = document.querySelector("#forcePasswordForm");
-    const forceCurrentPasswordInput = document.querySelector("#forceCurrentPasswordInput");
     const forceNewPasswordInput = document.querySelector("#forceNewPasswordInput");
     const forceRepeatPasswordInput = document.querySelector("#forceRepeatPasswordInput");
     const forcePasswordStatus = document.querySelector("#forcePasswordStatus");
+    const cancelForcePasswordButton = document.querySelector("#cancelForcePasswordButton");
     const userPasswordModal = document.querySelector("#userPasswordModal");
     const userPasswordForm = document.querySelector("#userPasswordForm");
     const userPasswordModalText = document.querySelector("#userPasswordModalText");
@@ -8891,11 +8929,26 @@
       forcePasswordStatus.className = "status";
       forcePasswordStatus.textContent = "";
       forcePasswordModal.classList.add("open");
-      requestAnimationFrame(() => forceCurrentPasswordInput.focus());
+      requestAnimationFrame(() => forceNewPasswordInput.focus());
+    }
+
+    function cancelForcedPasswordChange() {
+      forcePasswordForm.reset();
+      forcePasswordStatus.className = "status";
+      forcePasswordStatus.textContent = "";
+      forcePasswordModal.classList.remove("open");
+      setYandexToken("");
+      currentUser = null;
+      remoteReady = false;
+      teardownRealtime();
+      document.body.dataset.auth = "locked";
+      clearAuthLoading();
+      unlockLoginForm();
+      passwordInput.value = "";
+      requestAnimationFrame(() => passwordInput.focus());
     }
 
     async function saveForcedPasswordChange() {
-      const currentPassword = forceCurrentPasswordInput.value;
       const newPassword = forceNewPasswordInput.value;
       const repeatPassword = forceRepeatPasswordInput.value;
       if (newPassword.trim().length < 8) {
@@ -8911,10 +8964,22 @@
       forcePasswordStatus.className = "status loading";
       forcePasswordStatus.innerHTML = '<span class="loading-spinner"></span><span>Сохраняем новый пароль...</span>';
       try {
-        const data = await changeOwnYandexPassword(currentPassword, newPassword);
+        const data = await changeOwnYandexPassword(newPassword, { forceTemporary: true });
         if (data.token) setYandexToken(data.token);
         forcePasswordModal.classList.remove("open");
-        window.location.reload();
+        forcePasswordStatus.className = "status";
+        forcePasswordStatus.textContent = "";
+        currentUser = data.user || await loadCurrentProfile();
+        await Promise.all([
+          loadProfiles(),
+          loadRemotePlan(setAuthLoading)
+        ]);
+        loadUserUiPreferences();
+        setupRealtime();
+        setupPresence();
+        clearAuthLoading();
+        applyAccessControl();
+        render();
       } catch (error) {
         forcePasswordStatus.className = "status error";
         forcePasswordStatus.textContent = `Не удалось сменить пароль: ${error.message}`;
@@ -12776,6 +12841,7 @@
 
     function installStatusErrorAutoScroll() {
       document.querySelectorAll(".status").forEach((status) => {
+        if (status.id === "loginStatus") return;
         const observer = new MutationObserver(() => scrollStatusErrorIntoView(status));
         observer.observe(status, { attributes: true, childList: true, characterData: true, subtree: true });
       });
@@ -12802,6 +12868,7 @@
           if (currentUser) {
             if (redirectSuperAdminToCabinet()) return;
             if (isYandexBackend && currentUser.mustChangePassword) {
+              setYandexToken(yandexToken(), { persist: false });
               clearAuthLoading();
               applyAccessControl();
               showForcePasswordModal();
@@ -12826,8 +12893,14 @@
           remoteReady = false;
           state.siteOrder = [];
           teardownRealtime();
-          loginStatus.className = "status error";
-          loginStatus.textContent = `Не удалось подключиться к общей базе: ${error.message}`;
+          const message = loginErrorMessage(error);
+          if (isAccountDisabledMessage(message)) {
+            setYandexToken("");
+            showAccountDisabledMessage(message);
+          } else {
+            loginStatus.className = "status error";
+            loginStatus.textContent = `Не удалось подключиться к общей базе: ${message}`;
+          }
         }
       }
       applyAccessControl();
@@ -12853,8 +12926,7 @@
       loginForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         if (!db && !isYandexBackend) {
-          loginStatus.className = "status error";
-          loginStatus.textContent = "База не подключена";
+          showLoginError("База не подключена", { prefix: false });
           return;
         }
         setLoginBusy(true);
@@ -12867,17 +12939,14 @@
               token: "",
               body: { email, password }
             }), "Проверяем логин и пароль...");
-            setYandexToken(data.token);
+            setYandexToken(data.token, { persist: false });
           } else {
             const { error } = await timedLoadStep("Авторизация", () => db.auth.signInWithPassword({ email, password }), "Проверяем логин и пароль...");
             if (error) throw error;
           }
         } catch (error) {
-          setLoginBusy(false);
           const message = loginErrorMessage(error);
-          const accountDisabled = message.toLowerCase().includes("учетная запись отключена");
-          loginStatus.className = accountDisabled ? "status account-disabled" : "status error";
-          loginStatus.textContent = accountDisabled ? message : `Ошибка входа: ${message}`;
+          showLoginError(message);
           return;
         }
         try {
@@ -12888,9 +12957,7 @@
             } else {
               await db.auth.signOut();
             }
-            setLoginBusy(false);
-            loginStatus.className = "status error";
-            loginStatus.textContent = "Для пользователя не назначена роль";
+            showLoginError("Для пользователя не назначена роль", { prefix: false });
             return;
           }
           if (redirectSuperAdminToCabinet()) return;
@@ -12901,6 +12968,7 @@
             showForcePasswordModal();
             return;
           }
+          if (isYandexBackend) setYandexToken(yandexToken());
           await timedLoadStep("Загрузка пользователей и плана", () => Promise.all([
             loadProfiles(),
             loadRemotePlan(setAuthLoading)
@@ -12921,11 +12989,8 @@
           applyAccessControl();
           render();
         } catch (profileError) {
-          setLoginBusy(false);
           const message = loginErrorMessage(profileError);
-          const accountDisabled = message.toLowerCase().includes("учетная запись отключена");
-          loginStatus.className = accountDisabled ? "status account-disabled" : "status error";
-          loginStatus.textContent = accountDisabled ? message : `Не удалось загрузить профиль: ${message}`;
+          showLoginError(`Не удалось загрузить профиль: ${message}`, { prefix: false });
         }
       });
 
@@ -13601,6 +13666,8 @@
         event.preventDefault();
         await saveForcedPasswordChange();
       });
+
+      cancelForcePasswordButton.addEventListener("click", cancelForcedPasswordChange);
 
       cancelUserProfileButton.addEventListener("click", closeUserProfileModal);
 
