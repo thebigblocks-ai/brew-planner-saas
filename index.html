@@ -171,7 +171,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.23.22-saas";
+      content: "v2026.06.23.23-saas";
     }
 
     .toolbar {
@@ -2941,18 +2941,6 @@
       font-weight: 700;
     }
 
-    #forcePasswordStatus.error {
-      min-height: 0;
-      padding: 10px 12px;
-      border: 1px solid rgba(220, 38, 38, .22);
-      border-left: 4px solid var(--danger);
-      border-radius: 8px;
-      background: #fff1f2;
-      color: var(--danger);
-      font-size: 13px;
-      line-height: 1.35;
-    }
-
     .status.account-disabled {
       min-height: 0;
       margin-top: 2px;
@@ -4346,9 +4334,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.23.22-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.23.23-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.22-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.23-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5286,7 +5274,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.22-saas";
+    const appVersion = "v2026.06.23.23-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -8987,8 +8975,7 @@
       forcePasswordForm.reset();
       forcePasswordStatus.className = "status";
       forcePasswordStatus.textContent = "";
-      saveForcePasswordButton.disabled = false;
-      cancelForcePasswordButton.disabled = false;
+      resetForcePasswordControls();
       console.info("force-password-modal-ready");
       forcePasswordForm.onsubmit = async (event) => {
         event.preventDefault();
@@ -9001,6 +8988,13 @@
       cancelForcePasswordButton.onclick = cancelForcedPasswordChange;
       forcePasswordModal.classList.add("open");
       requestAnimationFrame(() => forceNewPasswordInput.focus());
+    }
+
+    function resetForcePasswordControls() {
+      forceNewPasswordInput.disabled = false;
+      forceRepeatPasswordInput.disabled = false;
+      saveForcePasswordButton.disabled = false;
+      cancelForcePasswordButton.disabled = false;
     }
 
     function cancelForcedPasswordChange() {
@@ -9033,8 +9027,7 @@
         });
         if (newPassword.trim().length < 8) {
           console.warn("force-password-validation-error", "too-short");
-          saveForcePasswordButton.disabled = false;
-          cancelForcePasswordButton.disabled = false;
+          resetForcePasswordControls();
           forcePasswordStatus.className = "status error";
           forcePasswordStatus.textContent = "Пароль слишком короткий. Укажите минимум 8 символов.";
           forceNewPasswordInput.focus();
@@ -9042,8 +9035,7 @@
         }
         if (newPassword !== repeatPassword) {
           console.warn("force-password-validation-error", "mismatch");
-          saveForcePasswordButton.disabled = false;
-          cancelForcePasswordButton.disabled = false;
+          resetForcePasswordControls();
           forcePasswordStatus.className = "status error";
           forcePasswordStatus.textContent = "Новые пароли не совпадают";
           forceRepeatPasswordInput.focus();
@@ -9058,8 +9050,7 @@
           if (attemptId !== forcePasswordAttemptId) return;
           console.warn("force-password-watchdog-timeout");
           forcePasswordAttemptId += 1;
-          saveForcePasswordButton.disabled = false;
-          cancelForcePasswordButton.disabled = false;
+          resetForcePasswordControls();
           forcePasswordStatus.className = "status error";
           forcePasswordStatus.textContent = "Смена пароля заняла больше 15 секунд. Попробуйте еще раз.";
         }, 15000);
@@ -9108,8 +9099,7 @@
         console.error("force-password-error", error);
         if (attemptId && attemptId !== forcePasswordAttemptId) return;
         if (watchdog) clearTimeout(watchdog);
-        saveForcePasswordButton.disabled = false;
-        cancelForcePasswordButton.disabled = false;
+        resetForcePasswordControls();
         forcePasswordStatus.className = "status error";
         forcePasswordStatus.textContent = `Не удалось сменить пароль: ${error.message}`;
       }
