@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.24.40-saas";
+      content: "v2026.06.24.42-saas";
     }
 
     .toolbar {
@@ -1388,7 +1388,27 @@
     }
 
     .settings-tabs {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
       margin: 0;
+      padding: 0;
+      border-bottom: 0;
+      background: transparent;
+    }
+
+    .settings-tabs .cycle-tab {
+      height: 34px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      background: var(--panel);
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .settings-tabs .cycle-tab[data-active="true"] {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
     }
 
     .settings-tab-pane {
@@ -3343,7 +3363,7 @@
 
     .user-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 188px;
+      grid-template-columns: minmax(0, 1fr) 126px;
       align-items: start;
       gap: 12px;
       padding: 10px;
@@ -3375,24 +3395,24 @@
 
     .user-actions {
       display: grid;
+      grid-template-columns: repeat(3, 38px);
       gap: 6px;
     }
 
     .user-action-button {
-      width: 100%;
-      min-height: 34px;
+      width: 38px;
+      height: 38px;
+      min-height: 38px;
       display: inline-flex;
       align-items: center;
-      justify-content: flex-start;
-      gap: 8px;
-      padding: 0 9px;
+      justify-content: center;
+      padding: 0;
       border: 1px solid var(--line-strong);
       border-radius: 7px;
       background: var(--panel);
       color: var(--ink);
-      font-size: 12px;
+      font-size: 0;
       font-weight: 800;
-      text-align: left;
     }
 
     .user-action-button:hover {
@@ -4608,9 +4628,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.40-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.42-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.40-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.42-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5245,8 +5265,8 @@
                 <input id="newUserLoginInput" type="email" autocomplete="off" placeholder="user@company.ru" required>
               </label>
               <label class="field">
-                <span>Пароль</span>
-                <input id="newUserPasswordInput" value="Ссылка установки будет отправлена на email" disabled>
+                <span>Контактный телефон</span>
+                <input id="newUserPhoneInput" type="tel" autocomplete="tel" value="+7" placeholder="+7">
               </label>
             </div>
             <label class="field">
@@ -5709,7 +5729,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.24.40-saas";
+    const appVersion = "v2026.06.24.42-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -5784,6 +5804,7 @@
     let organizationSettings = null;
     let pendingOrganizationLogo = null;
     let organizationSettingsTab = "main";
+    let organizationSettingsFormDirty = false;
     let mySettingsFormDirty = false;
     let supportsTankSortOrder = false;
     let supportsPartialBottlings = false;
@@ -6693,10 +6714,10 @@
       users = (data || []).map(profileFromRow);
     }
 
-    async function createYandexUser(email, password, displayName, role) {
+    async function createYandexUser(email, displayName, role, phone = "") {
       const data = await yandexRequest("/users", {
         method: "POST",
-        body: { email, password, displayName, role }
+        body: { email, displayName, role, phone }
       });
       return data;
     }
@@ -6740,7 +6761,7 @@
 
     async function createAuthUser(email, password) {
       if (isYandexBackend) {
-        const data = await createYandexUser(email, password, fullNameFromParts(newUserFirstNameInput.value, newUserLastNameInput.value), newUserRoleInput.value);
+        const data = await createYandexUser(email, fullNameFromParts(newUserFirstNameInput.value, newUserLastNameInput.value), newUserRoleInput.value, newUserPhoneInput.value.trim());
         return data.user;
       }
       throw new Error("Создание пользователей доступно только через Yandex API");
@@ -7526,7 +7547,7 @@
     const newUserFirstNameInput = document.querySelector("#newUserFirstNameInput");
     const newUserLastNameInput = document.querySelector("#newUserLastNameInput");
     const newUserLoginInput = document.querySelector("#newUserLoginInput");
-    const newUserPasswordInput = document.querySelector("#newUserPasswordInput");
+    const newUserPhoneInput = document.querySelector("#newUserPhoneInput");
     const newUserRoleInput = document.querySelector("#newUserRoleInput");
     const userStatus = document.querySelector("#userStatus");
 
@@ -7702,7 +7723,11 @@
       return organizationSettings;
     }
 
-    function renderOrganizationSettings() {
+    function renderOrganizationSettings(options = {}) {
+      if (!options.force && organizationSettingsFormDirty) {
+        renderOrganizationSettingsTabs();
+        return;
+      }
       const settings = organizationSettings || currentUser?.organizationSettings || {};
       organizationDisplayNameInput.value = settings.displayName || currentUser?.organizationDisplayName || "";
       renderSettingsLogoPreview(pendingOrganizationLogo?.dataUrl || settings.logoDataUrl || currentUser?.organizationLogoDataUrl || "");
@@ -7722,6 +7747,7 @@
       document.querySelector("#orgTimezoneInput").value = settings.calendarSettings?.timezone || "Europe/Moscow";
       document.querySelector("#orgCommentTemplatesInput").value = (settings.commentTemplates || ["Контроль плотности", "Снять осадок", "Сухое охмеление", "Задача пюре/фруктов/соков"]).join("\n");
       document.querySelector("#orgTaskTemplatesInput").value = (settings.taskTemplates || ["Зарегистрировать ДС", "Зарегистрировать ФРАП", "Заказать этикетку"]).join("\n");
+      organizationSettingsFormDirty = false;
       renderOrganizationSettingsTabs();
       renderConfigurableTemplates();
     }
@@ -7772,7 +7798,8 @@
         currentUser.organizationSettings = organizationSettings;
       }
       renderOrganizationBrand();
-      renderOrganizationSettings();
+      organizationSettingsFormDirty = false;
+      renderOrganizationSettings({ force: true });
       organizationSettingsStatus.className = "status";
       organizationSettingsStatus.textContent = "Настройки организации сохранены";
     }
@@ -8297,6 +8324,13 @@
         firstName: parts.slice(0, -1).join(" "),
         lastName: parts[parts.length - 1]
       };
+    }
+
+    function ensureRussianPhonePrefix(input) {
+      if (!input) return;
+      const digits = String(input.value || "").replace(/\D/g, "");
+      const tail = digits.startsWith("7") || digits.startsWith("8") ? digits.slice(1) : digits;
+      input.value = `+7${tail}`;
     }
 
     function featureEnabled(key) {
@@ -10026,15 +10060,15 @@
               ${Object.entries(roleLabels).map(([value, label]) => `<option value="${value}" ${user.role === value ? "selected" : ""}>${label}</option>`).join("")}
             </select>
             <div class="user-actions">
-              <button class="user-action-button" type="button" data-profile-user="${user.login}">
+              <button class="user-action-button" type="button" data-profile-user="${user.login}" aria-label="Редактировать" title="Редактировать">
                 <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/></svg>
                 Редактировать
               </button>
-              <button class="user-action-button" type="button" data-password-user="${user.login}">
+              <button class="user-action-button" type="button" data-password-user="${user.login}" aria-label="Сменить пароль" title="Сменить пароль">
                 <svg viewBox="0 0 24 24"><path d="M15 7a4 4 0 1 0-3.7 5.98L9 15.3V18h2.7l1-1H15v-2.3l1.3-1.3A4 4 0 0 0 15 7Z"/><path d="M18 7h.01"/></svg>
                 Сменить пароль
               </button>
-              <button class="user-action-button danger" type="button" data-delete-user="${user.login}" ${user.login === currentUser.login ? "disabled" : ""}>
+              <button class="user-action-button danger" type="button" data-delete-user="${user.login}" aria-label="Удалить пользователя" title="Удалить пользователя" ${user.login === currentUser.login ? "disabled" : ""}>
                 <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 15H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
                 Удалить пользователя
               </button>
@@ -14266,6 +14300,7 @@
         adminMenu.classList.remove("open");
         if (!isOpen) {
           organizationSettingsTab = "main";
+          organizationSettingsFormDirty = false;
           try {
             await loadOrganizationSettings();
           } catch (error) {
@@ -14282,6 +14317,7 @@
       });
 
       closeOrganizationSettingsButton.addEventListener("click", () => {
+        organizationSettingsFormDirty = false;
         state.panelMode = "hidden";
         render();
       });
@@ -14345,6 +14381,7 @@
         try {
           const dataUrl = await resizeLogoFile(file, 60);
           pendingOrganizationLogo = { dataUrl, name: file.name };
+          organizationSettingsFormDirty = true;
           renderSettingsLogoPreview(dataUrl);
         } catch (error) {
           organizationSettingsStatus.className = "status error";
@@ -14361,6 +14398,14 @@
           organizationSettingsStatus.className = "status error";
           organizationSettingsStatus.textContent = `Не удалось сохранить настройки организации: ${error.message}`;
         }
+      });
+
+      organizationSettingsForm.addEventListener("input", () => {
+        organizationSettingsFormDirty = true;
+      });
+
+      organizationSettingsForm.addEventListener("change", () => {
+        organizationSettingsFormDirty = true;
       });
 
       mySettingsForm.addEventListener("submit", async (event) => {
@@ -14388,6 +14433,7 @@
           && !event.target.closest("#organizationSettingsPanel")
           && !event.target.closest("#organizationSettingsButton")
         ) {
+          organizationSettingsFormDirty = false;
           state.panelMode = "hidden";
           render();
         }
@@ -15180,7 +15226,8 @@
         event.preventDefault();
         if (!requireAdmin()) return;
         const email = newUserLoginInput.value.trim();
-        const password = newUserPasswordInput.value;
+        ensureRussianPhonePrefix(newUserPhoneInput);
+        const phone = newUserPhoneInput.value.trim();
         const displayName = fullNameFromParts(newUserFirstNameInput.value, newUserLastNameInput.value);
         if (!email.includes("@")) {
           userStatus.className = "status error";
@@ -15196,15 +15243,17 @@
           let authUser;
           let emailSent = false;
           if (isYandexBackend) {
-            const data = await createYandexUser(email, password, displayName, newUserRoleInput.value);
+            const data = await createYandexUser(email, displayName, newUserRoleInput.value, phone);
             authUser = data.user;
             emailSent = Boolean(data.emailSent);
           } else {
+            const password = "temporary-password";
             authUser = await createAuthUser(email, password);
             const { error } = await db.from("user_profiles").insert({
               id: authUser.id,
               email,
               display_name: displayName,
+              phone,
               role: newUserRoleInput.value
             });
             if (error) throw error;
@@ -15215,6 +15264,7 @@
             email
           });
           userForm.reset();
+          newUserPhoneInput.value = "+7";
           newUserRoleInput.value = "manager";
           userStatus.className = "status";
           userStatus.textContent = emailSent ? "Пользователь добавлен. Ссылка установки пароля отправлена на email" : "Пользователь добавлен";
@@ -15224,6 +15274,9 @@
           userStatus.textContent = `Не удалось добавить пользователя: ${error.message}`;
         }
       });
+
+      newUserPhoneInput.addEventListener("focus", () => ensureRussianPhonePrefix(newUserPhoneInput));
+      newUserPhoneInput.addEventListener("input", () => ensureRussianPhonePrefix(newUserPhoneInput));
 
       render();
     }
