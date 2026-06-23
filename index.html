@@ -5232,7 +5232,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.12-saas";
+    const appVersion = "v2026.06.23.14-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -8928,6 +8928,11 @@
       forcePasswordForm.reset();
       forcePasswordStatus.className = "status";
       forcePasswordStatus.textContent = "";
+      forcePasswordForm.onsubmit = async (event) => {
+        event.preventDefault();
+        await saveForcedPasswordChange();
+      };
+      cancelForcePasswordButton.onclick = cancelForcedPasswordChange;
       forcePasswordModal.classList.add("open");
       requestAnimationFrame(() => forceNewPasswordInput.focus());
     }
@@ -8965,18 +8970,32 @@
       forcePasswordStatus.innerHTML = '<span class="loading-spinner"></span><span>Сохраняем новый пароль...</span>';
       try {
         const data = await changeOwnYandexPassword(newPassword, { forceTemporary: true });
-        if (data.token) setYandexToken(data.token);
+        if (!data.token) throw new Error("Сервер не вернул новую сессию");
+        setYandexToken(data.token);
+        currentUser = data.user || await loadCurrentProfile();
+        if (!currentUser) throw new Error("Не удалось загрузить профиль после смены пароля");
+        if (currentUser.mustChangePassword) throw new Error("Сервер не подтвердил смену временного пароля");
         forcePasswordModal.classList.remove("open");
         forcePasswordStatus.className = "status";
         forcePasswordStatus.textContent = "";
-        currentUser = data.user || await loadCurrentProfile();
-        await Promise.all([
-          loadProfiles(),
-          loadRemotePlan(setAuthLoading)
-        ]);
-        loadUserUiPreferences();
-        setupRealtime();
-        setupPresence();
+        loginStatus.className = "status";
+        loginStatus.textContent = "";
+        setLoginBusy(false);
+        console.info("force-password-changed", { userId: currentUser.id, email: currentUser.email });
+        try {
+          await Promise.all([
+            loadProfiles(),
+            loadRemotePlan(setAuthLoading)
+          ]);
+          loadUserUiPreferences();
+          setupRealtime();
+          setupPresence();
+        } catch (loadError) {
+          console.warn("force-password-post-load-error", loadError);
+          setSyncStatus("Ошибка загрузки", "error");
+          formStatus.className = "status error";
+          formStatus.textContent = `Пароль сохранен, но данные не загрузились: ${loadError.message}`;
+        }
         clearAuthLoading();
         applyAccessControl();
         render();
@@ -13661,13 +13680,6 @@
       userPasswordModal.addEventListener("click", (event) => {
         if (event.target === userPasswordModal) closeUserPasswordModal();
       });
-
-      forcePasswordForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        await saveForcedPasswordChange();
-      });
-
-      cancelForcePasswordButton.addEventListener("click", cancelForcedPasswordChange);
 
       cancelUserProfileButton.addEventListener("click", closeUserProfileModal);
 
