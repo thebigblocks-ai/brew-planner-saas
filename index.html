@@ -4309,7 +4309,7 @@
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения"></span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.23.15-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5246,7 +5246,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.23.14-saas";
+    const appVersion = "v2026.06.23.15-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6219,6 +6219,7 @@
     async function changeOwnYandexPassword(newPassword, options = {}) {
       return yandexRequest("/auth/change-password", {
         method: "POST",
+        timeoutMs: options.timeoutMs || 12000,
         body: { newPassword, forceTemporary: Boolean(options.forceTemporary) }
       });
     }
@@ -6915,6 +6916,7 @@
     const forceRepeatPasswordInput = document.querySelector("#forceRepeatPasswordInput");
     const forcePasswordStatus = document.querySelector("#forcePasswordStatus");
     const cancelForcePasswordButton = document.querySelector("#cancelForcePasswordButton");
+    const saveForcePasswordButton = document.querySelector("#saveForcePasswordButton");
     const userPasswordModal = document.querySelector("#userPasswordModal");
     const userPasswordForm = document.querySelector("#userPasswordForm");
     const userPasswordModalText = document.querySelector("#userPasswordModalText");
@@ -8943,6 +8945,8 @@
       forcePasswordForm.reset();
       forcePasswordStatus.className = "status";
       forcePasswordStatus.textContent = "";
+      saveForcePasswordButton.disabled = false;
+      cancelForcePasswordButton.disabled = false;
       forcePasswordForm.onsubmit = async (event) => {
         event.preventDefault();
         await saveForcedPasswordChange();
@@ -8983,8 +8987,12 @@
       }
       forcePasswordStatus.className = "status loading";
       forcePasswordStatus.innerHTML = '<span class="loading-spinner"></span><span>Сохраняем новый пароль...</span>';
+      saveForcePasswordButton.disabled = true;
+      cancelForcePasswordButton.disabled = true;
+      console.info("force-password-submit");
       try {
-        const data = await changeOwnYandexPassword(newPassword, { forceTemporary: true });
+        const data = await changeOwnYandexPassword(newPassword, { forceTemporary: true, timeoutMs: 12000 });
+        console.info("force-password-response", { hasToken: Boolean(data.token), mustChangePassword: Boolean(data.user?.mustChangePassword) });
         if (!data.token) throw new Error("Сервер не вернул новую сессию");
         setYandexToken(data.token);
         currentUser = data.user || await loadCurrentProfile();
@@ -9015,6 +9023,8 @@
         applyAccessControl();
         render();
       } catch (error) {
+        saveForcePasswordButton.disabled = false;
+        cancelForcePasswordButton.disabled = false;
         forcePasswordStatus.className = "status error";
         forcePasswordStatus.textContent = `Не удалось сменить пароль: ${error.message}`;
       }
