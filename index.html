@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.25.79-saas";
+      content: "v2026.06.25.83-saas";
     }
 
     .toolbar {
@@ -3536,8 +3536,8 @@
     }
 
     .help-modal {
-      width: min(920px, calc(100vw - 32px));
-      height: min(800px, calc(100vh - 40px));
+      width: min(2760px, calc(100vw - 24px));
+      height: min(920px, calc(100vh - 24px));
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -3553,14 +3553,14 @@
       min-height: 0;
       display: grid;
       margin: 16px 0 0;
-      padding: 0 16px;
+      padding: 0 24px;
     }
 
     .help-layout {
       min-height: 0;
       display: grid;
-      grid-template-columns: 220px minmax(0, 1fr);
-      gap: 14px;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 18px;
     }
 
     .help-toc {
@@ -3598,6 +3598,7 @@
       min-height: 0;
       display: grid;
       align-content: start;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
       overflow-y: auto;
       padding-right: 6px;
@@ -3643,6 +3644,10 @@
 
     @media (max-width: 760px) {
       .help-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .help-content {
         grid-template-columns: 1fr;
       }
 
@@ -3709,6 +3714,23 @@
       min-height: 32px;
       padding: 0 10px;
       font-size: 12px;
+    }
+
+    @keyframes onboardingGlowPulse {
+      0%, 100% {
+        outline-color: rgba(255, 139, 0, .34);
+        box-shadow: 0 0 0 2px rgba(255, 139, 0, .12), 0 0 0 rgba(255, 139, 0, 0);
+      }
+      48% {
+        outline-color: rgba(255, 139, 0, .96);
+        box-shadow: 0 0 0 5px rgba(255, 139, 0, .22), 0 0 28px rgba(255, 139, 0, .48);
+      }
+    }
+
+    .onboarding-target-glow {
+      outline: 2px solid rgba(255, 139, 0, .82) !important;
+      outline-offset: 4px;
+      animation: onboardingGlowPulse 1.8s ease-in-out infinite;
     }
 
     .login-backdrop {
@@ -5210,9 +5232,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.79-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.83-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.79-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.83-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6486,7 +6508,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.25.79-saas";
+    const appVersion = "v2026.06.25.83-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6494,83 +6516,103 @@
       planner: [
         {
           title: "Быстрое создание варки",
-          text: "Двойной клик по свободной ячейке сразу открывает новую варку с выбранной емкостью и датой."
+          text: "Двойной клик по свободной ячейке сразу открывает новую варку с выбранной емкостью и датой.",
+          target: "#planner"
         },
         {
           title: "Период и масштаб",
-          text: "Верхняя панель меняет видимый период и детализацию графика, не меняя сами циклы."
+          text: "Верхняя панель позволяет менять видимый период и детализацию графика для удобства навигации. Режим просмотра \"Полный\" позволяет видеть больше информации по циклам. Настроить отображаемую в этом режиме информацию можно в разделе \"Мои настройки\".",
+          target: ".planning-controls"
         },
         {
           title: "Фильтры графика",
-          text: "Фильтры помогают быстро оставить на экране нужный сорт, стадию или заказчика."
+          text: "Фильтры помогают быстро оставить на экране нужный сорт, стадию или заказчика, если у Вас подключена опция контрактных варок.",
+          target: "#filterButton"
+        },
+        {
+          title: "Быстрый комментарий",
+          text: "Двойной клик по циклу позволяет создать быстрый комментарий с использованием шаблонов, а также создать задачу с назначением ответственного на указанную дату.",
+          target: ["firstVisibleCycle", "#planner"]
         }
       ],
       cycleProduction: [
         {
           title: "Карточка цикла",
-          text: "Здесь задаются сорт, ЦКТ, партия, даты, стадия и плановый выход."
+          text: "Здесь задаются сорт, ЦКТ, партия опционально, дата начала, длительность цикла, дата окончания, стадия и плановый выход. Дата окончания рассчитывается автоматически от даты начала и длительности цикла.",
+          target: "#cyclePanel"
         },
         {
           title: "Распределение розлива",
-          text: "Банки и кеги считаются от планового выхода. Если выход изменился, распределение нужно указать заново."
+          text: "Банки и кеги считаются от планового выхода. Если выход изменился, распределение нужно указать заново.",
+          target: "#canQtyInput"
         }
       ],
       cycleProcess: [
         {
           title: "Процесс производства",
-          text: "Во вкладке процесса фиксируются параметры варки и брожения по выбранному циклу."
+          text: "Во вкладке процесса фиксируются параметры варки и брожения по выбранному циклу.",
+          target: "#cycleProcessPane"
         }
       ],
       cycleTasks: [
         {
           title: "Задачи по циклу",
-          text: "Задачи привязаны к конкретной варке и отображаются также в общем списке “Мои задачи”."
+          text: "Задачи привязаны к конкретной варке и отображаются также в общем списке “Мои задачи”.",
+          target: "#cycleTasksPane"
         },
         {
           title: "Задача из комментария",
-          text: "Комментарий с ответственным автоматически создает задачу на дату этого комментария."
+          text: "Комментарий с ответственным автоматически создает задачу на дату этого комментария.",
+          target: ["#commentAssigneeInput", "#cycleTasksPane"]
         }
       ],
       partialBottling: [
         {
           title: "Частичный розлив",
-          text: "Частичный розлив сохраняется только у уже созданного цикла и не может превышать плановый выход."
+          text: "Частичный розлив сохраняется только у уже созданного цикла и не может превышать плановый выход.",
+          target: "#partialBottlingFields"
         }
       ],
       bottlings: [
         {
           title: "Ближайшие розливы",
-          text: "Этот блок собирает розливы из дат циклов и показывает предупреждение, если не заполнено распределение."
+          text: "Этот блок собирает розливы из дат циклов и показывает как частичные, так и итоговые розливы. Если в горизонт планирования попадает окончание производственного цикла без проставленного распределения, такой розлив помечается восклицательным знаком.",
+          target: "#bottlingPanel"
         }
       ],
       warehouse: [
         {
           title: "Складской календарь",
-          text: "Склад показывает будущие поступления по датам розлива и распределению упаковки."
+          text: "Календарь показывает будущие поступления на склад по датам розлива и распределение по таре.",
+          target: "#warehousePanel"
         }
       ],
       templates: [
         {
           title: "Шаблоны сортов",
-          text: "Шаблон хранит типовые параметры сорта и ускоряет создание новых циклов."
+          text: "Справочник хранит типовые параметры сортов и ускоряет создание новых циклов. Справочник автоматически записывает в себя все новые сорта, длительность цикла и плановый выход ГП по ним. Дополнительно здесь можно указать наименование продукции по ДС, выбрать цвет цикла по умолчанию, а также указать заказчика сорта, если у Вас подключена опция контрактных варок.",
+          target: "#templatesPanel"
         }
       ],
       orgSettings: [
         {
           title: "Настройки организации",
-          text: "Здесь администратор задает логотип, рабочий календарь, email-уведомления и общие шаблоны."
+          text: "Здесь администратор организации может загрузить логотип, настроить email-уведомления и добавить шаблонные формулировки для быстрых комментариев и задач.",
+          target: "#organizationSettingsForm"
         }
       ],
       supportNew: [
         {
           title: "Новое обращение",
-          text: "В заявке укажите тему, описание, телефон и при необходимости приложите скриншоты."
+          text: "В заявке укажите тему, описание, телефон и при необходимости приложите скриншоты.",
+          target: "#supportForm"
         }
       ],
       supportTickets: [
         {
           title: "Мои обращения",
-          text: "Обращения раскрываются по одному: внутри видна переписка, статус и дедлайн приема в работу."
+          text: "Обращения раскрываются по одному: внутри видна переписка, статус и дедлайн приема в работу.",
+          target: "#supportTicketList"
         }
       ]
     };
@@ -6673,6 +6715,7 @@
     let taskCreateInProgress = false;
     let loadDiagnostics = [];
     let baseGridRenderKey = "";
+    let onboardingTargetElement = null;
 
     function newId() {
       return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -6963,10 +7006,50 @@
       localStorage.setItem(onboardingStorageKey(context), JSON.stringify(stateValue));
     }
 
+    function clearOnboardingHighlight() {
+      if (onboardingTargetElement) {
+        onboardingTargetElement.classList.remove("onboarding-target-glow");
+        onboardingTargetElement = null;
+      }
+    }
+
+    function isVisibleOnboardingTarget(element) {
+      if (!element) return false;
+      const style = getComputedStyle(element);
+      return style.display !== "none"
+        && style.visibility !== "hidden"
+        && element.getClientRects().length > 0;
+    }
+
+    function resolveOnboardingTarget(tip) {
+      const targets = Array.isArray(tip?.target) ? tip.target : [tip?.target].filter(Boolean);
+      for (const selector of targets) {
+        try {
+          const element = selector === "firstVisibleCycle"
+            ? Array.from(document.querySelectorAll(".cycle")).find(isVisibleOnboardingTarget)
+            : document.querySelector(selector);
+          if (isVisibleOnboardingTarget(element)) return element;
+        } catch {
+          // Ignore an invalid selector and try the next fallback target.
+        }
+      }
+      return null;
+    }
+
+    function highlightOnboardingTarget(tip) {
+      const element = resolveOnboardingTarget(tip);
+      if (element === onboardingTargetElement) return;
+      clearOnboardingHighlight();
+      if (!element) return;
+      element.classList.add("onboarding-target-glow");
+      onboardingTargetElement = element;
+    }
+
     function openHelpModal() {
       if (!helpModal) return;
       userBox.classList.remove("open");
       helpModal.classList.add("open");
+      clearOnboardingHighlight();
       if (onboardingTip) onboardingTip.hidden = true;
     }
 
@@ -6978,17 +7061,20 @@
     function renderOnboardingTip() {
       if (!onboardingTip) return;
       if (!currentUser) {
+        clearOnboardingHighlight();
         onboardingTip.hidden = true;
         return;
       }
       const context = onboardingContext();
       const tips = onboardingTipsFor(context);
       if (!context || !tips.length) {
+        clearOnboardingHighlight();
         onboardingTip.hidden = true;
         return;
       }
       const stateValue = readOnboardingState(context);
       if (stateValue.dismissed) {
+        clearOnboardingHighlight();
         onboardingTip.hidden = true;
         return;
       }
@@ -6999,6 +7085,7 @@
       onboardingText.textContent = tip.text;
       onboardingCounter.textContent = `${onboardingContextLabels[context] || "Подсказки"} · ${index + 1}/${tips.length}`;
       nextOnboardingButton.textContent = index >= tips.length - 1 ? "Понятно" : "Далее";
+      highlightOnboardingTarget(tip);
       onboardingTip.hidden = false;
     }
 
@@ -7021,6 +7108,7 @@
       const tips = onboardingTipsFor(context);
       writeOnboardingState({ dismissed: true, index: Math.max(0, tips.length - 1) }, context);
       if (onboardingTip) onboardingTip.hidden = true;
+      clearOnboardingHighlight();
     }
 
     function resetOnboardingTips() {
