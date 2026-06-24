@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.24.45-saas";
+      content: "v2026.06.24.46-saas";
     }
 
     .toolbar {
@@ -4667,9 +4667,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.45-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.46-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.45-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.46-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5789,7 +5789,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.24.45-saas";
+    const appVersion = "v2026.06.24.46-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -13444,20 +13444,47 @@
       renderTankCreateMode();
     }
 
-    function nextTankName() {
-      return `ЦКТ-${String(tanks.length + 1).padStart(2, "0")}`;
+    function tankNameUniquenessKey(name) {
+      const normalized = normalizeName(String(name || ""));
+      const numericSuffix = normalized.match(/^(.*?)(\d+)\s*$/);
+      if (!numericSuffix) return normalized;
+      const prefix = numericSuffix[1].replace(/[-–—_\s]+/g, "");
+      return `${prefix}:${Number(numericSuffix[2])}`;
+    }
+
+    function tankNameExistsInSite(name, siteId, exceptTankId = "") {
+      const normalized = tankNameUniquenessKey(name);
+      return tanks.some((tank) => (
+        tank.id !== exceptTankId
+        && tank.siteId === siteId
+        && tankNameUniquenessKey(tank.name) === normalized
+      ));
+    }
+
+    function nextTankNumberForSite(siteId) {
+      const siteTanks = tanks.filter((tank) => tank.siteId === siteId);
+      const suffixNumbers = siteTanks
+        .map((tank) => String(tank.name || "").match(/(\d+)\s*$/)?.[1])
+        .map((value) => Number(value))
+        .filter(Number.isFinite);
+      return suffixNumbers.length ? Math.max(...suffixNumbers) + 1 : siteTanks.length + 1;
+    }
+
+    function nextTankName(siteId = sites[0]?.id) {
+      return `ЦКТ-${String(nextTankNumberForSite(siteId)).padStart(2, "0")}`;
     }
 
     function prepareNewTank() {
+      const defaultSiteId = sites[0]?.id || "";
       state.selectedTankId = null;
       state.tankCreateMode = "single";
-      tankNameInput.value = nextTankName();
+      tankNameInput.value = nextTankName(defaultSiteId);
       tankVolumeInput.value = "60 гл";
       renderSiteOptions();
-      tankSiteInput.value = sites[0].id;
-      bulkTankSiteInput.value = sites[0].id;
+      tankSiteInput.value = defaultSiteId;
+      bulkTankSiteInput.value = defaultSiteId;
       bulkTankPrefixInput.value = "ЦКТ";
-      bulkTankStartInput.value = String(tanks.length + 1);
+      bulkTankStartInput.value = String(nextTankNumberForSite(defaultSiteId));
       bulkTankCountInput.value = "1";
       bulkTankVolumeInput.value = "4000 л";
       bulkTankCommentInput.value = "";
@@ -13539,12 +13566,12 @@
       if (!Number.isFinite(startNumber)) return { error: "Укажите начальный номер" };
       if (!volume) return { error: "Укажите полный объем" };
       const names = Array.from({ length: count }, (_, index) => formatBulkTankName(prefix, startNumber + index));
-      const normalizedExistingNames = new Set(
-        tanks
-          .filter((tank) => tank.siteId === siteId)
-          .map((tank) => normalizeName(tank.name))
-      );
-      const conflicts = names.filter((name) => normalizedExistingNames.has(normalizeName(name)));
+      const nameKeys = names.map(tankNameUniquenessKey);
+      const repeatedNames = names.filter((name, index) => nameKeys.indexOf(nameKeys[index]) !== index);
+      if (repeatedNames.length) {
+        return { error: `В диапазоне повторяются емкости: ${repeatedNames.join(", ")}` };
+      }
+      const conflicts = names.filter((name) => tankNameExistsInSite(name, siteId));
       if (conflicts.length) {
         return { error: `На площадке уже есть емкости: ${conflicts.join(", ")}` };
       }
@@ -14711,6 +14738,16 @@
         state.pickedTankId = tankInput.value;
         render();
       });
+      tankSiteInput.addEventListener("change", () => {
+        if (!state.selectedTankId) {
+          tankNameInput.value = nextTankName(tankSiteInput.value);
+        }
+      });
+      bulkTankSiteInput.addEventListener("change", () => {
+        if (!state.selectedTankId && state.tankCreateMode === "bulk") {
+          bulkTankStartInput.value = String(nextTankNumberForSite(bulkTankSiteInput.value));
+        }
+      });
 
       tankModeSwitch.addEventListener("click", (event) => {
         const button = event.target.closest("[data-tank-mode]");
@@ -15216,9 +15253,9 @@
         const comment = tankCommentInput.value.trim();
         const siteId = tankSiteInput.value;
         if (!name || !volume || !siteId) return;
-        if (tanks.some((tank) => tank.id !== state.selectedTankId && tank.name.toLowerCase() === name.toLowerCase())) {
+        if (tankNameExistsInSite(name, siteId, state.selectedTankId)) {
           tankStatus.className = "status error";
-          tankStatus.textContent = "Емкость с таким названием уже есть";
+          tankStatus.textContent = "На этой площадке уже есть емкость с таким названием";
           return;
         }
         const existingTank = tanks.find((tank) => tank.id === state.selectedTankId);
@@ -15251,7 +15288,7 @@
           site: sites.find((site) => site.id === siteId)?.name || "",
           from: volume
         });
-        tankNameInput.value = nextTankName();
+        tankNameInput.value = nextTankName(siteId);
         tankCommentInput.value = "";
         tankStatus.className = "status";
         tankStatus.textContent = "Емкость добавлена";
