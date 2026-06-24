@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.24.55-saas";
+      content: "v2026.06.24.56-saas";
     }
 
     .toolbar {
@@ -3921,20 +3921,6 @@
       width: 100%;
     }
 
-    .form-note-blocked {
-      min-height: 38px;
-      border: 1px solid var(--line-strong);
-      border-radius: 7px;
-      padding: 9px 12px;
-      display: grid;
-      align-items: center;
-      background: var(--soft-bg);
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 750;
-      line-height: 1.25;
-    }
-
     .dot {
       width: 10px;
       height: 10px;
@@ -4696,9 +4682,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.55-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.56-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.55-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.56-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5206,7 +5192,6 @@
               <button class="secondary" id="cancelTankButton" type="button">Отмена</button>
             </div>
             <button class="delete-confirm" id="deleteTankButton" type="button" hidden>Удалить емкость</button>
-            <div class="form-note-blocked" id="tankDeleteHint" hidden>Нельзя удалить емкость, в которой есть циклы</div>
             <div class="status" id="tankStatus"></div>
           </form>
         </section>
@@ -5821,7 +5806,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.24.55-saas";
+    const appVersion = "v2026.06.24.56-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -7524,7 +7509,6 @@
     const bulkTankCommentInput = document.querySelector("#bulkTankCommentInput");
     const cancelTankButton = document.querySelector("#cancelTankButton");
     const deleteTankButton = document.querySelector("#deleteTankButton");
-    const tankDeleteHint = document.querySelector("#tankDeleteHint");
     const siteForm = document.querySelector("#siteForm");
     const closeSiteButton = document.querySelector("#closeSiteButton");
     const cancelSiteButton = document.querySelector("#cancelSiteButton");
@@ -13545,12 +13529,12 @@
 
     function updateTankPanelState() {
       const tank = tanks.find((item) => item.id === state.selectedTankId);
+      const hasCycles = tank ? cyclesForTank(tank.id).length > 0 : false;
       tankPanelTitle.textContent = tank ? "Карточка емкости" : "Новая емкость";
       const bulkMode = !tank && featureEnabled("initialSetup") && state.tankCreateMode === "bulk";
       tankSubmitText.textContent = tank ? "Сохранить" : bulkMode ? "Добавить емкости" : "Добавить емкость";
-      deleteTankButton.hidden = !tank;
+      deleteTankButton.hidden = !tank || hasCycles;
       deleteTankButton.disabled = !tank || !canEdit();
-      tankDeleteHint.hidden = true;
       deleteTankButton.dataset.tooltip = "Удалить емкость";
     }
 
