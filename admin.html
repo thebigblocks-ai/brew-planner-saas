@@ -462,6 +462,40 @@
       align-items: center;
     }
 
+    .backup-toolbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .backup-toolbar p {
+      margin: 4px 0 0;
+    }
+
+    .backup-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .backup-row b,
+    .backup-row span {
+      display: block;
+    }
+
+    .backup-actions {
+      display: grid;
+      gap: 6px;
+      justify-items: end;
+    }
+
     .user-actions {
       display: grid;
       gap: 7px;
@@ -713,7 +747,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.23.13-saas</span>
+        <span>v2026.06.24.14-saas</span>
       </div>
     </aside>
 
@@ -781,6 +815,7 @@
               <button class="active" type="button" data-org-tab="users">Сотрудники</button>
               <button type="button" data-org-tab="tickets">Обращения</button>
               <button type="button" data-org-tab="profile">Параметры</button>
+              <button type="button" data-org-tab="backups">Резервные копии</button>
               <button type="button" data-org-tab="features">Функции</button>
             </div>
             <div class="card-body hidden" id="orgFeaturesTab">
@@ -821,6 +856,17 @@
             </div>
             <div class="card-body hidden" id="orgTicketsTab">
               <div class="table" id="organizationTickets"></div>
+            </div>
+            <div class="card-body hidden" id="orgBackupsTab">
+              <div class="backup-toolbar">
+                <div>
+                  <b>Резервные копии плана</b>
+                  <p class="small">Снимки сохраняют площадки, ЦКТ, циклы, шаблоны и настройки планировщика выбранной организации.</p>
+                </div>
+                <button class="primary" id="createBackupButton" type="button">Создать копию</button>
+              </div>
+              <div class="status" id="backupsStatus"></div>
+              <div class="table" id="organizationBackups"></div>
             </div>
             <div class="card-body hidden" id="orgProfileTab">
               <form id="organizationEditForm">
@@ -994,6 +1040,8 @@
     let organizations = [];
     let selectedOrganizationId = "";
     let selectedOrgUsers = [];
+    let selectedOrgBackups = [];
+    let selectedOrgBackupsError = "";
     let tickets = [];
     let selectedTicketId = "";
     let ticketStatusFilter = "";
@@ -1161,9 +1209,21 @@
       const organization = selectedOrganization();
       if (!organization) {
         selectedOrgUsers = [];
+        selectedOrgBackups = [];
+        selectedOrgBackupsError = "";
       } else {
-        const data = await request(`/organizations/${encodeURIComponent(organization.id)}/users`);
-        selectedOrgUsers = data.users || [];
+        const [usersData, backupsData] = await Promise.all([
+          request(`/organizations/${encodeURIComponent(organization.id)}/users`),
+          request(`/organizations/${encodeURIComponent(organization.id)}/backups`).catch((error) => ({ error }))
+        ]);
+        selectedOrgUsers = usersData.users || [];
+        if (backupsData.error) {
+          selectedOrgBackups = [];
+          selectedOrgBackupsError = backupsData.error.message;
+        } else {
+          selectedOrgBackups = backupsData.backups || [];
+          selectedOrgBackupsError = "";
+        }
       }
       renderOrganizationDetails();
     }
@@ -1232,6 +1292,7 @@
       renderFeatureList(organization?.features || {});
       renderOrganizationUsers();
       renderOrganizationTickets();
+      renderOrganizationBackups();
       renderOrgTabs();
     }
 
@@ -1240,10 +1301,12 @@
       $("[data-org-tab='users']").classList.toggle("active", activeOrgTab === "users");
       $("[data-org-tab='tickets']").classList.toggle("active", activeOrgTab === "tickets");
       $("[data-org-tab='profile']").classList.toggle("active", activeOrgTab === "profile");
+      $("[data-org-tab='backups']").classList.toggle("active", activeOrgTab === "backups");
       $("#orgFeaturesTab").classList.toggle("hidden", activeOrgTab !== "features");
       $("#orgUsersTab").classList.toggle("hidden", activeOrgTab !== "users");
       $("#orgTicketsTab").classList.toggle("hidden", activeOrgTab !== "tickets");
       $("#orgProfileTab").classList.toggle("hidden", activeOrgTab !== "profile");
+      $("#orgBackupsTab").classList.toggle("hidden", activeOrgTab !== "backups");
     }
 
     function renderFeatureList(features) {
@@ -1335,6 +1398,65 @@
           activeView = "tickets";
           renderShell();
           renderTickets();
+        });
+      });
+    }
+
+    function backupTypeLabel(type = "manual") {
+      return ({
+        manual: "Ручная",
+        auto: "Автоматическая",
+        pre_restore: "Перед восстановлением"
+      })[type] || type;
+    }
+
+    function backupCountsText(counts = {}) {
+      return [
+        `${counts.sites || 0} площадок`,
+        `${counts.tanks || 0} ЦКТ`,
+        `${counts.cycles || 0} циклов`,
+        `${counts.productTemplates || 0} шаблонов`
+      ].join(" · ");
+    }
+
+    function renderOrganizationBackups() {
+      const container = $("#organizationBackups");
+      if (!container) return;
+      if (selectedOrgBackupsError) {
+        container.innerHTML = `<p class="small">Не удалось загрузить резервные копии: ${escapeHtml(selectedOrgBackupsError)}</p>`;
+        return;
+      }
+      container.innerHTML = selectedOrgBackups.length ? selectedOrgBackups.map((backup) => `
+        <div class="backup-row" data-backup-id="${escapeHtml(backup.id)}">
+          <div>
+            <b>${escapeHtml(formatDateTime(backup.createdAt))} · ${escapeHtml(backupTypeLabel(backup.type))}</b>
+            <span class="small">${escapeHtml(backup.reason || "Без комментария")}</span>
+            <span class="small">Ревизия: ${escapeHtml(backup.sourceRevision || 0)} · ${escapeHtml(backupCountsText(backup.counts || {}))}</span>
+            <span class="small">Создал: ${escapeHtml(backup.createdBy?.name || backup.createdBy?.email || "система")}</span>
+          </div>
+          <div class="backup-actions">
+            <button class="secondary" type="button" data-restore-backup>Восстановить</button>
+          </div>
+        </div>
+      `).join("") : `<p class="small">Резервных копий пока нет. Можно создать первую вручную.</p>`;
+      container.querySelectorAll("[data-restore-backup]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const row = button.closest("[data-backup-id]");
+          const backup = selectedOrgBackups.find((item) => item.id === row?.dataset.backupId);
+          if (!backup || !selectedOrganizationId) return;
+          const confirmation = `Восстановить план организации из копии ${formatDateTime(backup.createdAt)}? Текущее состояние будет сохранено отдельной копией перед восстановлением.`;
+          if (!confirm(confirmation)) return;
+          setStatus($("#backupsStatus"), "Восстанавливаем резервную копию...");
+          try {
+            const data = await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/backups/${encodeURIComponent(backup.id)}/restore`, {
+              method: "POST"
+            });
+            selectedOrgBackups = data.backups || selectedOrgBackups;
+            renderOrganizationBackups();
+            setStatus($("#backupsStatus"), "План организации восстановлен. Текущее состояние перед восстановлением сохранено отдельной копией.", "ok");
+          } catch (error) {
+            setStatus($("#backupsStatus"), error.message, "error");
+          }
         });
       });
     }
@@ -1691,6 +1813,23 @@
         await loadOrganizations();
       } catch (error) {
         setStatus($("#featuresStatus"), error.message, "error");
+      }
+    });
+
+    $("#createBackupButton").addEventListener("click", async () => {
+      if (!selectedOrganizationId) return;
+      setStatus($("#backupsStatus"), "Создаем резервную копию...");
+      try {
+        const data = await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/backups`, {
+          method: "POST",
+          body: { reason: "Ручная копия из админки" }
+        });
+        selectedOrgBackups = data.backups || (data.backup ? [data.backup].concat(selectedOrgBackups) : selectedOrgBackups);
+        selectedOrgBackupsError = "";
+        renderOrganizationBackups();
+        setStatus($("#backupsStatus"), "Резервная копия создана", "ok");
+      } catch (error) {
+        setStatus($("#backupsStatus"), error.message, "error");
       }
     });
 
