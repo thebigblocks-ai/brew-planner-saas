@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.24.44-saas";
+      content: "v2026.06.24.45-saas";
     }
 
     .toolbar {
@@ -3389,7 +3389,7 @@
 
     .user-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 126px;
+      grid-template-columns: minmax(0, 1fr) 170px;
       align-items: start;
       gap: 12px;
       padding: 10px;
@@ -3421,7 +3421,7 @@
 
     .user-actions {
       display: grid;
-      grid-template-columns: repeat(3, 38px);
+      grid-template-columns: repeat(4, 38px);
       gap: 6px;
     }
 
@@ -3445,10 +3445,23 @@
       background: var(--soft-bg);
     }
 
+    .user-action-button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
     .user-action-button svg {
       width: 16px;
       height: 16px;
       flex: 0 0 16px;
+    }
+
+    .user-action-button.warning {
+      color: #b45309;
+    }
+
+    .user-action-button.success {
+      color: #15803d;
     }
 
     .user-action-button.danger {
@@ -4654,9 +4667,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.44-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.45-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.44-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.45-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5776,7 +5789,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.24.44-saas";
+    const appVersion = "v2026.06.24.45-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6631,7 +6644,8 @@
         department: row.department || "",
         phone: row.phone || "",
         comment: row.comment || "",
-        role: row.role || "reader"
+        role: row.role || "reader",
+        isBlocked: Boolean(row.is_blocked)
       };
     }
 
@@ -6774,7 +6788,8 @@
           phone: user.phone || "",
           comment: user.comment || "",
           role: user.role || "reader",
-          serviceRole: user.serviceRole || "user"
+          serviceRole: user.serviceRole || "user",
+          isBlocked: Boolean(user.isBlocked)
         }));
         return;
       }
@@ -10123,7 +10138,7 @@
         <div class="user-row" data-login="${user.login}">
           <div>
             <b>${escapeHtml(userDisplayName(user))}</b>
-            <small>${escapeHtml(user.login)}${user.login === currentUser.login ? " · текущий пользователь" : ""}</small>
+            <small>${escapeHtml(user.login)}${user.login === currentUser.login ? " · текущий пользователь" : ""}${user.isBlocked ? " · заблокирован" : ""}</small>
             ${(user.department || user.phone) ? `<div class="user-meta">${[user.department, user.phone].filter(Boolean).map(escapeHtml).join(" · ")}</div>` : ""}
           </div>
           <div class="user-controls">
@@ -10138,6 +10153,12 @@
               <button class="user-action-button" type="button" data-password-user="${user.login}" aria-label="Сменить пароль" title="Сменить пароль">
                 <svg viewBox="0 0 24 24"><path d="M15 7a4 4 0 1 0-3.7 5.98L9 15.3V18h2.7l1-1H15v-2.3l1.3-1.3A4 4 0 0 0 15 7Z"/><path d="M18 7h.01"/></svg>
                 Сменить пароль
+              </button>
+              <button class="user-action-button ${user.isBlocked ? "success" : "warning"}" type="button" data-block-user="${user.login}" aria-label="${user.isBlocked ? "Разблокировать" : "Заблокировать"}" title="${user.isBlocked ? "Разблокировать" : "Заблокировать"}" ${user.login === currentUser.login ? "disabled" : ""}>
+                ${user.isBlocked
+                  ? `<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`
+                  : `<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`}
+                ${user.isBlocked ? "Разблокировать" : "Заблокировать"}
               </button>
               <button class="user-action-button danger" type="button" data-delete-user="${user.login}" aria-label="Удалить пользователя" title="Удалить пользователя" ${user.login === currentUser.login ? "disabled" : ""}>
                 <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 15H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
@@ -10191,6 +10212,36 @@
           const user = users.find((item) => item.login === button.dataset.passwordUser);
           if (!user) return;
           openUserPasswordModal(user);
+        });
+      });
+
+      userList.querySelectorAll("[data-block-user]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const user = users.find((item) => item.login === button.dataset.blockUser);
+          if (!user) return;
+          const isBlocked = !user.isBlocked;
+          try {
+            if (isYandexBackend) {
+              const data = await yandexRequest(`/users/${encodeURIComponent(user.id)}/block`, {
+                method: "POST",
+                body: { isBlocked }
+              });
+              Object.assign(user, data.user || {}, { isBlocked });
+            } else {
+              throw new Error("Блокировка доступна только через Yandex API");
+            }
+          } catch (error) {
+            userStatus.className = "status error";
+            userStatus.textContent = `Не удалось изменить блокировку: ${error.message}`;
+            return;
+          }
+          logAction(isBlocked ? "user_blocked" : "user_unblocked", "user", user.id, userDisplayName(user), {
+            email: user.login
+          });
+          await loadProfiles();
+          userStatus.className = "status";
+          userStatus.textContent = isBlocked ? "Пользователь заблокирован" : "Пользователь разблокирован";
+          renderUsers();
         });
       });
 
@@ -10255,6 +10306,8 @@
         user_password_updated: "Изменен пароль пользователя",
         user_profile_updated: "Изменен профиль пользователя",
         user_role_updated: "Изменена роль пользователя",
+        user_blocked: "Пользователь заблокирован",
+        user_unblocked: "Пользователь разблокирован",
         user_deleted: "Удален пользователь",
         plan_undo: "Отменено действие",
         plan_redo: "Возвращено действие"
