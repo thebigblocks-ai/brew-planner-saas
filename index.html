@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.25.75-saas";
+      content: "v2026.06.25.79-saas";
     }
 
     .toolbar {
@@ -1389,8 +1389,8 @@
       z-index: 65;
       display: flex;
       flex-direction: column;
-      width: min(980px, calc(100vw - 32px));
-      height: min(760px, calc(100vh - 40px));
+      width: min(1040px, calc(100vw - 32px));
+      height: min(780px, calc(100vh - 40px));
       overflow: hidden;
       transform: translate(-50%, -50%);
       border: 1px solid var(--line-strong);
@@ -1399,10 +1399,23 @@
       box-shadow: 0 24px 80px rgba(15, 23, 42, .28), 0 0 0 9999px rgba(15, 23, 42, .42);
     }
 
+    #organizationSettingsPanel.open .panel-head {
+      flex: 0 0 auto;
+      padding: 17px 26px;
+    }
+
+    #organizationSettingsPanel.open .panel-head h2 {
+      font-size: 18px;
+    }
+
     #organizationSettingsPanel.open .settings-form {
+      flex: 1 1 auto;
       min-height: 0;
-      overflow-y: auto;
-      padding-bottom: 12px;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto auto;
+      gap: 14px;
+      padding: 16px 28px 20px;
+      overflow: hidden;
     }
 
     .settings-tabs {
@@ -1432,10 +1445,87 @@
     .settings-tab-pane {
       display: grid;
       gap: 12px;
+      min-height: 0;
+      align-content: start;
+      overflow-y: auto;
+      padding: 2px 6px 16px;
+      scrollbar-gutter: stable;
     }
 
     .settings-tab-pane[hidden] {
-      display: none;
+      display: none !important;
+    }
+
+    .settings-main-pane {
+      grid-template-columns: minmax(0, 1fr) minmax(300px, .78fr);
+      gap: 14px;
+    }
+
+    .settings-main-pane .settings-section:first-child {
+      grid-row: span 2;
+    }
+
+    .settings-section {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--soft-bg) 52%, var(--panel));
+    }
+
+    .settings-section h3 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .settings-section-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .settings-email-fields {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(170px, .36fr);
+      gap: 12px;
+      align-items: end;
+    }
+
+    #organizationSettingsPanel .feature-list {
+      padding: 0;
+      overflow: visible;
+    }
+
+    #organizationSettingsEmailPane .feature-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    #organizationSettingsPanel .feature-row {
+      min-height: 56px;
+      padding: 9px 11px;
+      background: var(--panel);
+    }
+
+    #organizationSettingsPanel .feature-row small {
+      margin-top: 3px;
+    }
+
+    #organizationSettingsPanel .settings-form > .primary {
+      justify-self: end;
+      width: auto;
+      min-width: 250px;
+    }
+
+    #organizationSettingsStatus {
+      min-height: 20px;
     }
 
     .settings-template-editor {
@@ -1640,7 +1730,7 @@
 
     .settings-workday-row {
       display: grid;
-      grid-template-columns: minmax(92px, .55fr) minmax(92px, .55fr) minmax(220px, 1.4fr);
+      grid-template-columns: minmax(92px, .55fr) minmax(92px, .55fr) minmax(190px, 1fr);
       gap: 10px;
       align-items: end;
     }
@@ -1649,6 +1739,23 @@
     .settings-workday-row select {
       width: 100%;
       min-width: 0;
+    }
+
+    @media (max-width: 820px) {
+      #organizationSettingsPanel.open .settings-form {
+        padding: 14px 18px 18px;
+      }
+
+      .settings-main-pane,
+      #organizationSettingsEmailPane .feature-list,
+      .settings-email-fields,
+      .settings-workday-row {
+        grid-template-columns: 1fr;
+      }
+
+      .settings-main-pane .settings-section:first-child {
+        grid-row: auto;
+      }
     }
 
     .planner-shell {
@@ -2149,7 +2256,15 @@
       min-width: 0;
     }
 
+    .cycle[data-has-alert="true"] {
+      padding-right: 30px;
+    }
+
     .cycle .packaging-alert {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      z-index: 5;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -2164,6 +2279,7 @@
       line-height: 1;
       opacity: 1;
       box-shadow: 0 0 0 1px rgba(255, 255, 255, .72);
+      transform: translateY(-50%);
     }
 
     .cycle small {
@@ -2240,6 +2356,18 @@
       grid-template-columns: auto 1fr auto;
       gap: 4px;
       box-shadow: 0 5px 12px rgba(23, 32, 28, .14);
+    }
+
+    .grid[data-view="compact"] .cycle[data-has-alert="true"] {
+      padding-right: 26px;
+    }
+
+    .grid[data-view="compact"] .cycle .packaging-alert {
+      right: 7px;
+      width: 13px;
+      height: 13px;
+      flex-basis: 13px;
+      font-size: 9px;
     }
 
     .grid[data-view="compact"] .cycle[data-has-events="true"] {
@@ -3409,23 +3537,81 @@
 
     .help-modal {
       width: min(920px, calc(100vw - 32px));
-      max-height: min(860px, calc(100vh - 40px));
-      overflow: auto;
+      height: min(800px, calc(100vh - 40px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .help-modal > h2,
+    .help-modal > p {
+      flex: 0 0 auto;
     }
 
     .help-doc {
+      flex: 1 1 auto;
+      min-height: 0;
       display: grid;
+      margin: 16px 0 0;
+      padding: 0 16px;
+    }
+
+    .help-layout {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
       gap: 14px;
-      margin: 16px 0;
+    }
+
+    .help-toc {
+      display: grid;
+      align-content: start;
+      gap: 7px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft-bg);
+      overflow-y: auto;
+    }
+
+    .help-toc a {
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      padding: 0 10px;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .help-toc a:hover,
+    .help-toc a:focus {
+      border-color: var(--line-strong);
+      background: var(--panel);
+      outline: none;
+    }
+
+    .help-content {
+      min-height: 0;
+      display: grid;
+      align-content: start;
+      gap: 12px;
+      overflow-y: auto;
+      padding-right: 6px;
+      scrollbar-gutter: stable;
     }
 
     .help-section {
       display: grid;
       gap: 8px;
-      padding: 12px;
+      scroll-margin-top: 12px;
+      padding: 13px 14px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: var(--soft-bg);
+      background: color-mix(in srgb, var(--soft-bg) 52%, var(--panel));
     }
 
     .help-section h3 {
@@ -3449,6 +3635,20 @@
       gap: 5px;
       margin: 0;
       padding-left: 18px;
+    }
+
+    .help-modal .modal-actions {
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 760px) {
+      .help-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .help-toc {
+        max-height: 150px;
+      }
     }
 
     .onboarding-tip {
@@ -4357,6 +4557,10 @@
       color: var(--muted);
     }
 
+    .bottling-row .bottling-alert {
+      color: #fff;
+    }
+
     .bottling-total {
       display: grid;
       grid-template-columns: 96px minmax(0, 1fr) minmax(110px, 150px) 190px;
@@ -5006,9 +5210,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.75-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.79-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.75-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.79-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5756,58 +5960,64 @@
               <button class="cycle-tab" type="button" data-org-settings-tab="email" role="tab" aria-controls="organizationSettingsEmailPane" data-active="false">Email-уведомления</button>
               <button class="cycle-tab" type="button" data-org-settings-tab="planner" role="tab" aria-controls="organizationSettingsPlannerPane" data-active="false">Настройки планировщика</button>
             </div>
-            <div class="settings-tab-pane" id="organizationSettingsMainPane" data-org-settings-pane="main" role="tabpanel">
-              <label class="field">
-                <span>Название компании</span>
-                <input id="organizationDisplayNameInput" placeholder="Можно оставить пустым">
-              </label>
-              <div class="settings-logo-row">
-                <div class="settings-logo-preview" id="organizationSettingsLogoPreview">Без логотипа</div>
+            <div class="settings-tab-pane settings-main-pane" id="organizationSettingsMainPane" data-org-settings-pane="main" role="tabpanel">
+              <section class="settings-section">
+                <h3>Компания</h3>
                 <label class="field">
-                  <span>Логотип организации</span>
-                  <input id="organizationSettingsLogoInput" type="file" accept="image/*">
+                  <span>Название компании</span>
+                  <input id="organizationDisplayNameInput" placeholder="Можно оставить пустым">
                 </label>
-              </div>
-              <div class="selected-summary">
-                <b>Реквизиты</b>
-                <span>Раздел для будущего заполнения</span>
-              </div>
-              <div class="settings-workday-row">
-                <label class="field">
-                  <span>Рабочий день с</span>
-                  <input id="orgWorkdayStartInput" type="time">
-                </label>
-                <label class="field">
-                  <span>Рабочий день по</span>
-                  <input id="orgWorkdayEndInput" type="time">
-                </label>
-                <label class="field">
-                  <span>Часовой пояс</span>
-                  <select id="orgTimezoneInput">
-                    <option value="Europe/Kaliningrad">Калининград, UTC+2</option>
-                    <option value="Europe/Moscow">Москва, UTC+3</option>
-                    <option value="Europe/Samara">Самара, UTC+4</option>
-                    <option value="Asia/Yekaterinburg">Екатеринбург, UTC+5</option>
-                    <option value="Asia/Omsk">Омск, UTC+6</option>
-                    <option value="Asia/Novosibirsk">Новосибирск, UTC+7</option>
-                    <option value="Asia/Krasnoyarsk">Красноярск, UTC+7</option>
-                    <option value="Asia/Irkutsk">Иркутск, UTC+8</option>
-                    <option value="Asia/Yakutsk">Якутск, UTC+9</option>
-                    <option value="Asia/Vladivostok">Владивосток, UTC+10</option>
-                    <option value="Asia/Magadan">Магадан, UTC+11</option>
-                    <option value="Asia/Kamchatka">Камчатка, UTC+12</option>
-                    <option value="Europe/Minsk">Минск, UTC+3</option>
-                    <option value="Asia/Almaty">Алматы, UTC+5</option>
-                    <option value="Asia/Tashkent">Ташкент, UTC+5</option>
-                    <option value="Asia/Tbilisi">Тбилиси, UTC+4</option>
-                    <option value="Asia/Yerevan">Ереван, UTC+4</option>
-                    <option value="Europe/Istanbul">Стамбул, UTC+3</option>
-                    <option value="Europe/Berlin">Берлин, UTC+1/UTC+2</option>
-                    <option value="Europe/London">Лондон, UTC+0/UTC+1</option>
-                    <option value="UTC">UTC</option>
-                  </select>
-                </label>
-              </div>
+                <div class="settings-logo-row">
+                  <div class="settings-logo-preview" id="organizationSettingsLogoPreview">Без логотипа</div>
+                  <label class="field">
+                    <span>Логотип организации</span>
+                    <input id="organizationSettingsLogoInput" type="file" accept="image/*">
+                  </label>
+                </div>
+              </section>
+              <section class="settings-section">
+                <h3>Рабочий календарь</h3>
+                <div class="settings-workday-row">
+                  <label class="field">
+                    <span>Рабочий день с</span>
+                    <input id="orgWorkdayStartInput" type="time">
+                  </label>
+                  <label class="field">
+                    <span>Рабочий день по</span>
+                    <input id="orgWorkdayEndInput" type="time">
+                  </label>
+                  <label class="field">
+                    <span>Часовой пояс</span>
+                    <select id="orgTimezoneInput">
+                      <option value="Europe/Kaliningrad">Калининград, UTC+2</option>
+                      <option value="Europe/Moscow">Москва, UTC+3</option>
+                      <option value="Europe/Samara">Самара, UTC+4</option>
+                      <option value="Asia/Yekaterinburg">Екатеринбург, UTC+5</option>
+                      <option value="Asia/Omsk">Омск, UTC+6</option>
+                      <option value="Asia/Novosibirsk">Новосибирск, UTC+7</option>
+                      <option value="Asia/Krasnoyarsk">Красноярск, UTC+7</option>
+                      <option value="Asia/Irkutsk">Иркутск, UTC+8</option>
+                      <option value="Asia/Yakutsk">Якутск, UTC+9</option>
+                      <option value="Asia/Vladivostok">Владивосток, UTC+10</option>
+                      <option value="Asia/Magadan">Магадан, UTC+11</option>
+                      <option value="Asia/Kamchatka">Камчатка, UTC+12</option>
+                      <option value="Europe/Minsk">Минск, UTC+3</option>
+                      <option value="Asia/Almaty">Алматы, UTC+5</option>
+                      <option value="Asia/Tashkent">Ташкент, UTC+5</option>
+                      <option value="Asia/Tbilisi">Тбилиси, UTC+4</option>
+                      <option value="Asia/Yerevan">Ереван, UTC+4</option>
+                      <option value="Europe/Istanbul">Стамбул, UTC+3</option>
+                      <option value="Europe/Berlin">Берлин, UTC+1/UTC+2</option>
+                      <option value="Europe/London">Лондон, UTC+0/UTC+1</option>
+                      <option value="UTC">UTC</option>
+                    </select>
+                  </label>
+                </div>
+              </section>
+              <section class="settings-section">
+                <h3>Реквизиты</h3>
+                <p class="settings-section-note">Раздел зарезервирован под юридические данные организации.</p>
+              </section>
             </div>
             <div class="settings-tab-pane" id="organizationSettingsEmailPane" data-org-settings-pane="email" role="tabpanel" hidden>
               <div class="feature-list">
@@ -5819,14 +6029,16 @@
                 <label class="feature-row"><span><b>Нет распределения</b><small>Email о циклах без распределения.</small></span><input id="orgNotifyMissingPackaging" type="checkbox"></label>
                 <label class="feature-row"><span><b>Комментарий с ответственным</b><small>Email при создании задачи из комментария.</small></span><input id="orgNotifyCommentAssigned" type="checkbox"></label>
               </div>
-              <label class="field">
-                <span>Дополнительный email для системных уведомлений</span>
-                <input id="orgNotificationExtraEmailInput" type="email" placeholder="production@example.ru">
-              </label>
-              <label class="field">
-                <span>Напоминать о задачах за, дней</span>
-                <input id="orgRemindBeforeDueInput" type="number" min="0" max="30" step="1">
-              </label>
+              <div class="settings-email-fields">
+                <label class="field">
+                  <span>Дополнительный email для системных уведомлений</span>
+                  <input id="orgNotificationExtraEmailInput" type="email" placeholder="production@example.ru">
+                </label>
+                <label class="field">
+                  <span>Напоминать о задачах за, дней</span>
+                  <input id="orgRemindBeforeDueInput" type="number" min="0" max="30" step="1">
+                </label>
+              </div>
             </div>
             <div class="settings-tab-pane" id="organizationSettingsPlannerPane" data-org-settings-pane="planner" role="tabpanel" hidden>
               <div class="feature-list">
@@ -6152,68 +6364,86 @@
       <h2 id="helpModalTitle">Справка по сервису</h2>
       <p>Короткий ориентир по планировщику производства, основным зависимостям и ежедневным действиям.</p>
       <div class="help-doc">
-        <section class="help-section">
-          <h3>Навигация</h3>
-          <ul>
-            <li>Основной экран — календарный график по площадкам и емкостям. Верхняя панель управляет периодом, масштабом, фильтрами и режимами.</li>
-            <li>Меню пользователя открывает задачи, личные настройки, справку, поддержку и выход.</li>
-            <li>Администрирование доступно пользователям с правами администратора организации.</li>
-          </ul>
-        </section>
-        <section class="help-section">
-          <h3>Работа с циклами</h3>
-          <ul>
-            <li>Варку можно создать через меню добавления или двойным кликом по свободной ячейке графика.</li>
-            <li>Цикл привязан к емкости, датам старта и розлива, сорту, партии, стадии и плановому выходу.</li>
-            <li>Карточка цикла содержит производство, процесс, задачи, комментарии и распределение розлива.</li>
-            <li>При изменении планового выхода распределение нужно задать заново, чтобы оно соответствовало новому объему.</li>
-          </ul>
-        </section>
-        <section class="help-section">
-          <h3>Розлив и склад</h3>
-          <ul>
-            <li>Распределение банок и кег считается от планового выхода и текущих значений в карточке цикла.</li>
-            <li>Если распределение не заполнено, в ближайших розливах и на цикле появляется красный индикатор.</li>
-            <li>Частичные розливы создаются только у уже сохраненных циклов и только с ненулевыми значениями.</li>
-            <li>Календарь розливов и складской вид собираются из дат розлива и упаковки циклов.</li>
-          </ul>
-        </section>
-        <section class="help-section">
-          <h3>Автоматизация</h3>
-          <ul>
-            <li>Стадии могут обновляться автоматически по датам, если это включено в логике планировщика.</li>
-            <li>Комментарии с выбранным ответственным создают задачу на дату комментария.</li>
-            <li>Задачи отображаются в карточке цикла, на графике и в блоке “Мои задачи”.</li>
-            <li>Отмена и возврат действий хранят последние изменения в пределах текущей сессии.</li>
-          </ul>
-        </section>
-        <section class="help-section">
-          <h3>Организация и пользователи</h3>
-          <ul>
-            <li>Площадки группируют емкости. Емкости нельзя удалять, если в них уже есть циклы.</li>
-            <li>Роли ограничивают доступ: администратор управляет пользователями и настройками, редактор ведет план, читатель смотрит данные.</li>
-            <li>Логотип, уведомления, шаблоны комментариев и задач настраиваются в параметрах организации.</li>
-            <li>Суперадмин управляет компаниями, функциями, резервными копиями и обращениями поддержки.</li>
-          </ul>
-        </section>
-        <section class="help-section">
-          <h3>Поддержка и резервные копии</h3>
-          <ul>
-            <li>Через поддержку можно создать обращение, приложить скриншоты и вести переписку в рамках заявки.</li>
-            <li>Если поддержке нужен доступ к данным организации, пользователь может временно разрешить его из окна поддержки.</li>
-            <li>Резервные копии помогают восстановить план организации после ошибочных изменений.</li>
-            <li>Email-уведомления используются для задач, обращений, смены статусов и ссылок установки пароля.</li>
-          </ul>
-        </section>
-        <section class="help-section">
-          <h3>Зависимости данных</h3>
-          <ul>
-            <li>Цикл зависит от площадки, емкости, дат, стадии, сорта, партии, планового выхода и распределения упаковки.</li>
-            <li>Шаблоны сортов ускоряют создание циклов и задают базовые параметры сорта.</li>
-            <li>Связанные и производные циклы учитывают доступный остаток исходного объема.</li>
-            <li>Фильтры по сорту, стадии и заказчику работают поверх текущего видимого периода графика.</li>
-          </ul>
-        </section>
+        <div class="help-layout">
+          <nav class="help-toc" aria-label="Оглавление справки">
+            <a href="#helpNavigation">Навигация</a>
+            <a href="#helpInfoPanel">Информационная панель</a>
+            <a href="#helpCycles">Циклы</a>
+            <a href="#helpPackaging">Розлив и склад</a>
+            <a href="#helpAutomation">Автоматизация</a>
+            <a href="#helpOrganization">Организация</a>
+            <a href="#helpSupport">Поддержка</a>
+            <a href="#helpData">Зависимости данных</a>
+          </nav>
+          <div class="help-content">
+            <section class="help-section" id="helpNavigation">
+              <h3>Навигация</h3>
+              <ul>
+                <li>График показывает площадки, емкости и циклы в выбранном периоде.</li>
+                <li>Верхняя панель управляет датами, масштабом, фильтрами и быстрыми разделами.</li>
+                <li>Меню пользователя открывает задачи, настройки, поддержку, справку и выход.</li>
+              </ul>
+            </section>
+            <section class="help-section" id="helpInfoPanel">
+              <h3>Информационная панель</h3>
+              <ul>
+                <li>Панель находится под верхним меню и по умолчанию свернута. Нажмите маленькую стрелку, чтобы открыть или скрыть сводку.</li>
+                <li>“Занято ЦКТ” показывает количество емкостей, занятых на сегодня. Если выбрать конкретный день в календарной шапке, рядом появится значение на выбранную дату.</li>
+                <li>“ГП в ЦКТ” показывает суммарный объем готовой продукции, которая сейчас находится в производстве. По клику открывается детализация по сортам, площадкам и емкостям.</li>
+                <li>При выборе недели или месяца в календарной шапке появляется сводка периода: сколько варок стартует и сколько розливов запланировано. По клику открывается детализация по площадкам и объемам ЦКТ.</li>
+                <li>“Требуют внимания” показывает циклы с незаполненным распределением или другими контрольными признаками. По клику можно открыть список и перейти в нужный цикл.</li>
+              </ul>
+            </section>
+            <section class="help-section" id="helpCycles">
+              <h3>Циклы</h3>
+              <ul>
+                <li>Новый цикл создается через меню добавления или двойным кликом по свободной ячейке.</li>
+                <li>Основные поля цикла: сорт, ЦКТ, партия, даты, стадия и плановый выход.</li>
+                <li>Во вкладках цикла доступны производство, процесс, задачи и комментарии.</li>
+              </ul>
+            </section>
+            <section class="help-section" id="helpPackaging">
+              <h3>Розлив и склад</h3>
+              <ul>
+                <li>Распределение банок и кег считается от планового выхода в карточке цикла.</li>
+                <li>Частичный розлив добавляется только к сохраненному циклу и не может превышать плановый выход.</li>
+                <li>Ближайшие розливы и склад собираются из даты розлива и упаковки циклов.</li>
+              </ul>
+            </section>
+            <section class="help-section" id="helpAutomation">
+              <h3>Автоматизация</h3>
+              <ul>
+                <li>Комментарий с выбранным ответственным создает задачу на дату комментария.</li>
+                <li>Задачи видны в карточке цикла, на графике и в разделе “Мои задачи”.</li>
+                <li>Отмена и возврат действий хранят последние изменения текущей сессии.</li>
+              </ul>
+            </section>
+            <section class="help-section" id="helpOrganization">
+              <h3>Организация</h3>
+              <ul>
+                <li>Площадки группируют емкости, а емкости содержат производственные циклы.</li>
+                <li>Администратор организации управляет пользователями, логотипом, уведомлениями и шаблонами.</li>
+                <li>Роли ограничивают доступ: администратор, редактор и читатель.</li>
+              </ul>
+            </section>
+            <section class="help-section" id="helpSupport">
+              <h3>Поддержка</h3>
+              <ul>
+                <li>В обращении можно приложить файлы и вести переписку в рамках заявки.</li>
+                <li>Ответы поддержки и смена статуса отображаются в “Моих обращениях”.</li>
+                <li>Email-уведомления зависят от настроек организации и пользователя.</li>
+              </ul>
+            </section>
+            <section class="help-section" id="helpData">
+              <h3>Зависимости данных</h3>
+              <ul>
+                <li>Цикл связан с емкостью, датами, стадией, сортом, партией, выходом и упаковкой.</li>
+                <li>Шаблоны сортов ускоряют создание циклов и хранят базовые параметры продукта.</li>
+                <li>Производные циклы учитывают доступный остаток исходного объема.</li>
+              </ul>
+            </section>
+          </div>
+        </div>
       </div>
       <div class="modal-actions">
         <button class="secondary" id="resetOnboardingButton" type="button">Показать подсказки снова</button>
@@ -6256,32 +6486,107 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.25.75-saas";
+    const appVersion = "v2026.06.25.79-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
-    const onboardingTips = [
-      {
-        title: "Быстрое создание варки",
-        text: "Варку можно создать двойным кликом по свободной ячейке графика: сразу откроется карточка цикла с выбранной емкостью и датой."
-      },
-      {
-        title: "Плановый выход и распределение",
-        text: "Распределение банок и кег считается от планового выхода. Если плановый выход меняется, распределение нужно проверить заново."
-      },
-      {
-        title: "Комментарии превращаются в задачи",
-        text: "Если при сохранении комментария выбрать ответственного, планировщик создаст задачу на дату этого комментария."
-      },
-      {
-        title: "Индикаторы на графике",
-        text: "Красный круг с восклицательным знаком показывает цикл, где нужно обратить внимание на распределение розлива."
-      },
-      {
-        title: "Где искать помощь",
-        text: "Справка всегда доступна в меню пользователя. Там же находятся поддержка, личные настройки и ваши задачи."
-      }
-    ];
+    const onboardingTipGroups = {
+      planner: [
+        {
+          title: "Быстрое создание варки",
+          text: "Двойной клик по свободной ячейке сразу открывает новую варку с выбранной емкостью и датой."
+        },
+        {
+          title: "Период и масштаб",
+          text: "Верхняя панель меняет видимый период и детализацию графика, не меняя сами циклы."
+        },
+        {
+          title: "Фильтры графика",
+          text: "Фильтры помогают быстро оставить на экране нужный сорт, стадию или заказчика."
+        }
+      ],
+      cycleProduction: [
+        {
+          title: "Карточка цикла",
+          text: "Здесь задаются сорт, ЦКТ, партия, даты, стадия и плановый выход."
+        },
+        {
+          title: "Распределение розлива",
+          text: "Банки и кеги считаются от планового выхода. Если выход изменился, распределение нужно указать заново."
+        }
+      ],
+      cycleProcess: [
+        {
+          title: "Процесс производства",
+          text: "Во вкладке процесса фиксируются параметры варки и брожения по выбранному циклу."
+        }
+      ],
+      cycleTasks: [
+        {
+          title: "Задачи по циклу",
+          text: "Задачи привязаны к конкретной варке и отображаются также в общем списке “Мои задачи”."
+        },
+        {
+          title: "Задача из комментария",
+          text: "Комментарий с ответственным автоматически создает задачу на дату этого комментария."
+        }
+      ],
+      partialBottling: [
+        {
+          title: "Частичный розлив",
+          text: "Частичный розлив сохраняется только у уже созданного цикла и не может превышать плановый выход."
+        }
+      ],
+      bottlings: [
+        {
+          title: "Ближайшие розливы",
+          text: "Этот блок собирает розливы из дат циклов и показывает предупреждение, если не заполнено распределение."
+        }
+      ],
+      warehouse: [
+        {
+          title: "Складской календарь",
+          text: "Склад показывает будущие поступления по датам розлива и распределению упаковки."
+        }
+      ],
+      templates: [
+        {
+          title: "Шаблоны сортов",
+          text: "Шаблон хранит типовые параметры сорта и ускоряет создание новых циклов."
+        }
+      ],
+      orgSettings: [
+        {
+          title: "Настройки организации",
+          text: "Здесь администратор задает логотип, рабочий календарь, email-уведомления и общие шаблоны."
+        }
+      ],
+      supportNew: [
+        {
+          title: "Новое обращение",
+          text: "В заявке укажите тему, описание, телефон и при необходимости приложите скриншоты."
+        }
+      ],
+      supportTickets: [
+        {
+          title: "Мои обращения",
+          text: "Обращения раскрываются по одному: внутри видна переписка, статус и дедлайн приема в работу."
+        }
+      ]
+    };
+    const onboardingContextLabels = {
+      planner: "График",
+      cycleProduction: "Цикл",
+      cycleProcess: "Процесс",
+      cycleTasks: "Задачи",
+      partialBottling: "Частичный розлив",
+      bottlings: "Розливы",
+      warehouse: "Склад",
+      templates: "Шаблоны",
+      orgSettings: "Настройки",
+      supportNew: "Поддержка",
+      supportTickets: "Обращения"
+    };
     const storageKey = "production-planner-v1";
     const backendMode = "yandex";
     const yandexApiBaseUrl = window.BREW_PLANNER_YANDEX_API_BASE_URL || "";
@@ -6534,6 +6839,7 @@
       supportForm.hidden = state.supportTab !== "new";
       supportTicketList.hidden = state.supportTab !== "tickets";
       if (state.supportTab === "tickets") loadSupportTickets({ markSeen: true });
+      renderOnboardingTip();
     }
 
     async function loadSupportAccessStatus() {
@@ -6618,30 +6924,55 @@
       supportButton.dataset.hasUnread = visible ? "true" : "false";
     }
 
-    function onboardingStorageKey() {
-      return `${storageKey}-onboarding-${currentUser?.id || currentUser?.login || "guest"}`;
+    function onboardingContext() {
+      if (helpModal?.classList.contains("open")) return "";
+      if (supportModal?.classList.contains("open")) {
+        return state.supportTab === "tickets" ? "supportTickets" : "supportNew";
+      }
+      if (state.panelMode === "cycle") {
+        if (!partialBottlingFields?.hidden) return "partialBottling";
+        if (state.cycleTab === "process") return "cycleProcess";
+        if (state.cycleTab === "tasks") return "cycleTasks";
+        return "cycleProduction";
+      }
+      if (state.panelMode === "bottlings") return "bottlings";
+      if (state.panelMode === "warehouse") return "warehouse";
+      if (state.panelMode === "templates") return "templates";
+      if (state.panelMode === "orgSettings") return "orgSettings";
+      return "planner";
     }
 
-    function readOnboardingState() {
+    function onboardingTipsFor(context) {
+      return onboardingTipGroups[context] || [];
+    }
+
+    function onboardingStorageKey(context = onboardingContext()) {
+      return `${storageKey}-onboarding-${currentUser?.id || currentUser?.login || "guest"}-${context || "hidden"}`;
+    }
+
+    function readOnboardingState(context = onboardingContext()) {
       try {
-        return JSON.parse(localStorage.getItem(onboardingStorageKey()) || "{}");
+        return JSON.parse(localStorage.getItem(onboardingStorageKey(context)) || "{}");
       } catch {
         return {};
       }
     }
 
-    function writeOnboardingState(stateValue) {
-      localStorage.setItem(onboardingStorageKey(), JSON.stringify(stateValue));
+    function writeOnboardingState(stateValue, context = onboardingContext()) {
+      if (!context) return;
+      localStorage.setItem(onboardingStorageKey(context), JSON.stringify(stateValue));
     }
 
     function openHelpModal() {
       if (!helpModal) return;
       userBox.classList.remove("open");
       helpModal.classList.add("open");
+      if (onboardingTip) onboardingTip.hidden = true;
     }
 
     function closeHelpModal() {
       helpModal?.classList.remove("open");
+      renderOnboardingTip();
     }
 
     function renderOnboardingTip() {
@@ -6650,38 +6981,54 @@
         onboardingTip.hidden = true;
         return;
       }
-      const stateValue = readOnboardingState();
+      const context = onboardingContext();
+      const tips = onboardingTipsFor(context);
+      if (!context || !tips.length) {
+        onboardingTip.hidden = true;
+        return;
+      }
+      const stateValue = readOnboardingState(context);
       if (stateValue.dismissed) {
         onboardingTip.hidden = true;
         return;
       }
-      const index = clamp(Number(stateValue.index || 0), 0, onboardingTips.length - 1);
-      const tip = onboardingTips[index];
+      const index = clamp(Number(stateValue.index || 0), 0, tips.length - 1);
+      const tip = tips[index];
+      onboardingTip.dataset.context = context;
       onboardingTitle.textContent = tip.title;
       onboardingText.textContent = tip.text;
-      onboardingCounter.textContent = `${index + 1}/${onboardingTips.length}`;
-      nextOnboardingButton.textContent = index >= onboardingTips.length - 1 ? "Понятно" : "Далее";
+      onboardingCounter.textContent = `${onboardingContextLabels[context] || "Подсказки"} · ${index + 1}/${tips.length}`;
+      nextOnboardingButton.textContent = index >= tips.length - 1 ? "Понятно" : "Далее";
       onboardingTip.hidden = false;
     }
 
     function showNextOnboardingTip() {
-      const stateValue = readOnboardingState();
+      const context = onboardingTip?.dataset.context || onboardingContext();
+      const tips = onboardingTipsFor(context);
+      if (!context || !tips.length) return;
+      const stateValue = readOnboardingState(context);
       const nextIndex = Number(stateValue.index || 0) + 1;
-      if (nextIndex >= onboardingTips.length) {
-        writeOnboardingState({ dismissed: true, index: onboardingTips.length - 1 });
+      if (nextIndex >= tips.length) {
+        writeOnboardingState({ dismissed: true, index: tips.length - 1 }, context);
       } else {
-        writeOnboardingState({ dismissed: false, index: nextIndex });
+        writeOnboardingState({ dismissed: false, index: nextIndex }, context);
       }
       renderOnboardingTip();
     }
 
     function dismissOnboardingTips() {
-      writeOnboardingState({ dismissed: true, index: onboardingTips.length - 1 });
+      const context = onboardingTip?.dataset.context || onboardingContext();
+      const tips = onboardingTipsFor(context);
+      writeOnboardingState({ dismissed: true, index: Math.max(0, tips.length - 1) }, context);
       if (onboardingTip) onboardingTip.hidden = true;
     }
 
     function resetOnboardingTips() {
-      writeOnboardingState({ dismissed: false, index: 0 });
+      const prefix = `${storageKey}-onboarding-${currentUser?.id || currentUser?.login || "guest"}-`;
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith(prefix)) localStorage.removeItem(key);
+      });
+      writeOnboardingState({ dismissed: false, index: 0 }, onboardingContext() || "planner");
       renderOnboardingTip();
       closeHelpModal();
     }
@@ -8837,6 +9184,7 @@
     function setProcessTab(tab) {
       state.processTab = tab === "fermentation" ? "fermentation" : "brew";
       renderCycleProcess();
+      renderOnboardingTip();
     }
 
     function renderCycleProcess() {
@@ -10394,6 +10742,7 @@
         state.cycleTab = "production";
       }
       renderCycleTabs();
+      renderOnboardingTip();
     }
 
     function renderCycleTabs() {
@@ -13051,6 +13400,7 @@
         item.style.background = cycleColor;
         item.style.color = contrastTextColor(cycleColor);
         const alerts = cycleAlertMessages(cycle);
+        item.dataset.hasAlert = alerts.length ? "true" : "false";
         const packagingAlert = alerts.length
           ? `<span class="packaging-alert" data-alert="${escapeHtml(alerts.join("\n"))}" aria-label="${escapeHtml(alerts.join(". "))}">!</span>`
           : "";
@@ -15808,6 +16158,7 @@
           savePartialBottlingText.textContent = "Сохранить частичный розлив";
         }
         rememberCycleFormSnapshot();
+        renderOnboardingTip();
       });
       savePartialBottlingButton.addEventListener("click", () => {
         savePartialBottlingFromForm();
@@ -15923,12 +16274,14 @@
         supportPhoneInput.value = "+7";
         setSupportTab(hasSupportUnread ? "tickets" : "new");
         supportModal.classList.add("open");
+        renderOnboardingTip();
         loadSupportAccessStatus();
         loadSupportTickets(hasSupportUnread ? { markSeen: true } : {});
       });
 
       cancelSupportButton.addEventListener("click", () => {
         supportModal.classList.remove("open");
+        renderOnboardingTip();
       });
 
       supportForm.addEventListener("submit", async (event) => {
@@ -15968,7 +16321,10 @@
         if (!supportPhoneInput.value.startsWith("+7")) supportPhoneInput.value = "+7";
       });
       supportModal.addEventListener("click", (event) => {
-        if (event.target === supportModal) supportModal.classList.remove("open");
+        if (event.target === supportModal) {
+          supportModal.classList.remove("open");
+          renderOnboardingTip();
+        }
       });
 
       enableSupportAccessButton.addEventListener("click", () => updateSupportAccess(true));
