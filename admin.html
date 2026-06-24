@@ -776,7 +776,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.24.16-saas</span>
+        <span>v2026.06.24.17-saas</span>
       </div>
     </aside>
 
@@ -842,17 +842,10 @@
             </div>
             <div class="tabs">
               <button class="active" type="button" data-org-tab="users">Сотрудники</button>
-              <button type="button" data-org-tab="tickets">Обращения</button>
-              <button type="button" data-org-tab="profile">Параметры</button>
-              <button type="button" data-org-tab="backups">Резервные копии</button>
               <button type="button" data-org-tab="features">Функции</button>
-            </div>
-            <div class="card-body hidden" id="orgFeaturesTab">
-              <div class="feature-grid" id="featureList"></div>
-              <div class="actions">
-                <button class="primary" id="saveFeaturesButton" type="button">Сохранить функции</button>
-              </div>
-              <div class="status" id="featuresStatus"></div>
+              <button type="button" data-org-tab="profile">Параметры</button>
+              <button type="button" data-org-tab="tickets">Обращения</button>
+              <button type="button" data-org-tab="backups">Резервные копии</button>
             </div>
             <div class="card-body" id="orgUsersTab">
               <div class="users-layout">
@@ -883,19 +876,12 @@
                 <div class="table" id="organizationUsers"></div>
               </div>
             </div>
-            <div class="card-body hidden" id="orgTicketsTab">
-              <div class="table" id="organizationTickets"></div>
-            </div>
-            <div class="card-body hidden" id="orgBackupsTab">
-              <div class="backup-toolbar">
-                <div>
-                  <b>Резервные копии плана</b>
-                  <p class="small">Снимки сохраняют площадки, ЦКТ, циклы, шаблоны и настройки планировщика выбранной организации.</p>
-                </div>
-                <button class="primary" id="createBackupButton" type="button">Создать копию</button>
+            <div class="card-body hidden" id="orgFeaturesTab">
+              <div class="feature-grid" id="featureList"></div>
+              <div class="actions">
+                <button class="primary" id="saveFeaturesButton" type="button">Сохранить функции</button>
               </div>
-              <div class="status" id="backupsStatus"></div>
-              <div class="table" id="organizationBackups"></div>
+              <div class="status" id="featuresStatus"></div>
             </div>
             <div class="card-body hidden" id="orgProfileTab">
               <form id="organizationEditForm">
@@ -948,9 +934,24 @@
                 </div>
                 <div class="actions">
                   <button class="primary" type="submit">Сохранить параметры</button>
+                  <button class="danger" id="deleteOrganizationButton" type="button">Удалить компанию</button>
                 </div>
                 <div class="status" id="profileStatus"></div>
               </form>
+            </div>
+            <div class="card-body hidden" id="orgTicketsTab">
+              <div class="table" id="organizationTickets"></div>
+            </div>
+            <div class="card-body hidden" id="orgBackupsTab">
+              <div class="backup-toolbar">
+                <div>
+                  <b>Резервные копии плана</b>
+                  <p class="small">Снимки сохраняют площадки, ЦКТ, циклы, шаблоны и настройки планировщика выбранной организации.</p>
+                </div>
+                <button class="primary" id="createBackupButton" type="button">Создать копию</button>
+              </div>
+              <div class="status" id="backupsStatus"></div>
+              <div class="table" id="organizationBackups"></div>
             </div>
           </div>
         </div>
@@ -1869,6 +1870,32 @@
       $("#organizationLogoInput").value = "";
       renderLogoPreview("");
       setStatus($("#profileStatus"), "Логотип будет удален после сохранения параметров.", "");
+    });
+
+    $("#deleteOrganizationButton").addEventListener("click", async () => {
+      const organization = selectedOrganization();
+      if (!organization) return;
+      const typedName = prompt(`Удалить компанию "${organization.name}"? Будут удалены обращения, план, резервные копии и привязки сотрудников к этой компании.\n\nДля подтверждения введите название компании:`);
+      if (typedName === null) return;
+      if (typedName.trim() !== organization.name) {
+        setStatus($("#profileStatus"), "Удаление отменено: название компании введено не точно", "error");
+        return;
+      }
+      setStatus($("#profileStatus"), "Удаляем компанию...");
+      try {
+        await request(`/organizations/${encodeURIComponent(organization.id)}`, {
+          method: "DELETE"
+        });
+        selectedOrganizationId = "";
+        selectedOrgUsers = [];
+        selectedOrgBackups = [];
+        selectedOrgBackupsError = "";
+        activeOrgTab = "users";
+        await loadAll();
+        setStatus($("#organizationStatus"), `Компания "${organization.name}" удалена`, "ok");
+      } catch (error) {
+        setStatus($("#profileStatus"), error.message, "error");
+      }
     });
 
     $("#saveFeaturesButton").addEventListener("click", async () => {

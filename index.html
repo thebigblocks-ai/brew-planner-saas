@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.24.57-saas";
+      content: "v2026.06.24.62-saas";
     }
 
     .toolbar {
@@ -765,6 +765,10 @@
     .filter-menu .field {
       width: 100%;
       min-width: 0;
+    }
+
+    .filter-menu .field[hidden] {
+      display: none !important;
     }
 
     .filter-menu .field span {
@@ -1444,6 +1448,114 @@
 
     .settings-tab-pane[hidden] {
       display: none;
+    }
+
+    .settings-template-editor {
+      display: grid;
+      gap: 9px;
+      padding: 2px 0 4px;
+    }
+
+    .settings-template-title span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .settings-template-add {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 118px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .settings-template-add input {
+      width: 100%;
+      min-width: 0;
+      height: 38px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      padding: 0 12px;
+      box-sizing: border-box;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .settings-template-add .secondary {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .settings-template-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      min-height: 33px;
+      align-items: flex-start;
+    }
+
+    .settings-template-tab {
+      max-width: 100%;
+      min-height: 32px;
+      display: inline-grid;
+      grid-template-columns: minmax(0, 1fr) 24px;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      padding: 3px 3px 3px 11px;
+      background: var(--soft-bg);
+      color: var(--ink);
+      box-shadow: 0 6px 14px rgba(15, 23, 42, .05);
+    }
+
+    .settings-template-tab span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+      font-weight: 780;
+      line-height: 1.2;
+    }
+
+    .settings-template-remove {
+      width: 24px;
+      height: 24px;
+      border: 0;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: color-mix(in srgb, var(--line-strong) 70%, transparent);
+      color: var(--muted);
+      padding: 0;
+    }
+
+    .settings-template-remove:hover {
+      background: color-mix(in srgb, var(--danger) 14%, var(--panel));
+      color: var(--danger);
+    }
+
+    .settings-template-remove svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      stroke-width: 2.5;
+      fill: none;
+      stroke-linecap: round;
+    }
+
+    .settings-template-empty {
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
     }
 
     .workspace[data-panel="orgSettings"] {
@@ -3607,12 +3719,18 @@
       justify-content: center;
       width: fit-content;
       min-height: 36px;
+      border: 1px solid var(--brand);
       padding: 0 14px;
       border-radius: 7px;
       background: var(--brand);
-      color: #fff;
+      color: #111827;
       font-weight: 850;
       cursor: pointer;
+      box-shadow: 0 6px 14px rgba(255, 139, 0, .14);
+    }
+
+    .support-file-button:hover {
+      background: color-mix(in srgb, var(--brand) 88%, #fff);
     }
 
     .support-file-button input {
@@ -3626,23 +3744,37 @@
     .support-ticket-list {
       display: grid;
       gap: 10px;
-      padding: 14px 16px 0;
+      padding: 14px 16px 16px;
     }
 
     .support-ticket-card {
       display: grid;
       gap: 10px;
-      border: 1px solid var(--line);
+      border: 1px solid var(--line-strong);
       border-radius: 8px;
-      padding: 10px;
-      background: #f8fafc;
+      padding: 0;
+      background: var(--panel);
+      color: var(--ink);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+      overflow: hidden;
     }
 
     .support-ticket-card summary {
       display: grid;
-      gap: 7px;
+      gap: 9px;
+      padding: 12px;
       cursor: pointer;
       list-style: none;
+      background: color-mix(in srgb, var(--soft-bg) 58%, var(--panel));
+    }
+
+    .support-ticket-card[open] {
+      border-color: color-mix(in srgb, var(--brand) 42%, var(--line-strong));
+      box-shadow: 0 14px 30px rgba(15, 23, 42, .08);
+    }
+
+    .support-ticket-card[open] summary {
+      border-bottom: 1px solid var(--line);
     }
 
     .support-ticket-card summary::-webkit-details-marker {
@@ -3650,8 +3782,8 @@
     }
 
     .support-ticket-card header {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) max-content;
       gap: 12px;
       align-items: flex-start;
     }
@@ -3659,6 +3791,41 @@
     .support-ticket-card b,
     .support-ticket-card small {
       display: block;
+    }
+
+    .support-ticket-title {
+      min-width: 0;
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .support-ticket-number {
+      align-self: start;
+      border: 1px solid color-mix(in srgb, var(--brand) 38%, var(--line-strong));
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: color-mix(in srgb, var(--brand) 12%, var(--panel));
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .support-ticket-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .support-ticket-updated {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.25;
     }
 
     .support-ticket-status {
@@ -3684,6 +3851,12 @@
       font-size: 12px;
       font-weight: 800;
       line-height: 1.25;
+    }
+
+    .support-ticket-thread {
+      display: grid;
+      gap: 10px;
+      padding: 0 10px;
     }
 
     .support-ticket-message {
@@ -3728,12 +3901,13 @@
       justify-self: end;
       border-radius: 14px 14px 4px 14px;
       border-color: rgba(255, 139, 0, .28);
-      background: #fff4e5;
+      background: color-mix(in srgb, var(--brand) 13%, var(--panel));
     }
 
     .support-ticket-reply {
       display: grid;
       gap: 8px;
+      padding: 0 10px 10px;
     }
 
     .support-ticket-reply textarea {
@@ -4686,9 +4860,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.57-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.62-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.57-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.62-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -4833,6 +5007,12 @@
                   <option value="">Все стадии</option>
                 </select>
               </label>
+              <label class="field" id="filterCustomerField" hidden>
+                <span>Заказчик</span>
+                <select id="filterCustomerInput">
+                  <option value="">Все заказчики</option>
+                </select>
+              </label>
               <label class="filter-check">
                 <input id="filterReadinessInput" type="checkbox">
                 <span>Допуск к розливу</span>
@@ -4944,7 +5124,7 @@
       <aside>
         <section class="panel" id="cyclePanel">
           <div class="panel-head">
-            <h2>Производственный цикл</h2>
+            <h2 id="cyclePanelTitle">Новая варка</h2>
             <div class="panel-actions">
               <button class="icon-btn" id="deriveCycleButton" type="button" aria-label="Создать производный цикл" title="Создать производный цикл" disabled>
                 <svg viewBox="0 0 24 24"><path d="M5 6h7a4 4 0 0 1 4 4v8"/><path d="M13 15l3 3 3-3"/><path d="M5 18h5"/></svg>
@@ -5495,14 +5675,28 @@
                 <span>Горизонт розливов, дней</span>
                 <input id="orgBottlingHorizonInput" type="number" min="7" max="90" step="1">
               </label>
-              <label class="field">
-                <span>Шаблоны комментариев</span>
-                <textarea id="orgCommentTemplatesInput" placeholder="Каждый шаблон с новой строки"></textarea>
-              </label>
-              <label class="field">
-                <span>Шаблоны задач</span>
-                <textarea id="orgTaskTemplatesInput" placeholder="Каждый шаблон с новой строки"></textarea>
-              </label>
+              <section class="settings-template-editor" data-template-editor="comments">
+                <div class="settings-template-title">
+                  <span>Шаблоны комментариев</span>
+                </div>
+                <div class="settings-template-add">
+                  <input id="orgCommentTemplateNewInput" type="text" placeholder="Новый шаблон комментария">
+                  <button class="secondary" id="orgCommentTemplateAddButton" type="button">Добавить</button>
+                </div>
+                <div class="settings-template-tabs" id="orgCommentTemplatesList"></div>
+                <input id="orgCommentTemplatesInput" type="hidden">
+              </section>
+              <section class="settings-template-editor" data-template-editor="tasks">
+                <div class="settings-template-title">
+                  <span>Шаблоны задач</span>
+                </div>
+                <div class="settings-template-add">
+                  <input id="orgTaskTemplateNewInput" type="text" placeholder="Новый шаблон задачи">
+                  <button class="secondary" id="orgTaskTemplateAddButton" type="button">Добавить</button>
+                </div>
+                <div class="settings-template-tabs" id="orgTaskTemplatesList"></div>
+                <input id="orgTaskTemplatesInput" type="hidden">
+              </section>
             </div>
             <button class="primary" type="submit">Сохранить настройки организации</button>
             <div class="status" id="organizationSettingsStatus"></div>
@@ -5810,7 +6004,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.24.57-saas";
+    const appVersion = "v2026.06.24.62-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6092,6 +6286,14 @@
       return tickets.map((ticket) => `${ticket.id}:${ticket.status}:${ticket.updatedAt || ticket.createdAt}`).join("|");
     }
 
+    function supportNotificationCount(tickets = [], previousSignature = "") {
+      const previousEntries = new Set(String(previousSignature || "").split("|").filter(Boolean));
+      return tickets.reduce((count, ticket) => {
+        const entry = `${ticket.id}:${ticket.status}:${ticket.updatedAt || ticket.createdAt}`;
+        return previousEntries.has(entry) ? count : count + 1;
+      }, 0);
+    }
+
     function supportTicketStatusLabel(status = "new") {
       return ({
         new: "Новое",
@@ -6142,9 +6344,11 @@
         renderUserMenuNotificationBadge();
         return;
       }
-      const unread = signature && signature !== supportTicketSignature ? 1 : 0;
+      const unread = signature && signature !== supportTicketSignature
+        ? supportNotificationCount(tickets, supportTicketSignature)
+        : 0;
       supportUnreadCount = unread;
-      if (unread) supportButton.dataset.unread = "?";
+      if (unread) supportButton.dataset.unread = unread > 99 ? "99+" : String(unread);
       else supportButton.removeAttribute("data-unread");
       renderUserMenuNotificationBadge();
     }
@@ -6155,26 +6359,32 @@
       supportTicketList.innerHTML = tickets.length ? tickets.map((ticket) => {
         const messages = Array.isArray(ticket.messages) ? ticket.messages.filter((message) => !message.isInternal) : [];
         const deadline = supportTicketDeadlineText(ticket);
+        const opened = options.openTicketId && String(options.openTicketId) === String(ticket.id);
         return `
-          <details class="support-ticket-card" data-ticket-id="${escapeHtml(ticket.id)}">
+          <details class="support-ticket-card" data-ticket-id="${escapeHtml(ticket.id)}" ${opened ? "open" : ""}>
             <summary>
-              <span>
-                <b>${escapeHtml(ticket.number || "")} · ${escapeHtml(ticket.title || "")}</b>
-                <small>${escapeHtml(formatSupportDate(ticket.updatedAt || ticket.createdAt))}</small>
-                ${deadline ? `<span class="support-ticket-deadline">${escapeHtml(deadline)}</span>` : ""}
-              </span>
-              <span class="support-ticket-status" data-status="${escapeHtml(ticket.status || "new")}">${escapeHtml(supportTicketStatusLabel(ticket.status || "new"))}</span>
-            </summary>
-            <div class="support-ticket-message" data-side="${supportTicketMessageSide(null, ticket)}" data-own="${ticket.createdByUserId === currentUser?.id ? "true" : "false"}">
-              <div class="support-ticket-message-meta">${escapeHtml(ticket.createdByName || ticket.createdByEmail || "")} · ${escapeHtml(formatSupportDate(ticket.createdAt))}</div>
-              <div class="support-ticket-message-body">${escapeHtml(ticket.description || "")}</div>
-            </div>
-            ${messages.map((message) => `
-              <div class="support-ticket-message" data-side="${supportTicketMessageSide(message, ticket)}" data-own="${message.authorUserId === currentUser?.id ? "true" : "false"}">
-                <div class="support-ticket-message-meta">${escapeHtml(message.authorName || message.authorEmail || "")} · ${escapeHtml(formatSupportDate(message.createdAt))}</div>
-                <div class="support-ticket-message-body">${escapeHtml(message.text || "")}</div>
+              <header>
+                <b class="support-ticket-title">${escapeHtml(ticket.title || "Без темы")}</b>
+                <span class="support-ticket-number">${escapeHtml(ticket.number || "")}</span>
+              </header>
+              <div class="support-ticket-meta">
+                <span class="support-ticket-status" data-status="${escapeHtml(ticket.status || "new")}">${escapeHtml(supportTicketStatusLabel(ticket.status || "new"))}</span>
+                <span class="support-ticket-updated">${escapeHtml(formatSupportDate(ticket.updatedAt || ticket.createdAt))}</span>
               </div>
-            `).join("")}
+              ${deadline ? `<span class="support-ticket-deadline">${escapeHtml(deadline)}</span>` : ""}
+            </summary>
+            <div class="support-ticket-thread">
+              <div class="support-ticket-message" data-side="${supportTicketMessageSide(null, ticket)}" data-own="${ticket.createdByUserId === currentUser?.id ? "true" : "false"}">
+                <div class="support-ticket-message-meta">${escapeHtml(ticket.createdByName || ticket.createdByEmail || "")} · ${escapeHtml(formatSupportDate(ticket.createdAt))}</div>
+                <div class="support-ticket-message-body">${escapeHtml(ticket.description || "")}</div>
+              </div>
+              ${messages.map((message) => `
+                <div class="support-ticket-message" data-side="${supportTicketMessageSide(message, ticket)}" data-own="${message.authorUserId === currentUser?.id ? "true" : "false"}">
+                  <div class="support-ticket-message-meta">${escapeHtml(message.authorName || message.authorEmail || "")} · ${escapeHtml(formatSupportDate(message.createdAt))}</div>
+                  <div class="support-ticket-message-body">${escapeHtml(message.text || "")}</div>
+                </div>
+              `).join("")}
+            </div>
             <form class="support-ticket-reply" data-ticket-reply>
               <textarea placeholder="Ответить по обращению"></textarea>
               <button class="secondary" type="submit">Отправить (${submitShortcutLabel})</button>
@@ -6211,7 +6421,7 @@
             textarea.value = "";
             status.className = "status ok";
             status.textContent = "Ответ отправлен";
-            await loadSupportTickets();
+            await loadSupportTickets({ markSeen: true, openTicketId: card.dataset.ticketId });
           } catch (error) {
             status.className = "status error";
             status.textContent = error.message;
@@ -7352,6 +7562,7 @@
       filters: {
         product: "",
         stage: "",
+        customer: "",
         readiness: false,
         packaging: false
       },
@@ -7403,6 +7614,9 @@
     const redoButton = document.querySelector("#redoButton");
     const themeButton = document.querySelector("#themeButton");
     const themeIcon = document.querySelector("#themeIcon");
+    const cyclePanelTitle = document.querySelector("#cyclePanelTitle");
+    const productInput = document.querySelector("#productInput");
+    const batchInput = document.querySelector("#batchInput");
     const tankInput = document.querySelector("#tankInput");
     const sourceCycleInput = document.querySelector("#sourceCycleInput");
     const cycleForm = document.querySelector("#cycleForm");
@@ -7458,6 +7672,8 @@
     const filterMenu = document.querySelector("#filterMenu");
     const filterProductInput = document.querySelector("#filterProductInput");
     const filterStageInput = document.querySelector("#filterStageInput");
+    const filterCustomerField = document.querySelector("#filterCustomerField");
+    const filterCustomerInput = document.querySelector("#filterCustomerInput");
     const filterReadinessInput = document.querySelector("#filterReadinessInput");
     const filterPackagingInput = document.querySelector("#filterPackagingInput");
     const resetFiltersButton = document.querySelector("#resetFiltersButton");
@@ -7650,6 +7866,14 @@
     const organizationDisplayNameInput = document.querySelector("#organizationDisplayNameInput");
     const organizationSettingsLogoInput = document.querySelector("#organizationSettingsLogoInput");
     const organizationSettingsLogoPreview = document.querySelector("#organizationSettingsLogoPreview");
+    const orgCommentTemplateNewInput = document.querySelector("#orgCommentTemplateNewInput");
+    const orgCommentTemplateAddButton = document.querySelector("#orgCommentTemplateAddButton");
+    const orgCommentTemplatesList = document.querySelector("#orgCommentTemplatesList");
+    const orgCommentTemplatesInput = document.querySelector("#orgCommentTemplatesInput");
+    const orgTaskTemplateNewInput = document.querySelector("#orgTaskTemplateNewInput");
+    const orgTaskTemplateAddButton = document.querySelector("#orgTaskTemplateAddButton");
+    const orgTaskTemplatesList = document.querySelector("#orgTaskTemplatesList");
+    const orgTaskTemplatesInput = document.querySelector("#orgTaskTemplatesInput");
     const organizationSettingsStatus = document.querySelector("#organizationSettingsStatus");
     const mySettingsForm = document.querySelector("#mySettingsForm");
     const closeMySettingsButton = document.querySelector("#closeMySettingsButton");
@@ -7775,16 +7999,34 @@
       }
     }
 
+    const defaultCommentTemplates = ["Контроль плотности", "Снять осадок", "Сухое охмеление", "Задача пюре/фруктов/соков"];
+    const defaultTaskTemplates = ["Зарегистрировать ДС", "Зарегистрировать ФРАП", "Заказать этикетку"];
+
+    function normalizeTemplateList(value) {
+      const source = Array.isArray(value) ? value : String(value || "").split(/\n+/);
+      const seen = new Set();
+      return source
+        .map((item) => String(item || "").trim())
+        .filter(Boolean)
+        .filter((item) => {
+          const key = normalizeName(item);
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        })
+        .slice(0, 30);
+    }
+
     function templatesFromTextarea(value) {
-      return String(value || "").split(/\n+/).map((item) => item.trim()).filter(Boolean).slice(0, 30);
+      return normalizeTemplateList(value);
     }
 
     function currentCommentTemplates() {
-      return organizationSettings?.commentTemplates || currentUser?.organizationSettings?.commentTemplates || ["Контроль плотности", "Снять осадок", "Сухое охмеление", "Задача пюре/фруктов/соков"];
+      return normalizeTemplateList(organizationSettings?.commentTemplates || currentUser?.organizationSettings?.commentTemplates || defaultCommentTemplates);
     }
 
     function currentTaskTemplates() {
-      return organizationSettings?.taskTemplates || currentUser?.organizationSettings?.taskTemplates || ["Зарегистрировать ДС", "Зарегистрировать ФРАП", "Заказать этикетку"];
+      return normalizeTemplateList(organizationSettings?.taskTemplates || currentUser?.organizationSettings?.taskTemplates || defaultTaskTemplates);
     }
 
     function canAssignTaskResponsible() {
@@ -7806,6 +8048,53 @@
           .map((template) => `<button class="template-btn" type="button" data-task-template="${escapeHtml(template)}">${escapeHtml(template)}</button>`)
           .join("");
       }
+    }
+
+    function settingsTemplateTabHtml(template, index) {
+      return `
+        <span class="settings-template-tab" title="${escapeHtml(template)}">
+          <span>${escapeHtml(template)}</span>
+          <button class="settings-template-remove" type="button" data-template-remove="${index}" aria-label="Удалить шаблон">
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
+          </button>
+        </span>
+      `;
+    }
+
+    function renderSettingsTemplateList(listElement, valueInput, templates) {
+      const items = normalizeTemplateList(templates);
+      valueInput.value = items.join("\n");
+      listElement.innerHTML = items.length
+        ? items.map(settingsTemplateTabHtml).join("")
+        : `<span class="settings-template-empty">Шаблонов пока нет</span>`;
+    }
+
+    function renderOrganizationTemplateEditors(settings = organizationSettings || currentUser?.organizationSettings || {}) {
+      renderSettingsTemplateList(orgCommentTemplatesList, orgCommentTemplatesInput, settings.commentTemplates || defaultCommentTemplates);
+      renderSettingsTemplateList(orgTaskTemplatesList, orgTaskTemplatesInput, settings.taskTemplates || defaultTaskTemplates);
+      orgCommentTemplateNewInput.value = "";
+      orgTaskTemplateNewInput.value = "";
+    }
+
+    function addOrganizationTemplate(valueInput, listElement, newInput, options = {}) {
+      const value = newInput.value.trim();
+      if (!value) return;
+      const next = normalizeTemplateList([...templatesFromTextarea(valueInput.value), value]);
+      renderSettingsTemplateList(listElement, valueInput, next);
+      newInput.value = "";
+      organizationSettingsFormDirty = true;
+      if (options.focus !== false) newInput.focus();
+    }
+
+    function removeOrganizationTemplate(valueInput, listElement, index) {
+      const next = templatesFromTextarea(valueInput.value).filter((_, itemIndex) => itemIndex !== index);
+      renderSettingsTemplateList(listElement, valueInput, next);
+      organizationSettingsFormDirty = true;
+    }
+
+    function commitOrganizationTemplateInputs() {
+      addOrganizationTemplate(orgCommentTemplatesInput, orgCommentTemplatesList, orgCommentTemplateNewInput, { focus: false });
+      addOrganizationTemplate(orgTaskTemplatesInput, orgTaskTemplatesList, orgTaskTemplateNewInput, { focus: false });
     }
 
     function renderSettingsLogoPreview(dataUrl) {
@@ -7862,8 +8151,7 @@
       document.querySelector("#orgWorkdayStartInput").value = settings.calendarSettings?.workdayStart || "10:00";
       document.querySelector("#orgWorkdayEndInput").value = settings.calendarSettings?.workdayEnd || "18:00";
       document.querySelector("#orgTimezoneInput").value = settings.calendarSettings?.timezone || "Europe/Moscow";
-      document.querySelector("#orgCommentTemplatesInput").value = (settings.commentTemplates || ["Контроль плотности", "Снять осадок", "Сухое охмеление", "Задача пюре/фруктов/соков"]).join("\n");
-      document.querySelector("#orgTaskTemplatesInput").value = (settings.taskTemplates || ["Зарегистрировать ДС", "Зарегистрировать ФРАП", "Заказать этикетку"]).join("\n");
+      renderOrganizationTemplateEditors(settings);
       organizationSettingsFormDirty = false;
       renderOrganizationSettingsTabs();
       renderConfigurableTemplates();
@@ -7871,6 +8159,7 @@
 
     async function saveOrganizationSettings() {
       if (!requireAdmin()) return;
+      commitOrganizationTemplateInputs();
       organizationSettingsStatus.className = "status loading";
       organizationSettingsStatus.textContent = "Сохраняем настройки организации...";
       const payload = {
@@ -7898,8 +8187,8 @@
           workdayStart: document.querySelector("#orgWorkdayStartInput").value || "10:00",
           workdayEnd: document.querySelector("#orgWorkdayEndInput").value || "18:00"
         },
-        commentTemplates: templatesFromTextarea(document.querySelector("#orgCommentTemplatesInput").value),
-        taskTemplates: templatesFromTextarea(document.querySelector("#orgTaskTemplatesInput").value)
+        commentTemplates: templatesFromTextarea(orgCommentTemplatesInput.value),
+        taskTemplates: templatesFromTextarea(orgTaskTemplatesInput.value)
       };
       if (pendingOrganizationLogo) {
         payload.logoDataUrl = pendingOrganizationLogo.dataUrl;
@@ -10811,6 +11100,7 @@
     function activeFiltersCount() {
       return Number(Boolean(state.filters.product))
         + Number(Boolean(state.filters.stage))
+        + Number(featureEnabled("contractBrews") && Boolean(state.filters.customer))
         + Number(Boolean(state.filters.readiness))
         + Number(Boolean(state.filters.packaging));
     }
@@ -10819,6 +11109,7 @@
       if (!activeFiltersCount()) return true;
       if (state.filters.product && normalizeName(cycle.product) !== state.filters.product) return false;
       if (state.filters.stage && normalizeStage(cycle.stage) !== state.filters.stage) return false;
+      if (featureEnabled("contractBrews") && state.filters.customer && normalizeName(cycleCustomerLabel(cycle)) !== state.filters.customer) return false;
       if (state.filters.readiness || state.filters.packaging) {
         const matchesReadiness = state.filters.readiness && shouldShowBottlingReadinessAlert(cycle);
         const matchesPackaging = state.filters.packaging && shouldShowPackagingAlert(cycle);
@@ -11067,10 +11358,10 @@
         }
         : null;
       return {
-        product: document.querySelector("#productInput").value.trim(),
+        product: productInput.value.trim(),
         sourceCycleId: sourceCycleInput.value,
         tankId: tankInput.value,
-        batch: document.querySelector("#batchInput").value.trim(),
+        batch: batchInput.value.trim(),
         start: cycleStartInput.value,
         duration: Number(cycleDurationInput.value) || 0,
         end: cycleEndInput.value,
@@ -11389,21 +11680,48 @@
       return String(template.customer || "").trim() || "Без заказчика";
     }
 
+    function cycleCustomerLabel(cycle) {
+      return templateCustomerLabel(templateByName(cycle.product, { includeArchived: true }) || {});
+    }
+
+    function sortedCustomerNamesForFilters() {
+      const byKey = new Map();
+      uniqueTemplateCustomers().forEach((customer) => byKey.set(normalizeName(customer), customer));
+      cycles.forEach((cycle) => {
+        const customer = cycleCustomerLabel(cycle);
+        byKey.set(normalizeName(customer), customer);
+      });
+      return Array.from(byKey.values()).sort((a, b) => a.localeCompare(b, "ru"));
+    }
+
     function renderFilterOptions() {
       const currentProduct = state.filters.product;
       const currentStage = state.filters.stage;
+      const currentCustomer = state.filters.customer;
+      const customerFilterEnabled = featureEnabled("contractBrews");
       filterProductInput.innerHTML = `<option value="">Все сорта</option>${sortedProductNames()
         .map((name) => `<option value="${escapeHtml(normalizeName(name))}">${escapeHtml(name)}</option>`)
         .join("")}`;
       filterStageInput.innerHTML = `<option value="">Все стадии</option>${Object.keys(stageColors)
         .map((stage) => `<option value="${escapeHtml(stage)}">${escapeHtml(stage)}</option>`)
         .join("")}`;
+      filterCustomerField.hidden = !customerFilterEnabled;
+      if (customerFilterEnabled) {
+        filterCustomerInput.innerHTML = `<option value="">Все заказчики</option>${sortedCustomerNamesForFilters()
+          .map((customer) => `<option value="${escapeHtml(normalizeName(customer))}">${escapeHtml(customer)}</option>`)
+          .join("")}`;
+      } else {
+        filterCustomerInput.innerHTML = `<option value="">Все заказчики</option>`;
+        state.filters.customer = "";
+      }
       filterProductInput.value = Array.from(filterProductInput.options).some((option) => option.value === currentProduct) ? currentProduct : "";
       filterStageInput.value = Array.from(filterStageInput.options).some((option) => option.value === currentStage) ? currentStage : "";
+      filterCustomerInput.value = Array.from(filterCustomerInput.options).some((option) => option.value === currentCustomer) ? currentCustomer : "";
       filterReadinessInput.checked = Boolean(state.filters.readiness);
       filterPackagingInput.checked = Boolean(state.filters.packaging);
       if (filterProductInput.value !== currentProduct) state.filters.product = "";
       if (filterStageInput.value !== currentStage) state.filters.stage = "";
+      if (filterCustomerInput.value !== currentCustomer) state.filters.customer = "";
     }
 
     function visibleProductTemplates() {
@@ -11757,6 +12075,12 @@
       const currentSiteId = tankById(cycle?.tankId)?.siteId || "";
       const targetSiteId = tankById(targetTankId)?.siteId || "";
       return `Нельзя переносить цикл между площадками: ${siteNameById(currentSiteId)} → ${siteNameById(targetSiteId)}. Выберите ЦКТ той же площадки.`;
+    }
+
+    function cycleChangeIsNoop(change) {
+      return change.tankId === change.originalTankId
+        && change.start === change.originalStart
+        && change.end === change.originalEnd;
     }
 
     function renderSiteOptions() {
@@ -12624,14 +12948,19 @@
       event.preventDefault();
       const handle = event.target.closest("[data-resize]");
       const tankIndex = tankRowIndex(cycle.tankId);
+      if (tankIndex < 0) return;
+      const originalTank = tankById(cycle.tankId);
       dragState = {
         id: cycle.id,
         mode: handle ? handle.dataset.resize : "move",
         element: event.currentTarget,
+        pointerId: event.pointerId,
         pointerX: event.clientX,
         pointerY: event.clientY,
         originalStart: cycle.start,
         originalEnd: cycle.end,
+        originalTankId: cycle.tankId,
+        originalSiteId: originalTank?.siteId || "",
         originalTankIndex: tankIndex,
         moved: false,
         latest: {
@@ -12645,15 +12974,21 @@
       clearCycleMultiSelection();
       state.addMode = false;
       dragState.element.classList.add("dragging");
+      try {
+        dragState.element.setPointerCapture?.(event.pointerId);
+      } catch {
+        // Pointer capture is a convenience; dragging still works without it.
+      }
       document.addEventListener("pointermove", moveCycleInteraction);
       document.addEventListener("pointerup", endCycleInteraction, { once: true });
+      document.addEventListener("pointercancel", cancelCycleInteraction, { once: true });
     }
 
     function moveCycleInteraction(event) {
       if (!dragState) return;
       const dayWidth = numberFromVar("--day-col");
       const tankHeight = numberFromVar("--tank-row");
-      const visibleTanks = visibleRows().filter((row) => row.type === "tank").map((row) => row.tank);
+      const rows = visibleRows();
       const pointerDeltaX = event.clientX - dragState.pointerX;
       const pointerDeltaY = event.clientY - dragState.pointerY;
       if (!dragState.moved && Math.abs(pointerDeltaX) + Math.abs(pointerDeltaY) < 4) return;
@@ -12663,14 +12998,24 @@
       let start = dragState.originalStart;
       let end = dragState.originalEnd;
       let tankIndex = dragState.originalTankIndex;
+      let targetTankId = dragState.originalTankId;
+      let blockedReason = "";
 
       if (dragState.mode === "move") {
         start = toISO(addDays(parseDate(dragState.originalStart), dayDelta));
         end = toISO(addDays(parseDate(dragState.originalEnd), dayDelta));
-        const tankPositions = visibleRows().map((row, index) => row.type === "tank" ? index : null).filter((index) => index !== null);
+        const tankPositions = rows.map((row, index) => row.type === "tank" ? index : null).filter((index) => index !== null);
         const currentTankPosition = tankPositions.indexOf(dragState.originalTankIndex);
         const nextTankPosition = clamp(currentTankPosition + tankDelta, 0, tankPositions.length - 1);
-        tankIndex = tankPositions[nextTankPosition];
+        const targetTankIndex = tankPositions[nextTankPosition] ?? dragState.originalTankIndex;
+        const targetTank = rows[targetTankIndex]?.tank || tankById(dragState.originalTankId);
+        targetTankId = targetTank?.id || dragState.originalTankId;
+        if (targetTank && targetTank.siteId !== dragState.originalSiteId) {
+          blockedReason = "cross-site";
+          tankIndex = dragState.originalTankIndex;
+        } else {
+          tankIndex = targetTankIndex;
+        }
       }
 
       if (dragState.mode === "left") {
@@ -12683,14 +13028,14 @@
         end = nextEnd > dragState.originalStart ? nextEnd : toISO(addDays(parseDate(dragState.originalStart), 1));
       }
 
-      const tank = visibleRows()[tankIndex]?.tank || visibleTanks[0];
+      const tank = rows[tankIndex]?.tank || tankById(dragState.originalTankId);
       const cycle = cycles.find((item) => item.id === dragState.id);
-      const crossSiteMove = isCrossSiteCycleMove(cycle, tank.id);
-      const valid = !crossSiteMove && !overlapsCycle(tank.id, start, end, dragState.id);
+      const crossSiteMove = blockedReason === "cross-site" || isCrossSiteCycleMove(cycle, targetTankId);
+      const valid = Boolean(tank) && !crossSiteMove && !overlapsCycle(tank.id, start, end, dragState.id);
       const visibleStart = parseDate(state.start);
       const offset = Math.round((parseDate(start) - visibleStart) / 86400000);
       const duration = Math.max(1, diffDays(start, end) + 1);
-      dragState.latest = { start, end, tankId: tank.id, valid, blockedReason: crossSiteMove ? "cross-site" : "" };
+      dragState.latest = { start, end, tankId: crossSiteMove ? targetTankId : tank.id, valid, blockedReason: crossSiteMove ? "cross-site" : "" };
       dragState.element.style.left = `calc(var(--tank-label) + ${offset} * var(--day-col))`;
       dragState.element.style.top = `calc(var(--header-total) + ${tankIndex} * var(--tank-row))`;
       dragState.element.style.width = `calc(${duration} * var(--day-col) - 8px)`;
@@ -12706,6 +13051,7 @@
         formStatus.textContent = cycleCrossSiteMoveMessage(cycle, change.tankId);
         return false;
       }
+      if (cycleChangeIsNoop(change)) return false;
       pushUndoSnapshot("изменение цикла на графике");
       const shift = change.mode === "move" ? diffDays(change.originalStart, change.start) : 0;
       cycle.tankId = change.tankId;
@@ -12753,8 +13099,17 @@
 
     function endCycleInteraction() {
       if (!dragState) return;
+      const dragElement = dragState.element;
+      const pointerId = dragState.pointerId;
       document.removeEventListener("pointermove", moveCycleInteraction);
-      dragState.element.classList.remove("dragging");
+      document.removeEventListener("pointerup", endCycleInteraction);
+      document.removeEventListener("pointercancel", cancelCycleInteraction);
+      try {
+        dragElement.releasePointerCapture?.(pointerId);
+      } catch {
+        // Pointer capture may already be released by the browser.
+      }
+      dragElement.classList.remove("dragging", "invalid");
       if (!dragState.moved) {
         dragState = null;
         return;
@@ -12772,6 +13127,10 @@
           tankId: dragState.latest.tankId
         };
         dragState = null;
+        if (cycleChangeIsNoop(change)) {
+          render();
+          return;
+        }
         if (changeNeedsConfirmation(change)) {
           showCycleChangeConfirmation(change);
           render();
@@ -12785,6 +13144,23 @@
           : "Перемещение отменено: есть пересечение в ЦКТ";
         dragState = null;
       }
+      render();
+    }
+
+    function cancelCycleInteraction() {
+      if (!dragState) return;
+      const dragElement = dragState.element;
+      const pointerId = dragState.pointerId;
+      document.removeEventListener("pointermove", moveCycleInteraction);
+      document.removeEventListener("pointerup", endCycleInteraction);
+      document.removeEventListener("pointercancel", cancelCycleInteraction);
+      try {
+        dragElement.releasePointerCapture?.(pointerId);
+      } catch {
+        // Pointer capture may already be released by the browser.
+      }
+      dragElement.classList.remove("dragging", "invalid");
+      dragState = null;
       render();
     }
 
@@ -13916,11 +14292,11 @@
           formStatus.textContent = `Частичный розлив превышает остаток в ЦКТ на ${formatLiters(partialLiters - remainingBeforePartial)} л`;
           return false;
         }
-        const template = templateByName(document.querySelector("#productInput").value);
+        const template = templateByName(productInput.value);
         existingCycle.tankId = tankId;
-        existingCycle.product = document.querySelector("#productInput").value.trim();
+        existingCycle.product = productInput.value.trim();
         existingCycle.sourceCycleId = sourceCycleId;
-        existingCycle.batch = document.querySelector("#batchInput").value.trim();
+        existingCycle.batch = batchInput.value.trim();
         existingCycle.start = start;
         existingCycle.end = end;
         existingCycle.stage = normalizeStage(stageInput.value);
@@ -13957,14 +14333,14 @@
         return true;
       }
 
-      const productName = document.querySelector("#productInput").value.trim();
+      const productName = productInput.value.trim();
       const productTemplate = templateByName(productName);
       const newCycle = {
         id: newId(),
         tankId,
         sourceCycleId,
         product: productName,
-        batch: document.querySelector("#batchInput").value.trim(),
+        batch: batchInput.value.trim(),
         start,
         end,
         stage: normalizeStage(stageInput.value),
@@ -14011,8 +14387,27 @@
       state.panelMode = "hidden";
     }
 
+    function cyclePanelTitleText(product, tankId) {
+      const productLabel = String(product || "").trim();
+      const tankName = tankById(tankId)?.name || "";
+      if (productLabel && tankName) return `${productLabel} · ${tankName}`;
+      if (productLabel) return productLabel;
+      if (tankName) return `Новая варка · ${tankName}`;
+      return "Новая варка";
+    }
+
+    function updateCyclePanelTitle(cycle = selectedCycle()) {
+      const title = cyclePanelTitleText(
+        productInput.value || cycle?.product,
+        tankInput.value || state.pickedTankId || cycle?.tankId
+      );
+      cyclePanelTitle.textContent = title;
+      cyclePanelTitle.title = title;
+    }
+
     function updateEditorState() {
       const cycle = cycles.find((item) => item.id === state.selectedCycleId);
+      updateCyclePanelTitle(cycle);
       if (!cycle) {
         submitCycleText.textContent = "Добавить цикл";
         const hint = state.commentMode ? "Выберите место внутри полосы цикла" : state.addMode ? "Выберите свободную ячейку в плане" : "Выберите свободную ячейку в плане или существующий цикл";
@@ -14075,9 +14470,9 @@
       state.pendingTaskFileTaskId = null;
       addMenu.classList.remove("open");
       cycleForm.reset();
-      document.querySelector("#productInput").value = "";
+      productInput.value = "";
       sourceCycleInput.value = "";
-      document.querySelector("#batchInput").value = `B-${String(new Date().getMonth() + 1).padStart(2, "0")}26`;
+      batchInput.value = `B-${String(new Date().getMonth() + 1).padStart(2, "0")}26`;
       cycleDurationInput.value = "21";
       stageInput.value = "План";
       plannedOutputInput.value = "3000";
@@ -14100,10 +14495,10 @@
       state.pickedDate = null;
       state.packagingSource = null;
       state.cycleFormSnapshot = null;
-      document.querySelector("#productInput").value = cycle.product;
+      productInput.value = cycle.product;
       sourceCycleInput.value = "";
       tankInput.value = cycle.tankId;
-      document.querySelector("#batchInput").value = cycle.batch ? `${cycle.batch} copy` : "";
+      batchInput.value = cycle.batch ? `${cycle.batch} copy` : "";
       cycleStartInput.value = cycle.start;
       cycleDurationInput.value = duration;
       cycleEndInput.value = cycle.end;
@@ -14130,11 +14525,11 @@
       state.pickedDate = null;
       state.packagingSource = null;
       state.cycleFormSnapshot = null;
-      document.querySelector("#productInput").value = "";
+      productInput.value = "";
       renderSourceCycleOptions();
       sourceCycleInput.value = source.id;
       tankInput.value = source.tankId;
-      document.querySelector("#batchInput").value = source.batch ? `${source.batch}-derived` : "";
+      batchInput.value = source.batch ? `${source.batch}-derived` : "";
       cycleStartInput.value = source.end;
       cycleDurationInput.value = "1";
       syncEndDate();
@@ -14161,11 +14556,11 @@
       state.processTab = state.processTab === "fermentation" ? "fermentation" : "brew";
       state.taskEditId = null;
       state.pendingTaskFileTaskId = null;
-      document.querySelector("#productInput").value = cycle.product;
+      productInput.value = cycle.product;
       renderSourceCycleOptions();
       sourceCycleInput.value = cycle.sourceCycleId || "";
       tankInput.value = cycle.tankId;
-      document.querySelector("#batchInput").value = cycle.batch;
+      batchInput.value = cycle.batch;
       cycleStartInput.value = cycle.start;
       cycleDurationInput.value = cycleLengthDays(cycle.start, cycle.end);
       cycleEndInput.value = cycle.end;
@@ -14202,9 +14597,9 @@
       state.pendingTaskFileTaskId = null;
       state.cycleFormSnapshot = null;
       cycleForm.reset();
-      document.querySelector("#productInput").value = "";
+      productInput.value = "";
       sourceCycleInput.value = "";
-      document.querySelector("#batchInput").value = `B-${String(new Date().getMonth() + 1).padStart(2, "0")}26`;
+      batchInput.value = `B-${String(new Date().getMonth() + 1).padStart(2, "0")}26`;
       cycleStartInput.value = "2026-06-12";
       cycleDurationInput.value = "21";
       stageInput.value = "План";
@@ -14508,6 +14903,11 @@
         render();
       });
 
+      filterCustomerInput.addEventListener("change", () => {
+        state.filters.customer = filterCustomerInput.value;
+        render();
+      });
+
       filterReadinessInput.addEventListener("change", () => {
         state.filters.readiness = filterReadinessInput.checked;
         render();
@@ -14521,6 +14921,7 @@
       resetFiltersButton.addEventListener("click", () => {
         state.filters.product = "";
         state.filters.stage = "";
+        state.filters.customer = "";
         state.filters.readiness = false;
         state.filters.packaging = false;
         render();
@@ -14703,6 +15104,38 @@
         const button = event.target.closest("[data-org-settings-tab]");
         if (!button) return;
         setOrganizationSettingsTab(button.dataset.orgSettingsTab);
+      });
+
+      orgCommentTemplateAddButton.addEventListener("click", () => {
+        addOrganizationTemplate(orgCommentTemplatesInput, orgCommentTemplatesList, orgCommentTemplateNewInput);
+      });
+
+      orgTaskTemplateAddButton.addEventListener("click", () => {
+        addOrganizationTemplate(orgTaskTemplatesInput, orgTaskTemplatesList, orgTaskTemplateNewInput);
+      });
+
+      orgCommentTemplateNewInput.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        addOrganizationTemplate(orgCommentTemplatesInput, orgCommentTemplatesList, orgCommentTemplateNewInput);
+      });
+
+      orgTaskTemplateNewInput.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        addOrganizationTemplate(orgTaskTemplatesInput, orgTaskTemplatesList, orgTaskTemplateNewInput);
+      });
+
+      orgCommentTemplatesList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-template-remove]");
+        if (!button) return;
+        removeOrganizationTemplate(orgCommentTemplatesInput, orgCommentTemplatesList, Number(button.dataset.templateRemove));
+      });
+
+      orgTaskTemplatesList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-template-remove]");
+        if (!button) return;
+        removeOrganizationTemplate(orgTaskTemplatesInput, orgTaskTemplatesList, Number(button.dataset.templateRemove));
       });
 
       closeMyTasksButton.addEventListener("click", () => {
@@ -14908,11 +15341,13 @@
         renderCycleTasks();
       });
       stageInput.addEventListener("change", updateSelectedStage);
-      document.querySelector("#productInput").addEventListener("input", () => {
-        applyProductTemplate(templateByName(document.querySelector("#productInput").value));
+      productInput.addEventListener("input", () => {
+        applyProductTemplate(templateByName(productInput.value));
+        updateCyclePanelTitle();
       });
-      document.querySelector("#productInput").addEventListener("change", () => {
-        applyProductTemplate(templateByName(document.querySelector("#productInput").value));
+      productInput.addEventListener("change", () => {
+        applyProductTemplate(templateByName(productInput.value));
+        updateCyclePanelTitle();
       });
       cycleStartInput.addEventListener("change", () => {
         syncCycleDates("start");
@@ -14957,6 +15392,7 @@
           return;
         }
         state.pickedTankId = tankInput.value;
+        updateCyclePanelTitle();
         render();
       });
       tankSiteInput.addEventListener("change", () => {
