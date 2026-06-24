@@ -285,6 +285,17 @@
       margin-bottom: 10px;
     }
 
+    .ticket-filters {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .ticket-filters .compact-field {
+      margin-bottom: 0;
+    }
+
     .full-button {
       width: 100%;
       margin-top: 12px;
@@ -742,6 +753,7 @@
       .user-create-form { grid-template-columns: 1fr; }
       .user-main { grid-template-columns: 1fr; }
       .profile-name-row { grid-template-columns: 1fr; }
+      .ticket-filters { grid-template-columns: 1fr; }
       .user-row,
       .ticket-row { grid-template-columns: 1fr; }
     }
@@ -776,7 +788,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.24.19-saas</span>
+        <span>v2026.06.25.20-saas</span>
       </div>
     </aside>
 
@@ -969,17 +981,25 @@
               <span class="badge" id="ticketCount">0</span>
             </div>
             <div class="card-body">
-              <label class="field compact-field">
-                <span>Статус</span>
-                <select id="ticketStatusFilter">
-                  <option value="">Все обращения</option>
-                  <option value="new">Новое</option>
-                  <option value="in_progress">В работе</option>
-                  <option value="waiting_customer">Ожидает клиента</option>
-                  <option value="done">Выполнено</option>
-                  <option value="closed">Закрыто</option>
-                </select>
-              </label>
+              <div class="ticket-filters">
+                <label class="field compact-field">
+                  <span>Статус</span>
+                  <select id="ticketStatusFilter">
+                    <option value="">Все обращения</option>
+                    <option value="new">Новое</option>
+                    <option value="in_progress">В работе</option>
+                    <option value="waiting_customer">Ожидает клиента</option>
+                    <option value="done">Выполнено</option>
+                    <option value="closed">Закрыто</option>
+                  </select>
+                </label>
+                <label class="field compact-field">
+                  <span>Категория</span>
+                  <select id="ticketCategoryFilter">
+                    <option value="">Все категории</option>
+                  </select>
+                </label>
+              </div>
               <div class="table" id="ticketList"></div>
             </div>
           </div>
@@ -1063,6 +1083,14 @@
       done: "Выполнено",
       closed: "Закрыто"
     };
+    const ticketCategoryLabels = {
+      bug: "Ошибка",
+      question: "Вопрос по работе",
+      feature: "Предложение функции",
+      access: "Проблема с доступом",
+      billing: "Оплата / тариф",
+      other: "Другое"
+    };
     const serviceLevelLabels = {
       2: "2 часа",
       8: "8 часов",
@@ -1079,6 +1107,7 @@
     let tickets = [];
     let selectedTicketId = "";
     let ticketStatusFilter = "";
+    let ticketCategoryFilter = "";
     let organizationSearchQuery = "";
     let organizationFormOpen = false;
     let ticketRefreshTimer = null;
@@ -1219,6 +1248,27 @@
 
     function ticketStatusBadge(status = "new") {
       return `<span class="ticket-status-badge" data-status="${escapeHtml(status)}">${escapeHtml(ticketStatusLabels[status] || status)}</span>`;
+    }
+
+    function ticketCategoryValue(category) {
+      return String(category || "other").trim() || "other";
+    }
+
+    function ticketCategoryLabel(category) {
+      const value = ticketCategoryValue(category);
+      return ticketCategoryLabels[value] || value;
+    }
+
+    function renderTicketCategoryFilter() {
+      const select = $("#ticketCategoryFilter");
+      if (!select) return;
+      const categories = Array.from(new Set(tickets.map((ticket) => ticketCategoryValue(ticket.category))))
+        .sort((a, b) => ticketCategoryLabel(a).localeCompare(ticketCategoryLabel(b), "ru"));
+      if (ticketCategoryFilter && !categories.includes(ticketCategoryFilter)) ticketCategoryFilter = "";
+      select.innerHTML = `<option value="">Все категории</option>${categories.map((category) => (
+        `<option value="${escapeHtml(category)}">${escapeHtml(ticketCategoryLabel(category))}</option>`
+      )).join("")}`;
+      select.value = ticketCategoryFilter;
     }
 
     function ticketDeadlineText(ticket) {
@@ -1586,8 +1636,13 @@
 
     function renderTickets() {
       renderTicketCounter();
-      const visibleTickets = ticketStatusFilter ? tickets.filter((ticket) => ticket.status === ticketStatusFilter) : tickets;
-      $("#ticketCount").textContent = ticketStatusFilter ? `${visibleTickets.length}/${tickets.length}` : String(tickets.length);
+      renderTicketCategoryFilter();
+      const visibleTickets = tickets.filter((ticket) => (
+        (!ticketStatusFilter || ticket.status === ticketStatusFilter)
+        && (!ticketCategoryFilter || ticketCategoryValue(ticket.category) === ticketCategoryFilter)
+      ));
+      const filtersActive = Boolean(ticketStatusFilter || ticketCategoryFilter);
+      $("#ticketCount").textContent = filtersActive ? `${visibleTickets.length}/${tickets.length}` : String(tickets.length);
       if (selectedTicketId && !tickets.some((ticket) => ticket.id === selectedTicketId)) selectedTicketId = "";
       if (selectedTicketId && !visibleTickets.some((ticket) => ticket.id === selectedTicketId)) selectedTicketId = "";
       if (!selectedTicketId && visibleTickets.length) selectedTicketId = visibleTickets[0].id;
@@ -1595,7 +1650,7 @@
         <div class="ticket-row ${ticket.id === selectedTicketId ? "active" : ""}" data-ticket-id="${escapeHtml(ticket.id)}">
           <div>
             <b>${escapeHtml(ticket.number)} · ${escapeHtml(ticket.title)}</b>
-            <div class="small">${escapeHtml(ticket.organizationName || ticket.organizationId)} · ${escapeHtml(ticket.createdByName || ticket.createdByEmail)} · ${escapeHtml(ticket.createdByPhone || "телефон не указан")} · ${escapeHtml(ticket.category)}</div>
+            <div class="small">${escapeHtml(ticket.organizationName || ticket.organizationId)} · ${escapeHtml(ticket.createdByName || ticket.createdByEmail)} · ${escapeHtml(ticket.createdByPhone || "телефон не указан")} · ${escapeHtml(ticketCategoryLabel(ticket.category))}</div>
             ${ticketDeadlineText(ticket) ? `<div class="sla-deadline">${escapeHtml(ticketDeadlineText(ticket))}</div>` : ""}
             ${ticketStatusBadge(ticket.status || "new")}
           </div>
@@ -1643,6 +1698,7 @@
               ${escapeHtml(ticket.organizationName || ticket.organizationId)}
               · ${escapeHtml(ticket.createdByName || ticket.createdByEmail)}
               · ${escapeHtml(ticket.createdByPhone || "телефон не указан")}
+              · ${escapeHtml(ticketCategoryLabel(ticket.category))}
             </div>
             ${deadline ? `<div class="sla-deadline">${escapeHtml(deadline)}</div>` : ""}
             <div class="actions">
@@ -1819,6 +1875,12 @@
 
     $("#ticketStatusFilter").addEventListener("change", (event) => {
       ticketStatusFilter = event.target.value;
+      selectedTicketId = "";
+      renderTickets();
+    });
+
+    $("#ticketCategoryFilter").addEventListener("change", (event) => {
+      ticketCategoryFilter = event.target.value;
       selectedTicketId = "";
       renderTickets();
     });
