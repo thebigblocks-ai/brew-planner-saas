@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.24.51-saas";
+      content: "v2026.06.24.52-saas";
     }
 
     .toolbar {
@@ -4682,9 +4682,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.51-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.52-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.51-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.52-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5806,7 +5806,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.24.51-saas";
+    const appVersion = "v2026.06.24.52-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -13423,9 +13423,9 @@
         workspace.dataset.panel = state.panelMode;
       }
       if (state.panelMode === "myTasks") renderMyTasks();
+      applyAccessControl();
       updateTankPanelState();
       updateSitePanelState();
-      applyAccessControl();
       initializeFastTooltips();
     }
 
@@ -13522,13 +13522,26 @@
       sourceCycleInput.value = cycles.some((cycle) => cycle.id === currentValue && cycle.id !== selectedCycleId && !blockedIds.has(cycle.id)) ? currentValue : "";
     }
 
+    function cyclesForTank(tankId) {
+      const normalizedTankId = String(tankId || "");
+      return cycles.filter((cycle) => String(cycle.tankId || "") === normalizedTankId);
+    }
+
     function updateTankPanelState() {
       const tank = tanks.find((item) => item.id === state.selectedTankId);
+      const linkedCycleCount = tank ? cyclesForTank(tank.id).length : 0;
       tankPanelTitle.textContent = tank ? "Карточка емкости" : "Новая емкость";
       const bulkMode = !tank && featureEnabled("initialSetup") && state.tankCreateMode === "bulk";
       tankSubmitText.textContent = tank ? "Сохранить" : bulkMode ? "Добавить емкости" : "Добавить емкость";
       deleteTankButton.hidden = !tank;
-      deleteTankButton.disabled = !tank || !canEdit();
+      deleteTankButton.disabled = !tank || !canEdit() || linkedCycleCount > 0;
+      deleteTankButton.dataset.tooltip = linkedCycleCount > 0
+        ? `Нельзя удалить: в емкости есть ${formatNumber(linkedCycleCount)} ${cycleWord(linkedCycleCount)}`
+        : "Удалить емкость";
+      if (tank && linkedCycleCount > 0 && tankStatus.textContent === "Карточка емкости открыта") {
+        tankStatus.className = "status error";
+        tankStatus.textContent = `Удаление недоступно: в емкости есть ${formatNumber(linkedCycleCount)} ${cycleWord(linkedCycleCount)}`;
+      }
       renderTankCreateMode();
     }
 
@@ -13712,7 +13725,7 @@
       if (!requireEdit()) return;
       const tank = tanks.find((item) => item.id === state.selectedTankId);
       if (!tank) return;
-      const linkedCycles = cycles.filter((cycle) => cycle.tankId === tank.id);
+      const linkedCycles = cyclesForTank(tank.id);
       if (linkedCycles.length) {
         tankStatus.className = "status error";
         tankStatus.textContent = `Нельзя удалить емкость ${tank.name}: в ней есть ${formatNumber(linkedCycles.length)} ${cycleWord(linkedCycles.length)}`;
@@ -13729,7 +13742,7 @@
     async function deleteTank(tankId) {
       const tank = tanks.find((item) => item.id === tankId);
       if (!tank) return false;
-      if (cycles.some((cycle) => cycle.tankId === tank.id)) {
+      if (cyclesForTank(tank.id).length) {
         tankStatus.className = "status error";
         tankStatus.textContent = "Нельзя удалить емкость, в которой есть циклы";
         return false;
@@ -13790,8 +13803,8 @@
         return;
       }
       const siteTanks = tanks.filter((tank) => tank.siteId === site.id);
-      const siteTankIds = new Set(siteTanks.map((tank) => tank.id));
-      const linkedCycles = cycles.filter((cycle) => siteTankIds.has(cycle.tankId));
+      const siteTankIds = new Set(siteTanks.map((tank) => String(tank.id)));
+      const linkedCycles = cycles.filter((cycle) => siteTankIds.has(String(cycle.tankId || "")));
       if (linkedCycles.length) {
         siteStatus.className = "status error";
         siteStatus.textContent = `Нельзя удалить площадку: в ней есть ${formatNumber(linkedCycles.length)} ${cycleWord(linkedCycles.length)}`;
@@ -13814,8 +13827,8 @@
         return false;
       }
       const siteTanks = tanks.filter((tank) => tank.siteId === site.id);
-      const siteTankIds = new Set(siteTanks.map((tank) => tank.id));
-      const linkedCycles = cycles.filter((cycle) => siteTankIds.has(cycle.tankId));
+      const siteTankIds = new Set(siteTanks.map((tank) => String(tank.id)));
+      const linkedCycles = cycles.filter((cycle) => siteTankIds.has(String(cycle.tankId || "")));
       if (linkedCycles.length) {
         siteStatus.className = "status error";
         siteStatus.textContent = "Нельзя удалить площадку, на которой есть циклы";
