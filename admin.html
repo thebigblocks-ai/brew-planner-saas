@@ -563,12 +563,16 @@
       display: grid;
       gap: 5px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 14px 14px 14px 4px;
       padding: 8px 10px 9px;
-      background: #fff;
+      background: #eaf4ff;
+      border-color: rgba(37, 99, 235, .2);
+      box-shadow: 0 1px 0 rgba(15, 23, 42, .08);
     }
 
     .ticket-description {
+      width: min(100%, 640px);
+      justify-self: start;
       white-space: pre-wrap;
     }
 
@@ -595,6 +599,7 @@
     .ticket-message[data-side="support"] {
       width: 50%;
       justify-self: end;
+      border-radius: 14px 14px 4px 14px;
       background: #fff7ed;
       border-color: rgba(255, 139, 0, .35);
     }
@@ -602,6 +607,8 @@
     .ticket-message[data-side="customer"] {
       width: min(100%, 640px);
       justify-self: start;
+      background: #eaf4ff;
+      border-color: rgba(37, 99, 235, .2);
     }
 
     .ticket-card {
@@ -706,7 +713,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.23.12-saas</span>
+        <span>v2026.06.23.13-saas</span>
       </div>
     </aside>
 

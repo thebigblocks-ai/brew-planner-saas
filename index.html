@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.24.46-saas";
+      content: "v2026.06.24.47-saas";
     }
 
     .toolbar {
@@ -3694,7 +3694,8 @@
       justify-self: start;
       border-radius: 14px 14px 14px 4px;
       padding: 8px 11px 9px;
-      background: var(--panel);
+      border: 1px solid color-mix(in srgb, var(--blue) 24%, var(--line));
+      background: color-mix(in srgb, var(--blue) 9%, var(--panel));
       box-shadow: 0 1px 0 rgba(15, 23, 42, .08);
     }
 
@@ -3713,10 +3714,20 @@
       font-weight: 500;
     }
 
-    .support-ticket-message[data-own="true"] {
+    .support-ticket-message[data-side="support"] {
+      width: min(100%, 640px);
+      justify-self: start;
+      border-radius: 14px 14px 14px 4px;
+      border-color: color-mix(in srgb, var(--blue) 24%, var(--line));
+      background: color-mix(in srgb, var(--blue) 9%, var(--panel));
+    }
+
+    .support-ticket-message[data-own="true"],
+    .support-ticket-message[data-side="customer"] {
       width: 50%;
       justify-self: end;
       border-radius: 14px 14px 4px 14px;
+      border-color: rgba(255, 139, 0, .28);
       background: #fff4e5;
     }
 
@@ -4667,9 +4678,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.46-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.47-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.46-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.47-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5789,7 +5800,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.24.46-saas";
+    const appVersion = "v2026.06.24.47-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6088,6 +6099,11 @@
       return `Дедлайн приема в работу: ${formatSupportDate(ticket.responseDeadlineAt)} · SLA ${level}`;
     }
 
+    function supportTicketMessageSide(message, ticket) {
+      const authorId = message?.authorUserId || ticket?.createdByUserId || "";
+      return currentUser?.id && authorId === currentUser.id ? "customer" : "support";
+    }
+
     function userTaskNotificationCount() {
       if (!featureEnabled("cycleTasks") || !currentUser) return 0;
       try {
@@ -6139,11 +6155,12 @@
               </span>
               <span class="support-ticket-status" data-status="${escapeHtml(ticket.status || "new")}">${escapeHtml(supportTicketStatusLabel(ticket.status || "new"))}</span>
             </summary>
-            <div class="support-ticket-message" data-own="${ticket.createdByUserId === currentUser?.id ? "true" : "false"}">
+            <div class="support-ticket-message" data-side="${supportTicketMessageSide(null, ticket)}" data-own="${ticket.createdByUserId === currentUser?.id ? "true" : "false"}">
+              <div class="support-ticket-message-meta">${escapeHtml(ticket.createdByName || ticket.createdByEmail || "")} · ${escapeHtml(formatSupportDate(ticket.createdAt))}</div>
               <div class="support-ticket-message-body">${escapeHtml(ticket.description || "")}</div>
             </div>
             ${messages.map((message) => `
-              <div class="support-ticket-message" data-own="${message.authorUserId === currentUser?.id ? "true" : "false"}">
+              <div class="support-ticket-message" data-side="${supportTicketMessageSide(message, ticket)}" data-own="${message.authorUserId === currentUser?.id ? "true" : "false"}">
                 <div class="support-ticket-message-meta">${escapeHtml(message.authorName || message.authorEmail || "")} · ${escapeHtml(formatSupportDate(message.createdAt))}</div>
                 <div class="support-ticket-message-body">${escapeHtml(message.text || "")}</div>
               </div>
