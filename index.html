@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.24.54-saas";
+      content: "v2026.06.24.55-saas";
     }
 
     .toolbar {
@@ -4696,9 +4696,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.54-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.55-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.54-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.55-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5821,7 +5821,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.24.54-saas";
+    const appVersion = "v2026.06.24.55-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -7355,7 +7355,6 @@
       selectedCycleId: null,
       selectedCycleIds: new Set(),
       selectedTankId: null,
-      selectedTankCycleCount: 0,
       selectedSiteId: null,
       selectedTemplateId: null,
       showArchivedTemplates: false,
@@ -13546,16 +13545,12 @@
 
     function updateTankPanelState() {
       const tank = tanks.find((item) => item.id === state.selectedTankId);
-      const blockedByCycles = Boolean(tank && state.selectedTankCycleCount > 0);
       tankPanelTitle.textContent = tank ? "Карточка емкости" : "Новая емкость";
       const bulkMode = !tank && featureEnabled("initialSetup") && state.tankCreateMode === "bulk";
       tankSubmitText.textContent = tank ? "Сохранить" : bulkMode ? "Добавить емкости" : "Добавить емкость";
-      deleteTankButton.hidden = !tank || blockedByCycles;
+      deleteTankButton.hidden = !tank;
       deleteTankButton.disabled = !tank || !canEdit();
-      tankDeleteHint.hidden = !blockedByCycles;
-      if (blockedByCycles) {
-        tankDeleteHint.textContent = `Нельзя удалить емкость: в ней есть ${formatNumber(state.selectedTankCycleCount)} ${cycleWord(state.selectedTankCycleCount)}`;
-      }
+      tankDeleteHint.hidden = true;
       deleteTankButton.dataset.tooltip = "Удалить емкость";
     }
 
@@ -13600,7 +13595,6 @@
     function prepareNewTank() {
       const defaultSiteId = firstSiteId();
       state.selectedTankId = null;
-      state.selectedTankCycleCount = 0;
       state.tankCreateMode = "single";
       tankNameInput.value = nextTankName(defaultSiteId);
       tankVolumeInput.value = "60 гл";
@@ -13620,7 +13614,6 @@
 
     function openTankCard(tank) {
       state.selectedTankId = tank.id;
-      state.selectedTankCycleCount = cyclesForTank(tank.id).length;
       state.selectedCycleId = null;
       state.addMode = false;
       state.commentMode = false;
@@ -13642,7 +13635,6 @@
 
     function closeTankCard() {
       state.selectedTankId = null;
-      state.selectedTankCycleCount = 0;
       state.tankCreateMode = "single";
       state.panelMode = "hidden";
       tankStatus.className = "status";
@@ -13738,18 +13730,20 @@
       return true;
     }
 
-    function confirmDeleteTank() {
-      if (!requireEdit()) return;
+    function confirmDeleteTank(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
       const tank = tanks.find((item) => item.id === state.selectedTankId);
       if (!tank) return;
       const linkedCycles = cyclesForTank(tank.id);
       if (linkedCycles.length) {
         tankStatus.className = "status error";
-        tankStatus.textContent = `Нельзя удалить емкость ${tank.name}: в ней есть ${formatNumber(linkedCycles.length)} ${cycleWord(linkedCycles.length)}`;
-        deleteModal.classList.remove("open");
-        pendingDelete = null;
+        tankStatus.textContent = "Нельзя удалить емкость, в которой есть цикл";
         return;
       }
+      if (!requireEdit()) return;
       pendingDelete = { type: "tank", id: tank.id };
       deleteModalTitle.textContent = "Удалить емкость?";
       deleteModalText.textContent = `Будет удалена емкость ${tank.name}. Это действие можно отменить кнопкой «Отменить».`;
@@ -15067,7 +15061,7 @@
 
       closeTankButton.addEventListener("click", closeTankCard);
       cancelTankButton.addEventListener("click", closeTankCard);
-      deleteTankButton.addEventListener("click", confirmDeleteTank);
+      deleteTankButton.addEventListener("click", (event) => confirmDeleteTank(event), true);
       closeSiteButton.addEventListener("click", closeSiteCard);
       cancelSiteButton.addEventListener("click", closeSiteCard);
       deleteSiteButton.addEventListener("click", confirmDeleteSite);
