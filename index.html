@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.24.48-saas";
+      content: "v2026.06.24.50-saas";
     }
 
     .toolbar {
@@ -3917,6 +3917,10 @@
       line-height: 1;
     }
 
+    .form > .delete-confirm {
+      width: 100%;
+    }
+
     .dot {
       width: 10px;
       height: 10px;
@@ -4678,9 +4682,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.48-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.50-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.48-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.50-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5187,6 +5191,7 @@
               </button>
               <button class="secondary" id="cancelTankButton" type="button">Отмена</button>
             </div>
+            <button class="delete-confirm" id="deleteTankButton" type="button" hidden>Удалить емкость</button>
             <div class="status" id="tankStatus"></div>
           </form>
         </section>
@@ -5207,6 +5212,7 @@
               <button class="primary" type="submit"><span id="siteSubmitText">Добавить площадку</span></button>
               <button class="secondary" id="cancelSiteButton" type="button">Отмена</button>
             </div>
+            <button class="delete-confirm" id="deleteSiteButton" type="button" hidden>Удалить площадку</button>
             <div class="status" id="siteStatus"></div>
           </form>
         </section>
@@ -5800,7 +5806,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.24.48-saas";
+    const appVersion = "v2026.06.24.50-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -7159,6 +7165,8 @@
 
           await deleteMissingRows("cycle_comments", commentRows.map((row) => row.id));
           await deleteMissingRows("production_cycles", cycleRows.map((row) => row.id));
+          await deleteMissingRows("tanks", tankRows.map((row) => row.id));
+          await deleteMissingRows("production_sites", siteRows.map((row) => row.id));
           await deleteMissingRows("product_templates", templateRows.map((row) => row.id));
 
           if (siteRows.length) {
@@ -7500,9 +7508,11 @@
     const bulkTankVolumeInput = document.querySelector("#bulkTankVolumeInput");
     const bulkTankCommentInput = document.querySelector("#bulkTankCommentInput");
     const cancelTankButton = document.querySelector("#cancelTankButton");
+    const deleteTankButton = document.querySelector("#deleteTankButton");
     const siteForm = document.querySelector("#siteForm");
     const closeSiteButton = document.querySelector("#closeSiteButton");
     const cancelSiteButton = document.querySelector("#cancelSiteButton");
+    const deleteSiteButton = document.querySelector("#deleteSiteButton");
     const sitePanelTitle = document.querySelector("#sitePanelTitle");
     const siteSubmitText = document.querySelector("#siteSubmitText");
     const siteNameInput = document.querySelector("#siteNameInput");
@@ -11706,12 +11716,43 @@
       return true;
     }
 
+    function resequenceTankSortOrders() {
+      const nextOrderBySite = {};
+      tanks = tanks.map((tank) => {
+        const siteId = tank.siteId || firstSiteId();
+        const sortOrder = nextOrderBySite[siteId] || 0;
+        nextOrderBySite[siteId] = sortOrder + 1;
+        return { ...tank, siteId, sortOrder };
+      });
+    }
+
     function firstSiteId() {
       return orderedSites()[0]?.id || sites[0]?.id || "";
     }
 
     function validSiteId(siteId, fallback = firstSiteId()) {
       return sites.some((site) => site.id === siteId) ? siteId : fallback;
+    }
+
+    function tankById(tankId) {
+      return tanks.find((tank) => tank.id === tankId) || null;
+    }
+
+    function siteNameById(siteId) {
+      return sites.find((site) => site.id === siteId)?.name || "площадка";
+    }
+
+    function isCrossSiteCycleMove(cycle, targetTankId) {
+      if (!cycle || !targetTankId || cycle.tankId === targetTankId) return false;
+      const currentSiteId = tankById(cycle.tankId)?.siteId || "";
+      const targetSiteId = tankById(targetTankId)?.siteId || "";
+      return Boolean(currentSiteId && targetSiteId && currentSiteId !== targetSiteId);
+    }
+
+    function cycleCrossSiteMoveMessage(cycle, targetTankId) {
+      const currentSiteId = tankById(cycle?.tankId)?.siteId || "";
+      const targetSiteId = tankById(targetTankId)?.siteId || "";
+      return `Нельзя переносить цикл между площадками: ${siteNameById(currentSiteId)} → ${siteNameById(targetSiteId)}. Выберите ЦКТ той же площадки.`;
     }
 
     function renderSiteOptions() {
@@ -12639,11 +12680,13 @@
       }
 
       const tank = visibleRows()[tankIndex]?.tank || visibleTanks[0];
-      const valid = !overlapsCycle(tank.id, start, end, dragState.id);
+      const cycle = cycles.find((item) => item.id === dragState.id);
+      const crossSiteMove = isCrossSiteCycleMove(cycle, tank.id);
+      const valid = !crossSiteMove && !overlapsCycle(tank.id, start, end, dragState.id);
       const visibleStart = parseDate(state.start);
       const offset = Math.round((parseDate(start) - visibleStart) / 86400000);
       const duration = Math.max(1, diffDays(start, end) + 1);
-      dragState.latest = { start, end, tankId: tank.id, valid };
+      dragState.latest = { start, end, tankId: tank.id, valid, blockedReason: crossSiteMove ? "cross-site" : "" };
       dragState.element.style.left = `calc(var(--tank-label) + ${offset} * var(--day-col))`;
       dragState.element.style.top = `calc(var(--header-total) + ${tankIndex} * var(--tank-row))`;
       dragState.element.style.width = `calc(${duration} * var(--day-col) - 8px)`;
@@ -12654,6 +12697,11 @@
     function applyCycleChange(change) {
       const cycle = cycles.find((item) => item.id === change.id);
       if (!cycle) return;
+      if (isCrossSiteCycleMove(cycle, change.tankId)) {
+        formStatus.className = "status error";
+        formStatus.textContent = cycleCrossSiteMoveMessage(cycle, change.tankId);
+        return false;
+      }
       pushUndoSnapshot("изменение цикла на графике");
       const shift = change.mode === "move" ? diffDays(change.originalStart, change.start) : 0;
       cycle.tankId = change.tankId;
@@ -12674,6 +12722,7 @@
       });
       formStatus.className = "status";
       formStatus.textContent = "Цикл обновлен";
+      return true;
     }
 
     function changeNeedsConfirmation(change) {
@@ -12727,7 +12776,9 @@
         applyCycleChange(change);
       } else if (cycle) {
         formStatus.className = "status error";
-        formStatus.textContent = "Перемещение отменено: есть пересечение в ЦКТ";
+        formStatus.textContent = dragState.latest.blockedReason === "cross-site"
+          ? cycleCrossSiteMoveMessage(cycle, dragState.latest.tankId)
+          : "Перемещение отменено: есть пересечение в ЦКТ";
         dragState = null;
       }
       render();
@@ -13373,6 +13424,7 @@
       }
       if (state.panelMode === "myTasks") renderMyTasks();
       updateTankPanelState();
+      updateSitePanelState();
       applyAccessControl();
       initializeFastTooltips();
     }
@@ -13436,10 +13488,14 @@
 
     function renderTankOptions() {
       const currentValue = tankInput.value;
+      const currentCycle = selectedCycle();
       tankInput.innerHTML = orderedSites().map((site) => {
         const options = tanks
           .filter((tank) => tank.siteId === site.id)
-          .map((tank) => `<option value="${tank.id}">${tank.name} · ${tank.volume}</option>`)
+          .map((tank) => {
+            const disabled = currentCycle && isCrossSiteCycleMove(currentCycle, tank.id) ? " disabled" : "";
+            return `<option value="${tank.id}"${disabled}>${tank.name} · ${tank.volume}</option>`;
+          })
           .join("");
         return `<optgroup label="${site.name}">${options}</optgroup>`;
       }).join("");
@@ -13470,8 +13526,18 @@
       const tank = tanks.find((item) => item.id === state.selectedTankId);
       tankPanelTitle.textContent = tank ? "Карточка емкости" : "Новая емкость";
       const bulkMode = !tank && featureEnabled("initialSetup") && state.tankCreateMode === "bulk";
-      tankSubmitText.textContent = tank ? "Сохранить емкость" : bulkMode ? "Добавить емкости" : "Добавить емкость";
+      tankSubmitText.textContent = tank ? "Сохранить" : bulkMode ? "Добавить емкости" : "Добавить емкость";
+      deleteTankButton.hidden = !tank;
+      deleteTankButton.disabled = !tank || !canEdit();
       renderTankCreateMode();
+    }
+
+    function updateSitePanelState() {
+      const site = sites.find((item) => item.id === state.selectedSiteId);
+      sitePanelTitle.textContent = site ? "Карточка площадки" : "Новая площадка";
+      siteSubmitText.textContent = site ? "Сохранить" : "Добавить площадку";
+      deleteSiteButton.hidden = !site;
+      deleteSiteButton.disabled = !site || !canEdit();
     }
 
     function tankNameUniquenessKey(name) {
@@ -13642,6 +13708,44 @@
       return true;
     }
 
+    function confirmDeleteTank() {
+      if (!requireEdit()) return;
+      const tank = tanks.find((item) => item.id === state.selectedTankId);
+      if (!tank) return;
+      const linkedCycles = cycles.filter((cycle) => cycle.tankId === tank.id);
+      if (linkedCycles.length) {
+        tankStatus.className = "status error";
+        tankStatus.textContent = `Нельзя удалить емкость: в ней есть ${formatNumber(linkedCycles.length)} ${cycleWord(linkedCycles.length)}`;
+        return;
+      }
+      pendingDelete = { type: "tank", id: tank.id };
+      deleteModalTitle.textContent = "Удалить емкость?";
+      deleteModalText.textContent = `Будет удалена емкость ${tank.name}. Это действие можно отменить кнопкой «Отменить».`;
+      deleteModal.classList.add("open");
+    }
+
+    function deleteTank(tankId) {
+      const tank = tanks.find((item) => item.id === tankId);
+      if (!tank) return;
+      if (cycles.some((cycle) => cycle.tankId === tank.id)) {
+        tankStatus.className = "status error";
+        tankStatus.textContent = "Нельзя удалить емкость, в которой есть циклы";
+        return;
+      }
+      pushUndoSnapshot("удаление емкости");
+      tanks = tanks.filter((item) => item.id !== tank.id);
+      resequenceTankSortOrders();
+      state.selectedTankId = null;
+      if (state.pickedTankId === tank.id) state.pickedTankId = null;
+      savePlan();
+      logAction("tank_deleted", "tank", tank.id, tank.name, {
+        site: siteNameById(tank.siteId)
+      });
+      state.panelMode = "hidden";
+      tankStatus.className = "status";
+      tankStatus.textContent = "Емкость удалена";
+    }
+
     function prepareNewSite() {
       state.selectedSiteId = null;
       sitePanelTitle.textContent = "Новая площадка";
@@ -13659,8 +13763,6 @@
       state.commentMode = false;
       state.panelMode = "site";
       addMenu.classList.remove("open");
-      sitePanelTitle.textContent = "Карточка площадки";
-      siteSubmitText.textContent = "Сохранить площадку";
       siteNameInput.value = site.name;
       siteStatus.className = "status";
       siteStatus.textContent = "Карточка площадки открыта";
@@ -13675,6 +13777,52 @@
       render();
     }
 
+    function confirmDeleteSite() {
+      if (!requireEdit()) return;
+      const site = sites.find((item) => item.id === state.selectedSiteId);
+      if (!site) return;
+      if (sites.length <= 1) {
+        siteStatus.className = "status error";
+        siteStatus.textContent = "Нельзя удалить единственную площадку";
+        return;
+      }
+      const siteTanks = tanks.filter((tank) => tank.siteId === site.id);
+      if (siteTanks.length) {
+        siteStatus.className = "status error";
+        siteStatus.textContent = `Нельзя удалить площадку: сначала удалите ${formatNumber(siteTanks.length)} емк.`;
+        return;
+      }
+      pendingDelete = { type: "site", id: site.id };
+      deleteModalTitle.textContent = "Удалить площадку?";
+      deleteModalText.textContent = `Будет удалена площадка ${site.name}. Это действие можно отменить кнопкой «Отменить».`;
+      deleteModal.classList.add("open");
+    }
+
+    function deleteSite(siteId) {
+      const site = sites.find((item) => item.id === siteId);
+      if (!site) return;
+      if (sites.length <= 1) {
+        siteStatus.className = "status error";
+        siteStatus.textContent = "Нельзя удалить единственную площадку";
+        return;
+      }
+      if (tanks.some((tank) => tank.siteId === site.id)) {
+        siteStatus.className = "status error";
+        siteStatus.textContent = "Нельзя удалить площадку, на которой есть емкости";
+        return;
+      }
+      pushUndoSnapshot("удаление площадки");
+      sites = sites.filter((item) => item.id !== site.id);
+      state.siteOrder = normalizedSiteOrder(state.siteOrder).filter((id) => id !== site.id);
+      state.selectedSiteId = null;
+      saveUserUiPreferences();
+      savePlan();
+      logAction("site_deleted", "site", site.id, site.name);
+      state.panelMode = "hidden";
+      siteStatus.className = "status";
+      siteStatus.textContent = "Площадка удалена";
+    }
+
     async function saveCycleFromForm() {
       if (!requireEdit()) return false;
       if (!cycleEndInput.value) syncCycleDates("duration");
@@ -13686,13 +13834,20 @@
         formStatus.textContent = "Дата розлива должна быть позже старта";
         return false;
       }
+      const existingCycle = cycles.find((cycle) => cycle.id === state.selectedCycleId);
+      if (existingCycle && isCrossSiteCycleMove(existingCycle, tankId)) {
+        formStatus.className = "status error";
+        formStatus.textContent = cycleCrossSiteMoveMessage(existingCycle, tankId);
+        tankInput.value = existingCycle.tankId;
+        state.pickedTankId = existingCycle.tankId;
+        return false;
+      }
       if (overlapsCycle(tankId, start, end, state.selectedCycleId)) {
         formStatus.className = "status error";
         formStatus.textContent = "Цикл пересекается с другой варкой в этой емкости";
         return false;
       }
       if (showPackagingWarning()) return false;
-      const existingCycle = cycles.find((cycle) => cycle.id === state.selectedCycleId);
       const sourceCycleId = sourceCycleInput.value;
       if (sourceCycleId && db && remoteReady && !isYandexBackend && !supportsSourceCycles) {
         formStatus.className = "status error";
@@ -14766,6 +14921,14 @@
       partialCanQtyInput.addEventListener("input", () => syncPartialPackagingFrom("canQty"));
       partialKegLitersInput.addEventListener("input", () => syncPartialPackagingFrom("kegLiters"));
       tankInput.addEventListener("change", () => {
+        const cycle = selectedCycle();
+        if (cycle && isCrossSiteCycleMove(cycle, tankInput.value)) {
+          formStatus.className = "status error";
+          formStatus.textContent = cycleCrossSiteMoveMessage(cycle, tankInput.value);
+          tankInput.value = cycle.tankId;
+          state.pickedTankId = cycle.tankId;
+          return;
+        }
         state.pickedTankId = tankInput.value;
         render();
       });
@@ -14859,8 +15022,10 @@
 
       closeTankButton.addEventListener("click", closeTankCard);
       cancelTankButton.addEventListener("click", closeTankCard);
+      deleteTankButton.addEventListener("click", confirmDeleteTank);
       closeSiteButton.addEventListener("click", closeSiteCard);
       cancelSiteButton.addEventListener("click", closeSiteCard);
+      deleteSiteButton.addEventListener("click", confirmDeleteSite);
 
       supportButton.addEventListener("click", () => {
         userBox.classList.remove("open");
@@ -15096,6 +15261,10 @@
             formStatus.className = "status";
             formStatus.textContent = `Удалено ${formatNumber(removedCycles.length)} ${cycleWord(removedCycles.length)}`;
           }
+        } else if (pendingDelete?.type === "tank") {
+          deleteTank(pendingDelete.id);
+        } else if (pendingDelete?.type === "site") {
+          deleteSite(pendingDelete.id);
         } else if (pendingDelete?.type === "partialBottling") {
           deletePartialBottling(pendingDelete.cycleId, pendingDelete.partialId);
         } else if (pendingDelete?.type === "cycleTask") {
@@ -15303,6 +15472,11 @@
         }
         const existingTank = tanks.find((tank) => tank.id === state.selectedTankId);
         if (existingTank) {
+          if (existingTank.siteId !== siteId && cycles.some((cycle) => cycle.tankId === existingTank.id)) {
+            tankStatus.className = "status error";
+            tankStatus.textContent = "Нельзя переносить емкость с циклами на другую площадку";
+            return;
+          }
           pushUndoSnapshot("сохранение емкости");
           const siteChanged = existingTank.siteId !== siteId;
           existingTank.name = name;
