@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.25.83-saas";
+      content: "v2026.06.25.92-saas";
     }
 
     .toolbar {
@@ -3301,6 +3301,11 @@
       grid-auto-rows: max-content;
     }
 
+    .process-onboarding-frame {
+      display: grid;
+      gap: 10px;
+    }
+
     #processBrewPane {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       align-content: start;
@@ -3536,8 +3541,10 @@
     }
 
     .help-modal {
-      width: min(2760px, calc(100vw - 24px));
-      height: min(920px, calc(100vh - 24px));
+      width: 80vw;
+      min-width: min(760px, calc(100vw - 24px));
+      max-width: calc(100vw - 24px);
+      height: min(860px, calc(100vh - 32px));
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -3553,14 +3560,14 @@
       min-height: 0;
       display: grid;
       margin: 16px 0 0;
-      padding: 0 24px;
+      padding: 0 28px;
     }
 
     .help-layout {
       min-height: 0;
       display: grid;
-      grid-template-columns: 280px minmax(0, 1fr);
-      gap: 18px;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 20px;
     }
 
     .help-toc {
@@ -3598,10 +3605,10 @@
       min-height: 0;
       display: grid;
       align-content: start;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      grid-template-columns: 1fr;
+      gap: 14px;
       overflow-y: auto;
-      padding-right: 6px;
+      padding: 0 8px 4px 0;
       scrollbar-gutter: stable;
     }
 
@@ -3609,7 +3616,7 @@
       display: grid;
       gap: 8px;
       scroll-margin-top: 12px;
-      padding: 13px 14px;
+      padding: 14px 16px;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: color-mix(in srgb, var(--soft-bg) 52%, var(--panel));
@@ -3660,7 +3667,7 @@
       position: fixed;
       right: 18px;
       bottom: 18px;
-      z-index: 58;
+      z-index: 72;
       width: min(360px, calc(100vw - 28px));
       display: grid;
       gap: 10px;
@@ -3728,6 +3735,9 @@
     }
 
     .onboarding-target-glow {
+      position: relative;
+      z-index: 71 !important;
+      border-radius: 7px !important;
       outline: 2px solid rgba(255, 139, 0, .82) !important;
       outline-offset: 4px;
       animation: onboardingGlowPulse 1.8s ease-in-out infinite;
@@ -4030,16 +4040,12 @@
 
     #supportModal .modal {
       width: min(760px, calc(100vw - 32px));
-      height: min(760px, calc(100vh - 40px));
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
     }
 
     #supportModal .support-pane {
-      flex: 1 1 auto;
       min-height: 0;
-      overflow-y: auto;
     }
 
     .support-tabs {
@@ -5232,9 +5238,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.83-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.92-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.83-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.92-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5639,13 +5645,15 @@
               <div class="status" id="formStatus"></div>
             </form>
           <section class="form cycle-pane" id="cycleProcessPane" data-pane="process" role="tabpanel" aria-labelledby="cycleProcessTab" hidden>
-            <div class="process-tabs" role="tablist" aria-label="Производственный процесс">
-              <button class="process-tab" id="processBrewTab" type="button" data-process-tab="brew" data-active="true">Варка</button>
-              <button class="process-tab" id="processFermentationTab" type="button" data-process-tab="fermentation" data-active="false">Брожение</button>
+            <div class="process-onboarding-frame" id="cycleProcessOnboardingTarget">
+              <div class="process-tabs" role="tablist" aria-label="Производственный процесс">
+                <button class="process-tab" id="processBrewTab" type="button" data-process-tab="brew" data-active="true">Варка</button>
+                <button class="process-tab" id="processFermentationTab" type="button" data-process-tab="fermentation" data-active="false">Брожение</button>
+              </div>
+              <button class="process-chart-button" id="fermentationChartButton" type="button" data-visible="false">График брожения</button>
+              <div class="process-section" id="processBrewPane"></div>
+              <div class="process-section" id="processFermentationPane" hidden></div>
             </div>
-            <button class="process-chart-button" id="fermentationChartButton" type="button" data-visible="false">График брожения</button>
-            <div class="process-section" id="processBrewPane"></div>
-            <div class="process-section" id="processFermentationPane" hidden></div>
             <div class="status" id="processStatus"></div>
           </section>
           <section class="form cycle-pane" id="cycleTasksPane" data-pane="tasks" role="tabpanel" aria-labelledby="cycleTasksTab" hidden>
@@ -6402,7 +6410,8 @@
               <h3>Навигация</h3>
               <ul>
                 <li>График показывает площадки, емкости и циклы в выбранном периоде.</li>
-                <li>Верхняя панель управляет датами, масштабом, фильтрами и быстрыми разделами.</li>
+                <li>Верхняя панель управляет датами, масштабом, фильтрами, темой оформления и быстрыми разделами.</li>
+                <li>Кнопка светлой/темной темы переключает оформление сервиса для комфортной работы при разном освещении.</li>
                 <li>Меню пользователя открывает задачи, настройки, поддержку, справку и выход.</li>
               </ul>
             </section>
@@ -6508,7 +6517,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.25.83-saas";
+    const appVersion = "v2026.06.25.92-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6517,12 +6526,17 @@
         {
           title: "Быстрое создание варки",
           text: "Двойной клик по свободной ячейке сразу открывает новую варку с выбранной емкостью и датой.",
-          target: "#planner"
+          target: ["firstEmptySlot", "#planner"]
         },
         {
           title: "Период и масштаб",
           text: "Верхняя панель позволяет менять видимый период и детализацию графика для удобства навигации. Режим просмотра \"Полный\" позволяет видеть больше информации по циклам. Настроить отображаемую в этом режиме информацию можно в разделе \"Мои настройки\".",
           target: ".planning-controls"
+        },
+        {
+          title: "Светлая/темная тема",
+          text: "Кнопка темы переключает оформление сервиса между светлым и темным режимом, чтобы было удобнее работать при разном освещении.",
+          target: "#themeButton"
         },
         {
           title: "Фильтры графика",
@@ -6538,7 +6552,7 @@
       cycleProduction: [
         {
           title: "Карточка цикла",
-          text: "Здесь задаются сорт, ЦКТ, партия опционально, дата начала, длительность цикла, дата окончания, стадия и плановый выход. Дата окончания рассчитывается автоматически от даты начала и длительности цикла.",
+          text: "Здесь задаются сорт, ЦКТ, партия (опционально), дата начала, длительность цикла, дата окончания, стадия и плановый выход. Дата окончания рассчитывается автоматически от даты начала и длительности цикла.",
           target: "#cyclePanel"
         },
         {
@@ -6550,20 +6564,18 @@
       cycleProcess: [
         {
           title: "Процесс производства",
-          text: "Во вкладке процесса фиксируются параметры варки и брожения по выбранному циклу.",
-          target: "#cycleProcessPane"
+          text: "Во вкладке процесса фиксируются параметры варки и брожения по выбранному циклу. В блоке брожения есть возможность просмотра графика брожения на основании внесенных ежедневных данных.",
+          target: "#cycleProcessOnboardingTarget"
         }
       ],
       cycleTasks: [
         {
           title: "Задачи по циклу",
-          text: "Задачи привязаны к конкретной варке и отображаются также в общем списке “Мои задачи”.",
-          target: "#cycleTasksPane"
+          text: "Задачи привязаны к конкретной варке и отображаются также в общем списке “Мои задачи”."
         },
         {
           title: "Задача из комментария",
-          text: "Комментарий с ответственным автоматически создает задачу на дату этого комментария.",
-          target: ["#commentAssigneeInput", "#cycleTasksPane"]
+          text: "Комментарий с ответственным автоматически создает задачу на дату этого комментария."
         }
       ],
       partialBottling: [
@@ -7027,7 +7039,9 @@
         try {
           const element = selector === "firstVisibleCycle"
             ? Array.from(document.querySelectorAll(".cycle")).find(isVisibleOnboardingTarget)
-            : document.querySelector(selector);
+            : selector === "firstEmptySlot"
+              ? Array.from(document.querySelectorAll(".slot[data-empty='true']")).find(isVisibleOnboardingTarget)
+              : document.querySelector(selector);
           if (isVisibleOnboardingTarget(element)) return element;
         } catch {
           // Ignore an invalid selector and try the next fallback target.
@@ -13394,8 +13408,12 @@
           const slot = document.createElement("div");
           slot.className = `${isSite ? "site-track" : isGap ? "site-gap" : "slot"} ${flags}`;
           if (tank) slot.dataset.tankId = tank.id;
-          slot.dataset.date = toISO(date);
-          slot.dataset.picked = tank && state.pickedTankId === tank.id && state.pickedDate === toISO(date) ? "true" : "false";
+          const slotDate = toISO(date);
+          slot.dataset.date = slotDate;
+          slot.dataset.picked = tank && state.pickedTankId === tank.id && state.pickedDate === slotDate ? "true" : "false";
+          if (tank) {
+            slot.dataset.empty = overlapsCycle(tank.id, slotDate, slotDate) ? "false" : "true";
+          }
           slot.style.gridColumn = String(dateIndex + 2);
           slot.style.gridRow = gridRow;
           if (isSite) {
@@ -13405,7 +13423,7 @@
           slot.addEventListener("click", (event) => {
             if (tank && state.addMode) {
               event.stopPropagation();
-              pickProductionStart(tank.id, toISO(date));
+              pickProductionStart(tank.id, slotDate);
               return;
             }
             if (state.commentMode) {
@@ -13418,7 +13436,7 @@
             if (!tank || !canEdit()) return;
             event.preventDefault();
             event.stopPropagation();
-            prepareBrewFromGridCell(tank.id, toISO(date));
+            prepareBrewFromGridCell(tank.id, slotDate);
           });
           grid.append(slot);
         });
