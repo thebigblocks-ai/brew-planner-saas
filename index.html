@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.24.43-saas";
+      content: "v2026.06.24.44-saas";
     }
 
     .toolbar {
@@ -238,7 +238,7 @@
       min-width: 156px;
       display: inline-flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
       gap: 10px;
       padding: 0 11px;
       border-radius: 7px;
@@ -246,6 +246,32 @@
       color: var(--ink);
       font-weight: 800;
       white-space: nowrap;
+    }
+
+    .user-menu-button #currentUserName {
+      min-width: 0;
+      flex: 1 1 auto;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-notification-badge {
+      min-width: 20px;
+      height: 20px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: var(--brand);
+      color: #111827;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .32);
+    }
+
+    .user-notification-badge[hidden] {
+      display: none !important;
     }
 
     .user-menu-button svg {
@@ -4628,9 +4654,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.43-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.44-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.43-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.44-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -4687,6 +4713,7 @@
           <div class="user-box" id="userBox">
             <button class="user-menu-button" id="userMenuButton" type="button" aria-haspopup="true" aria-expanded="false">
               <span id="currentUserName">Пользователь</span>
+              <b class="user-notification-badge" id="userNotificationBadge" hidden>0</b>
               <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
             </button>
             <div class="user-menu" id="userMenu">
@@ -5749,7 +5776,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.24.43-saas";
+    const appVersion = "v2026.06.24.44-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -5819,6 +5846,7 @@
     let yandexPresenceTimer = null;
     let suppressRealtimeUntil = 0;
     let supportTicketSignature = localStorage.getItem(`${storageKey}-support-ticket-signature`) || "";
+    let supportUnreadCount = 0;
     let forcePasswordAttemptId = 0;
     let passwordSetupToken = "";
     let organizationSettings = null;
@@ -6047,17 +6075,39 @@
       return `Дедлайн приема в работу: ${formatSupportDate(ticket.responseDeadlineAt)} · SLA ${level}`;
     }
 
+    function userTaskNotificationCount() {
+      if (!featureEnabled("cycleTasks") || !currentUser) return 0;
+      try {
+        return myTaskItems().filter(({ task }) => !task.done).length;
+      } catch {
+        return 0;
+      }
+    }
+
+    function renderUserMenuNotificationBadge() {
+      if (!userNotificationBadge || !userMenuButton) return;
+      const total = userTaskNotificationCount() + supportUnreadCount;
+      const visible = Boolean(currentUser && total > 0);
+      userNotificationBadge.hidden = !visible;
+      userNotificationBadge.textContent = total > 99 ? "99+" : String(total);
+      userMenuButton.dataset.hasNotifications = visible ? "true" : "false";
+    }
+
     function updateSupportNotification(tickets = [], { markSeen = false } = {}) {
       const signature = supportTicketsSignature(tickets);
       if (markSeen || !supportTicketSignature) {
         supportTicketSignature = signature;
         localStorage.setItem(`${storageKey}-support-ticket-signature`, signature);
+        supportUnreadCount = 0;
         supportButton.removeAttribute("data-unread");
+        renderUserMenuNotificationBadge();
         return;
       }
       const unread = signature && signature !== supportTicketSignature ? 1 : 0;
+      supportUnreadCount = unread;
       if (unread) supportButton.dataset.unread = "?";
       else supportButton.removeAttribute("data-unread");
+      renderUserMenuNotificationBadge();
     }
 
     function renderSupportTickets(tickets = [], options = {}) {
@@ -7534,6 +7584,7 @@
     const presenceText = document.querySelector("#presenceText");
     const userBox = document.querySelector("#userBox");
     const userMenuButton = document.querySelector("#userMenuButton");
+    const userNotificationBadge = document.querySelector("#userNotificationBadge");
     const userMenu = document.querySelector("#userMenu");
     const logoutButton = document.querySelector("#logoutButton");
     const adminMenuButton = document.querySelector("#adminMenuButton");
@@ -13217,6 +13268,7 @@
       renderMetrics();
       renderBulkActions();
       renderMyTasksButton();
+      renderUserMenuNotificationBadge();
       renderConfigurableTemplates();
       renderCycleTabs();
       if (featureEnabled("cycleProcess")) renderCycleProcess();
@@ -14679,14 +14731,15 @@
 
       supportButton.addEventListener("click", () => {
         userBox.classList.remove("open");
+        const hasSupportUnread = supportUnreadCount > 0;
         supportStatus.className = "status";
         supportStatus.textContent = "";
         supportForm.reset();
         supportPhoneInput.value = "+7";
-        setSupportTab("new");
+        setSupportTab(hasSupportUnread ? "tickets" : "new");
         supportModal.classList.add("open");
         loadSupportAccessStatus();
-        loadSupportTickets();
+        loadSupportTickets(hasSupportUnread ? { markSeen: true } : {});
       });
 
       cancelSupportButton.addEventListener("click", () => {
