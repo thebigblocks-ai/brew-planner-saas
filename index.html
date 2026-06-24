@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.24.62-saas";
+      content: "v2026.06.24.63-saas";
     }
 
     .toolbar {
@@ -4860,9 +4860,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.62-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.63-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.62-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.63-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6004,7 +6004,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.24.62-saas";
+    const appVersion = "v2026.06.24.63-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -12064,19 +12064,6 @@
       return sites.find((site) => site.id === siteId)?.name || "площадка";
     }
 
-    function isCrossSiteCycleMove(cycle, targetTankId) {
-      if (!cycle || !targetTankId || cycle.tankId === targetTankId) return false;
-      const currentSiteId = tankById(cycle.tankId)?.siteId || "";
-      const targetSiteId = tankById(targetTankId)?.siteId || "";
-      return Boolean(currentSiteId && targetSiteId && currentSiteId !== targetSiteId);
-    }
-
-    function cycleCrossSiteMoveMessage(cycle, targetTankId) {
-      const currentSiteId = tankById(cycle?.tankId)?.siteId || "";
-      const targetSiteId = tankById(targetTankId)?.siteId || "";
-      return `Нельзя переносить цикл между площадками: ${siteNameById(currentSiteId)} → ${siteNameById(targetSiteId)}. Выберите ЦКТ той же площадки.`;
-    }
-
     function cycleChangeIsNoop(change) {
       return change.tankId === change.originalTankId
         && change.start === change.originalStart
@@ -12949,7 +12936,6 @@
       const handle = event.target.closest("[data-resize]");
       const tankIndex = tankRowIndex(cycle.tankId);
       if (tankIndex < 0) return;
-      const originalTank = tankById(cycle.tankId);
       dragState = {
         id: cycle.id,
         mode: handle ? handle.dataset.resize : "move",
@@ -12960,7 +12946,6 @@
         originalStart: cycle.start,
         originalEnd: cycle.end,
         originalTankId: cycle.tankId,
-        originalSiteId: originalTank?.siteId || "",
         originalTankIndex: tankIndex,
         moved: false,
         latest: {
@@ -12998,8 +12983,6 @@
       let start = dragState.originalStart;
       let end = dragState.originalEnd;
       let tankIndex = dragState.originalTankIndex;
-      let targetTankId = dragState.originalTankId;
-      let blockedReason = "";
 
       if (dragState.mode === "move") {
         start = toISO(addDays(parseDate(dragState.originalStart), dayDelta));
@@ -13008,14 +12991,7 @@
         const currentTankPosition = tankPositions.indexOf(dragState.originalTankIndex);
         const nextTankPosition = clamp(currentTankPosition + tankDelta, 0, tankPositions.length - 1);
         const targetTankIndex = tankPositions[nextTankPosition] ?? dragState.originalTankIndex;
-        const targetTank = rows[targetTankIndex]?.tank || tankById(dragState.originalTankId);
-        targetTankId = targetTank?.id || dragState.originalTankId;
-        if (targetTank && targetTank.siteId !== dragState.originalSiteId) {
-          blockedReason = "cross-site";
-          tankIndex = dragState.originalTankIndex;
-        } else {
-          tankIndex = targetTankIndex;
-        }
+        tankIndex = targetTankIndex;
       }
 
       if (dragState.mode === "left") {
@@ -13029,13 +13005,11 @@
       }
 
       const tank = rows[tankIndex]?.tank || tankById(dragState.originalTankId);
-      const cycle = cycles.find((item) => item.id === dragState.id);
-      const crossSiteMove = blockedReason === "cross-site" || isCrossSiteCycleMove(cycle, targetTankId);
-      const valid = Boolean(tank) && !crossSiteMove && !overlapsCycle(tank.id, start, end, dragState.id);
+      const valid = Boolean(tank) && !overlapsCycle(tank.id, start, end, dragState.id);
       const visibleStart = parseDate(state.start);
       const offset = Math.round((parseDate(start) - visibleStart) / 86400000);
       const duration = Math.max(1, diffDays(start, end) + 1);
-      dragState.latest = { start, end, tankId: crossSiteMove ? targetTankId : tank.id, valid, blockedReason: crossSiteMove ? "cross-site" : "" };
+      dragState.latest = { start, end, tankId: tank.id, valid, blockedReason: "" };
       dragState.element.style.left = `calc(var(--tank-label) + ${offset} * var(--day-col))`;
       dragState.element.style.top = `calc(var(--header-total) + ${tankIndex} * var(--tank-row))`;
       dragState.element.style.width = `calc(${duration} * var(--day-col) - 8px)`;
@@ -13046,11 +13020,6 @@
     function applyCycleChange(change) {
       const cycle = cycles.find((item) => item.id === change.id);
       if (!cycle) return;
-      if (isCrossSiteCycleMove(cycle, change.tankId)) {
-        formStatus.className = "status error";
-        formStatus.textContent = cycleCrossSiteMoveMessage(cycle, change.tankId);
-        return false;
-      }
       if (cycleChangeIsNoop(change)) return false;
       pushUndoSnapshot("изменение цикла на графике");
       const shift = change.mode === "move" ? diffDays(change.originalStart, change.start) : 0;
@@ -13139,9 +13108,7 @@
         applyCycleChange(change);
       } else if (cycle) {
         formStatus.className = "status error";
-        formStatus.textContent = dragState.latest.blockedReason === "cross-site"
-          ? cycleCrossSiteMoveMessage(cycle, dragState.latest.tankId)
-          : "Перемещение отменено: есть пересечение в ЦКТ";
+        formStatus.textContent = "Перемещение отменено: есть пересечение в ЦКТ";
         dragState = null;
       }
       render();
@@ -13868,14 +13835,10 @@
 
     function renderTankOptions() {
       const currentValue = tankInput.value;
-      const currentCycle = selectedCycle();
       tankInput.innerHTML = orderedSites().map((site) => {
         const options = tanks
           .filter((tank) => tank.siteId === site.id)
-          .map((tank) => {
-            const disabled = currentCycle && isCrossSiteCycleMove(currentCycle, tank.id) ? " disabled" : "";
-            return `<option value="${tank.id}"${disabled}>${tank.name} · ${tank.volume}</option>`;
-          })
+          .map((tank) => `<option value="${tank.id}">${tank.name} · ${tank.volume}</option>`)
           .join("");
         return `<optgroup label="${site.name}">${options}</optgroup>`;
       }).join("");
@@ -14016,10 +13979,12 @@
       tankModeSwitch.querySelectorAll("[data-tank-mode]").forEach((button) => {
         button.classList.toggle("active", button.dataset.tankMode === state.tankCreateMode);
       });
-      [tankNameInput, tankVolumeInput, tankSiteInput].forEach((input) => {
+      [tankNameInput, tankVolumeInput].forEach((input) => {
         input.required = state.tankCreateMode === "single";
         input.disabled = state.tankCreateMode !== "single" || !canEdit();
       });
+      tankSiteInput.required = state.tankCreateMode === "single";
+      tankSiteInput.disabled = editing || state.tankCreateMode !== "single" || !canEdit();
       [bulkTankSiteInput, bulkTankPrefixInput, bulkTankStartInput, bulkTankCountInput, bulkTankVolumeInput].forEach((input) => {
         input.required = state.tankCreateMode === "bulk";
         input.disabled = state.tankCreateMode !== "bulk" || !canEdit();
@@ -14235,14 +14200,6 @@
       if (end < start) {
         formStatus.className = "status error";
         formStatus.textContent = "Дата розлива должна быть позже старта";
-        return false;
-      }
-      const existingCycle = cycles.find((cycle) => cycle.id === state.selectedCycleId);
-      if (existingCycle && isCrossSiteCycleMove(existingCycle, tankId)) {
-        formStatus.className = "status error";
-        formStatus.textContent = cycleCrossSiteMoveMessage(existingCycle, tankId);
-        tankInput.value = existingCycle.tankId;
-        state.pickedTankId = existingCycle.tankId;
         return false;
       }
       if (overlapsCycle(tankId, start, end, state.selectedCycleId)) {
@@ -15383,14 +15340,6 @@
       partialCanQtyInput.addEventListener("input", () => syncPartialPackagingFrom("canQty"));
       partialKegLitersInput.addEventListener("input", () => syncPartialPackagingFrom("kegLiters"));
       tankInput.addEventListener("change", () => {
-        const cycle = selectedCycle();
-        if (cycle && isCrossSiteCycleMove(cycle, tankInput.value)) {
-          formStatus.className = "status error";
-          formStatus.textContent = cycleCrossSiteMoveMessage(cycle, tankInput.value);
-          tankInput.value = cycle.tankId;
-          state.pickedTankId = cycle.tankId;
-          return;
-        }
         state.pickedTankId = tankInput.value;
         updateCyclePanelTitle();
         render();
@@ -15940,20 +15889,16 @@
         }
         const existingTank = tanks.find((tank) => tank.id === state.selectedTankId);
         if (existingTank) {
-          if (existingTank.siteId !== siteId && cycles.some((cycle) => cycle.tankId === existingTank.id)) {
+          if (existingTank.siteId !== siteId) {
             tankStatus.className = "status error";
-            tankStatus.textContent = "Нельзя переносить емкость с циклами на другую площадку";
+            tankStatus.textContent = "Нельзя переносить емкость между площадками";
+            tankSiteInput.value = existingTank.siteId || sites[0].id;
             return;
           }
           pushUndoSnapshot("сохранение емкости");
-          const siteChanged = existingTank.siteId !== siteId;
           existingTank.name = name;
           existingTank.volume = volume;
-          existingTank.siteId = siteId;
           existingTank.comment = comment;
-          if (siteChanged) {
-            existingTank.sortOrder = tanks.filter((tank) => tank.siteId === siteId && tank.id !== existingTank.id).length;
-          }
           savePlan();
           logAction("tank_updated", "tank", existingTank.id, existingTank.name, {
             site: sites.find((site) => site.id === existingTank.siteId)?.name || "",
