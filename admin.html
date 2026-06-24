@@ -776,7 +776,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.24.17-saas</span>
+        <span>v2026.06.24.19-saas</span>
       </div>
     </aside>
 
@@ -852,15 +852,19 @@
                 <form id="organizationUserForm" class="user-create-form">
                   <label class="field">
                     <span>Email</span>
-                    <input id="orgUserEmailInput" type="email" placeholder="user@company.ru">
+                    <input id="orgUserEmailInput" type="email" placeholder="user@company.ru" required>
                   </label>
                   <label class="field">
-                    <span>Пароль</span>
-                    <input value="Ссылка установки будет отправлена на email" disabled>
+                    <span>Фамилия</span>
+                    <input id="orgUserLastNameInput" autocomplete="family-name" placeholder="Петров">
                   </label>
                   <label class="field">
                     <span>Имя</span>
-                    <input id="orgUserNameInput" placeholder="ФИО">
+                    <input id="orgUserFirstNameInput" autocomplete="given-name" placeholder="Иван">
+                  </label>
+                  <label class="field">
+                    <span>Отчество</span>
+                    <input id="orgUserMiddleNameInput" autocomplete="additional-name" placeholder="Иванович">
                   </label>
                   <label class="field">
                     <span>Роль</span>
@@ -1092,6 +1096,46 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+    }
+
+    function cleanNamePart(value) {
+      return String(value || "").trim();
+    }
+
+    function fullNameFromParts(lastName, firstName, middleName = "") {
+      return [lastName, firstName, middleName].map(cleanNamePart).filter(Boolean).join(" ");
+    }
+
+    function nameInitial(value) {
+      const text = cleanNamePart(value);
+      return text ? `${text[0].toLocaleUpperCase("ru-RU")}.` : "";
+    }
+
+    function legacyNameParts(displayName = "") {
+      const parts = cleanNamePart(displayName).split(/\s+/).filter(Boolean);
+      if (!parts.length) return { lastName: "", firstName: "", middleName: "" };
+      if (parts.length === 1) return { lastName: parts[0], firstName: "", middleName: "" };
+      if (parts.length === 2) return { lastName: parts[1], firstName: parts[0], middleName: "" };
+      const lastPart = parts[parts.length - 1];
+      const looksLikePatronymic = /(вич|вна|чна|иничн?а|оглы|кызы)$/i.test(lastPart);
+      return looksLikePatronymic
+        ? { lastName: parts[0], firstName: parts[1], middleName: parts.slice(2).join(" ") }
+        : { lastName: lastPart, firstName: parts[0], middleName: parts.slice(1, -1).join(" ") };
+    }
+
+    function namePartsFromUser(user) {
+      const parts = {
+        lastName: cleanNamePart(user?.lastName),
+        firstName: cleanNamePart(user?.firstName),
+        middleName: cleanNamePart(user?.middleName)
+      };
+      return parts.lastName || parts.firstName || parts.middleName ? parts : legacyNameParts(user?.displayName || "");
+    }
+
+    function shortUserName(user) {
+      const parts = namePartsFromUser(user);
+      const initials = [nameInitial(parts.firstName), nameInitial(parts.middleName)].filter(Boolean).join(" ");
+      return parts.lastName ? [parts.lastName, initials].filter(Boolean).join(" ") : (user?.displayName || user?.email || "Пользователь");
     }
 
     function token() {
@@ -1367,7 +1411,7 @@
         <div class="user-row" data-user-id="${escapeHtml(user.id)}">
           <div class="user-main">
             <div>
-              <b>${escapeHtml(user.displayName || user.email)}</b>
+              <b>${escapeHtml(shortUserName(user))}</b>
               <div class="small">${escapeHtml(user.email)}${user.mustChangePassword ? " · ждет смены пароля" : ""}${user.isBlocked ? " · отключен" : ""}</div>
             </div>
             <div class="user-role-actions">
@@ -1702,7 +1746,7 @@
           $("#loginStatus").textContent = "";
           return;
         }
-        $("#currentUserName").textContent = currentUser.displayName || currentUser.email;
+        $("#currentUserName").textContent = shortUserName(currentUser);
         document.body.dataset.auth = "open";
         await loadAll();
         startTicketAutoRefresh();
@@ -1740,7 +1784,7 @@
         setToken(data.token);
         currentUser = await loadMe();
         if (currentUser.serviceRole !== "super_admin") throw new Error("Учетная запись не является супер-админом");
-        $("#currentUserName").textContent = currentUser.displayName || currentUser.email;
+        $("#currentUserName").textContent = shortUserName(currentUser);
         document.body.dataset.auth = "open";
         await loadAll();
       } catch (error) {
@@ -1943,11 +1987,22 @@
       if (!selectedOrganizationId) return;
       setStatus($("#usersStatus"), "Добавляем пользователя...");
       try {
+        const email = $("#orgUserEmailInput").value.trim();
+        if (!email.includes("@")) {
+          setStatus($("#usersStatus"), "Укажите email пользователя, например user@company.ru", "error");
+          return;
+        }
+        const lastName = $("#orgUserLastNameInput").value.trim();
+        const firstName = $("#orgUserFirstNameInput").value.trim();
+        const middleName = $("#orgUserMiddleNameInput").value.trim();
         const data = await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users`, {
           method: "POST",
           body: {
-            email: $("#orgUserEmailInput").value.trim(),
-            displayName: $("#orgUserNameInput").value.trim(),
+            email,
+            displayName: fullNameFromParts(lastName, firstName, middleName),
+            lastName,
+            firstName,
+            middleName,
             organizationRole: $("#orgUserRoleInput").value
           }
         });

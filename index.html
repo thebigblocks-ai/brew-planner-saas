@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.24.63-saas";
+      content: "v2026.06.25.72-saas";
     }
 
     .toolbar {
@@ -323,7 +323,8 @@
 
     .user-menu button:hover,
     .user-menu button.active,
-    .user-menu .my-tasks-button[data-has-open="true"] {
+    .user-menu .my-tasks-button[data-has-open="true"],
+    .user-menu #supportButton[data-has-unread="true"] {
       background: var(--soft-bg);
     }
 
@@ -346,7 +347,8 @@
       box-shadow: none;
     }
 
-    .user-menu .my-tasks-button b {
+    .user-menu .my-tasks-button b,
+    .user-menu #supportButton b {
       margin-left: auto;
       grid-column: 3;
     }
@@ -376,7 +378,8 @@
       background: color-mix(in srgb, var(--brand) 18%, var(--panel));
     }
 
-    .my-tasks-button b {
+    .my-tasks-button b,
+    #supportButton b {
       min-width: 22px;
       height: 22px;
       display: inline-grid;
@@ -403,24 +406,6 @@
       height: 22px;
       stroke-width: 2.25;
       flex: 0 0 auto;
-    }
-
-    #supportButton[data-unread]::after {
-      content: attr(data-unread);
-      position: absolute;
-      top: -7px;
-      right: -7px;
-      min-width: 22px;
-      height: 22px;
-      padding: 0 6px;
-      display: grid;
-      place-items: center;
-      border-radius: 999px;
-      background: var(--brand);
-      color: #111827;
-      border: 1px solid var(--panel);
-      font-size: 11px;
-      font-weight: 900;
     }
 
     .account-tools {
@@ -1637,6 +1622,32 @@
       object-fit: contain;
     }
 
+    #organizationSettingsLogoInput {
+      height: 38px;
+      padding: 4px 10px;
+      line-height: 28px;
+    }
+
+    #organizationSettingsLogoInput::file-selector-button {
+      height: 28px;
+      margin: 0 10px 0 0;
+      padding: 0 12px;
+      vertical-align: middle;
+    }
+
+    .settings-workday-row {
+      display: grid;
+      grid-template-columns: minmax(92px, .55fr) minmax(92px, .55fr) minmax(220px, 1.4fr);
+      gap: 10px;
+      align-items: end;
+    }
+
+    .settings-workday-row input,
+    .settings-workday-row select {
+      width: 100%;
+      min-width: 0;
+    }
+
     .planner-shell {
       min-width: 0;
       min-height: 0;
@@ -2174,6 +2185,17 @@
       max-width: calc(100% - var(--stage-left, 9px) - 9px);
     }
 
+    .cycle .stage-badge.stage-dot {
+      width: 15px;
+      height: 15px;
+      min-width: 15px;
+      padding: 0;
+      border-radius: 999px;
+      font-size: 0;
+      line-height: 0;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, .74);
+    }
+
     .cycle .cycle-title {
       grid-column: 2 / 3;
     }
@@ -2182,6 +2204,12 @@
       top: 4px;
       left: var(--stage-left, 8px);
       max-width: calc(100% - var(--stage-left, 8px) - 8px);
+    }
+
+    .grid[data-view="compact"] .cycle .stage-badge.stage-dot {
+      width: 12px;
+      height: 12px;
+      min-width: 12px;
     }
 
     .cycle .dates {
@@ -4860,9 +4888,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.63-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.72-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.63-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.72-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -4934,7 +4962,8 @@
               </button>
               <button class="top-action" id="supportButton" type="button">
                 <svg viewBox="0 0 24 24"><path d="M20.5 11.5a7.5 7.5 0 0 1-7.5 7.5H8l-4.5 2 1.4-4.2A7.5 7.5 0 1 1 20.5 11.5Z"/><path d="M10 9.2a2.2 2.2 0 0 1 4.1 1.1c0 1.45-1.7 1.7-2.05 2.65"/><path d="M12 16h.01"/></svg>
-                Поддержка
+                <span>Поддержка</span>
+                <b id="supportCount" hidden>0</b>
               </button>
               <button class="top-action" id="logoutButton" type="button">
                 <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M21 3v18"/></svg>
@@ -5492,23 +5521,30 @@
           <form class="form" id="userForm">
             <div class="two">
               <label class="field">
-                <span>Имя</span>
-                <input id="newUserFirstNameInput" autocomplete="given-name" placeholder="Иван">
-              </label>
-              <label class="field">
                 <span>Фамилия</span>
                 <input id="newUserLastNameInput" autocomplete="family-name" placeholder="Петров">
+              </label>
+              <label class="field">
+                <span>Имя</span>
+                <input id="newUserFirstNameInput" autocomplete="given-name" placeholder="Иван">
               </label>
             </div>
             <div class="two">
               <label class="field">
+                <span>Отчество</span>
+                <input id="newUserMiddleNameInput" autocomplete="additional-name" placeholder="Иванович">
+              </label>
+              <label class="field">
                 <span>Email</span>
                 <input id="newUserLoginInput" type="email" autocomplete="off" placeholder="user@company.ru" required>
               </label>
+            </div>
+            <div class="two">
               <label class="field">
                 <span>Контактный телефон</span>
                 <input id="newUserPhoneInput" type="tel" autocomplete="tel" value="+7" placeholder="+7">
               </label>
+              <span></span>
             </div>
             <label class="field">
               <span>Права</span>
@@ -5614,42 +5650,42 @@
                 <b>Реквизиты</b>
                 <span>Раздел для будущего заполнения</span>
               </div>
-              <div class="two">
+              <div class="settings-workday-row">
                 <label class="field">
                   <span>Рабочий день с</span>
                   <input id="orgWorkdayStartInput" type="time">
                 </label>
                 <label class="field">
-                  <span>до</span>
+                  <span>Рабочий день по</span>
                   <input id="orgWorkdayEndInput" type="time">
                 </label>
+                <label class="field">
+                  <span>Часовой пояс</span>
+                  <select id="orgTimezoneInput">
+                    <option value="Europe/Kaliningrad">Калининград, UTC+2</option>
+                    <option value="Europe/Moscow">Москва, UTC+3</option>
+                    <option value="Europe/Samara">Самара, UTC+4</option>
+                    <option value="Asia/Yekaterinburg">Екатеринбург, UTC+5</option>
+                    <option value="Asia/Omsk">Омск, UTC+6</option>
+                    <option value="Asia/Novosibirsk">Новосибирск, UTC+7</option>
+                    <option value="Asia/Krasnoyarsk">Красноярск, UTC+7</option>
+                    <option value="Asia/Irkutsk">Иркутск, UTC+8</option>
+                    <option value="Asia/Yakutsk">Якутск, UTC+9</option>
+                    <option value="Asia/Vladivostok">Владивосток, UTC+10</option>
+                    <option value="Asia/Magadan">Магадан, UTC+11</option>
+                    <option value="Asia/Kamchatka">Камчатка, UTC+12</option>
+                    <option value="Europe/Minsk">Минск, UTC+3</option>
+                    <option value="Asia/Almaty">Алматы, UTC+5</option>
+                    <option value="Asia/Tashkent">Ташкент, UTC+5</option>
+                    <option value="Asia/Tbilisi">Тбилиси, UTC+4</option>
+                    <option value="Asia/Yerevan">Ереван, UTC+4</option>
+                    <option value="Europe/Istanbul">Стамбул, UTC+3</option>
+                    <option value="Europe/Berlin">Берлин, UTC+1/UTC+2</option>
+                    <option value="Europe/London">Лондон, UTC+0/UTC+1</option>
+                    <option value="UTC">UTC</option>
+                  </select>
+                </label>
               </div>
-              <label class="field">
-                <span>Часовой пояс</span>
-                <select id="orgTimezoneInput">
-                  <option value="Europe/Kaliningrad">Калининград, UTC+2</option>
-                  <option value="Europe/Moscow">Москва, UTC+3</option>
-                  <option value="Europe/Samara">Самара, UTC+4</option>
-                  <option value="Asia/Yekaterinburg">Екатеринбург, UTC+5</option>
-                  <option value="Asia/Omsk">Омск, UTC+6</option>
-                  <option value="Asia/Novosibirsk">Новосибирск, UTC+7</option>
-                  <option value="Asia/Krasnoyarsk">Красноярск, UTC+7</option>
-                  <option value="Asia/Irkutsk">Иркутск, UTC+8</option>
-                  <option value="Asia/Yakutsk">Якутск, UTC+9</option>
-                  <option value="Asia/Vladivostok">Владивосток, UTC+10</option>
-                  <option value="Asia/Magadan">Магадан, UTC+11</option>
-                  <option value="Asia/Kamchatka">Камчатка, UTC+12</option>
-                  <option value="Europe/Minsk">Минск, UTC+3</option>
-                  <option value="Asia/Almaty">Алматы, UTC+5</option>
-                  <option value="Asia/Tashkent">Ташкент, UTC+5</option>
-                  <option value="Asia/Tbilisi">Тбилиси, UTC+4</option>
-                  <option value="Asia/Yerevan">Ереван, UTC+4</option>
-                  <option value="Europe/Istanbul">Стамбул, UTC+3</option>
-                  <option value="Europe/Berlin">Берлин, UTC+1/UTC+2</option>
-                  <option value="Europe/London">Лондон, UTC+0/UTC+1</option>
-                  <option value="UTC">UTC</option>
-                </select>
-              </label>
             </div>
             <div class="settings-tab-pane" id="organizationSettingsEmailPane" data-org-settings-pane="email" role="tabpanel" hidden>
               <div class="feature-list">
@@ -5671,10 +5707,9 @@
               </label>
             </div>
             <div class="settings-tab-pane" id="organizationSettingsPlannerPane" data-org-settings-pane="planner" role="tabpanel" hidden>
-              <label class="field">
-                <span>Горизонт розливов, дней</span>
-                <input id="orgBottlingHorizonInput" type="number" min="7" max="90" step="1">
-              </label>
+              <div class="feature-list">
+                <label class="feature-row"><span><b>Отражать партии</b><small>Показывать номера партий на карточках производственных циклов.</small></span><input id="orgShowBatchNumbersInput" type="checkbox"></label>
+              </div>
               <section class="settings-template-editor" data-template-editor="comments">
                 <div class="settings-template-title">
                   <span>Шаблоны комментариев</span>
@@ -5798,23 +5833,30 @@
       <form class="password-modal-form" id="userProfileForm">
         <div class="two">
           <label class="field">
-            <span>Имя</span>
-            <input id="userProfileFirstNameInput" autocomplete="given-name">
-          </label>
-          <label class="field">
             <span>Фамилия</span>
             <input id="userProfileLastNameInput" autocomplete="family-name">
+          </label>
+          <label class="field">
+            <span>Имя</span>
+            <input id="userProfileFirstNameInput" autocomplete="given-name">
           </label>
         </div>
         <div class="two">
           <label class="field">
+            <span>Отчество</span>
+            <input id="userProfileMiddleNameInput" autocomplete="additional-name">
+          </label>
+          <label class="field">
             <span>Отдел</span>
             <input id="userProfileDepartmentInput" autocomplete="off">
           </label>
+        </div>
+        <div class="two">
           <label class="field">
             <span>Телефон</span>
             <input id="userProfilePhoneInput" autocomplete="off">
           </label>
+          <span></span>
         </div>
         <label class="field">
           <span>Комментарий</span>
@@ -6004,7 +6046,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.24.63-saas";
+    const appVersion = "v2026.06.25.72-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6332,6 +6374,15 @@
       userNotificationBadge.hidden = !visible;
       userNotificationBadge.textContent = total > 99 ? "99+" : String(total);
       userMenuButton.dataset.hasNotifications = visible ? "true" : "false";
+      renderSupportMenuBadge();
+    }
+
+    function renderSupportMenuBadge() {
+      if (!supportButton || !supportCount) return;
+      const visible = Boolean(currentUser && featureEnabled("supportTickets") && supportUnreadCount > 0);
+      supportCount.hidden = !visible;
+      supportCount.textContent = supportUnreadCount > 99 ? "99+" : String(supportUnreadCount);
+      supportButton.dataset.hasUnread = visible ? "true" : "false";
     }
 
     function updateSupportNotification(tickets = [], { markSeen = false } = {}) {
@@ -6340,7 +6391,6 @@
         supportTicketSignature = signature;
         localStorage.setItem(`${storageKey}-support-ticket-signature`, signature);
         supportUnreadCount = 0;
-        supportButton.removeAttribute("data-unread");
         renderUserMenuNotificationBadge();
         return;
       }
@@ -6348,8 +6398,6 @@
         ? supportNotificationCount(tickets, supportTicketSignature)
         : 0;
       supportUnreadCount = unread;
-      if (unread) supportButton.dataset.unread = unread > 99 ? "99+" : String(unread);
-      else supportButton.removeAttribute("data-unread");
       renderUserMenuNotificationBadge();
     }
 
@@ -6878,6 +6926,9 @@
         email: row.email,
         login: row.email,
         displayName: row.display_name || "",
+        lastName: row.last_name || "",
+        firstName: row.first_name || "",
+        middleName: row.middle_name || "",
         department: row.department || "",
         phone: row.phone || "",
         comment: row.comment || "",
@@ -7036,10 +7087,13 @@
       users = (data || []).map(profileFromRow);
     }
 
-    async function createYandexUser(email, displayName, role, phone = "") {
+    async function createYandexUser(email, profile, role, phone = "") {
+      const payload = typeof profile === "object" && profile !== null
+        ? profile
+        : { displayName: String(profile || "").trim() };
       const data = await yandexRequest("/users", {
         method: "POST",
-        body: { email, displayName, role, phone }
+        body: { email, ...payload, role, phone }
       });
       return data;
     }
@@ -7071,6 +7125,9 @@
           body: {
             role: user.role,
             displayName: profile.displayName,
+            lastName: profile.lastName,
+            firstName: profile.firstName,
+            middleName: profile.middleName,
             department: profile.department,
             phone: profile.phone,
             comment: profile.comment
@@ -7083,7 +7140,8 @@
 
     async function createAuthUser(email, password) {
       if (isYandexBackend) {
-        const data = await createYandexUser(email, fullNameFromParts(newUserFirstNameInput.value, newUserLastNameInput.value), newUserRoleInput.value, newUserPhoneInput.value.trim());
+        const profile = userNameProfileFromParts(newUserLastNameInput.value, newUserFirstNameInput.value, newUserMiddleNameInput.value);
+        const data = await createYandexUser(email, profile, newUserRoleInput.value, newUserPhoneInput.value.trim());
         return data.user;
       }
       throw new Error("Создание пользователей доступно только через Yandex API");
@@ -7099,6 +7157,9 @@
           email: data.user.email || data.user.login,
           login: data.user.login || data.user.email,
           displayName: data.user.displayName || "",
+          lastName: data.user.lastName || "",
+          firstName: data.user.firstName || "",
+          middleName: data.user.middleName || "",
           department: data.user.department || "",
           phone: data.user.phone || "",
           comment: data.user.comment || "",
@@ -7783,6 +7844,7 @@
     const userProfileModalText = document.querySelector("#userProfileModalText");
     const userProfileFirstNameInput = document.querySelector("#userProfileFirstNameInput");
     const userProfileLastNameInput = document.querySelector("#userProfileLastNameInput");
+    const userProfileMiddleNameInput = document.querySelector("#userProfileMiddleNameInput");
     const userProfileDepartmentInput = document.querySelector("#userProfileDepartmentInput");
     const userProfilePhoneInput = document.querySelector("#userProfilePhoneInput");
     const userProfileCommentInput = document.querySelector("#userProfileCommentInput");
@@ -7835,6 +7897,7 @@
     const supportAttachmentsInput = document.querySelector("#supportAttachmentsInput");
     const supportStatus = document.querySelector("#supportStatus");
     const supportTicketList = document.querySelector("#supportTicketList");
+    const supportCount = document.querySelector("#supportCount");
     const supportAccessStatus = document.querySelector("#supportAccessStatus");
     const supportAccessActions = document.querySelector("#supportAccessActions");
     const enableSupportAccessButton = document.querySelector("#enableSupportAccessButton");
@@ -7887,6 +7950,7 @@
     const userForm = document.querySelector("#userForm");
     const newUserFirstNameInput = document.querySelector("#newUserFirstNameInput");
     const newUserLastNameInput = document.querySelector("#newUserLastNameInput");
+    const newUserMiddleNameInput = document.querySelector("#newUserMiddleNameInput");
     const newUserLoginInput = document.querySelector("#newUserLoginInput");
     const newUserPhoneInput = document.querySelector("#newUserPhoneInput");
     const newUserRoleInput = document.querySelector("#newUserRoleInput");
@@ -8129,6 +8193,15 @@
       return organizationSettings;
     }
 
+    function organizationPlannerSettings() {
+      const settings = organizationSettings || currentUser?.organizationSettings || {};
+      return settings.plannerSettings || {};
+    }
+
+    function showCycleBatchNumbers() {
+      return organizationPlannerSettings().showBatchNumbers !== false;
+    }
+
     function renderOrganizationSettings(options = {}) {
       if (!options.force && organizationSettingsFormDirty) {
         renderOrganizationSettingsTabs();
@@ -8147,10 +8220,10 @@
       document.querySelector("#orgNotifyCommentAssigned").checked = notifications.commentAssigned !== false;
       document.querySelector("#orgNotificationExtraEmailInput").value = settings.notificationRecipients?.extraEmail || "";
       document.querySelector("#orgRemindBeforeDueInput").value = settings.taskSettings?.remindBeforeDueDays ?? 1;
-      document.querySelector("#orgBottlingHorizonInput").value = settings.calendarSettings?.bottlingHorizonDays || 14;
       document.querySelector("#orgWorkdayStartInput").value = settings.calendarSettings?.workdayStart || "10:00";
       document.querySelector("#orgWorkdayEndInput").value = settings.calendarSettings?.workdayEnd || "18:00";
       document.querySelector("#orgTimezoneInput").value = settings.calendarSettings?.timezone || "Europe/Moscow";
+      document.querySelector("#orgShowBatchNumbersInput").checked = settings.plannerSettings?.showBatchNumbers !== false;
       renderOrganizationTemplateEditors(settings);
       organizationSettingsFormDirty = false;
       renderOrganizationSettingsTabs();
@@ -8182,10 +8255,12 @@
           remindBeforeDueDays: Number(document.querySelector("#orgRemindBeforeDueInput").value || 0)
         },
         calendarSettings: {
-          bottlingHorizonDays: Number(document.querySelector("#orgBottlingHorizonInput").value || 14),
           timezone: document.querySelector("#orgTimezoneInput").value || "Europe/Moscow",
           workdayStart: document.querySelector("#orgWorkdayStartInput").value || "10:00",
           workdayEnd: document.querySelector("#orgWorkdayEndInput").value || "18:00"
+        },
+        plannerSettings: {
+          showBatchNumbers: document.querySelector("#orgShowBatchNumbersInput").checked
         },
         commentTemplates: templatesFromTextarea(orgCommentTemplatesInput.value),
         taskTemplates: templatesFromTextarea(orgTaskTemplatesInput.value)
@@ -8715,20 +8790,55 @@
     }
 
     function userDisplayName(user) {
+      const parts = namePartsFromUser(user);
+      const initials = [nameInitial(parts.firstName), nameInitial(parts.middleName)].filter(Boolean).join(" ");
+      if (parts.lastName) return [parts.lastName, initials].filter(Boolean).join(" ");
       return user?.displayName || user?.login || user?.email || "Пользователь";
     }
 
-    function fullNameFromParts(firstName, lastName) {
-      return [firstName, lastName].map((item) => String(item || "").trim()).filter(Boolean).join(" ");
+    function cleanNamePart(value) {
+      return String(value || "").trim();
+    }
+
+    function fullNameFromParts(lastName, firstName, middleName = "") {
+      return [lastName, firstName, middleName].map(cleanNamePart).filter(Boolean).join(" ");
+    }
+
+    function nameInitial(value) {
+      const text = cleanNamePart(value);
+      return text ? `${text[0].toLocaleUpperCase("ru-RU")}.` : "";
     }
 
     function namePartsFromDisplayName(displayName) {
-      const parts = String(displayName || "").trim().split(/\s+/).filter(Boolean);
-      if (!parts.length) return { firstName: "", lastName: "" };
-      if (parts.length === 1) return { firstName: parts[0], lastName: "" };
+      const parts = cleanNamePart(displayName).split(/\s+/).filter(Boolean);
+      if (!parts.length) return { lastName: "", firstName: "", middleName: "" };
+      if (parts.length === 1) return { lastName: parts[0], firstName: "", middleName: "" };
+      if (parts.length === 2) return { lastName: parts[1], firstName: parts[0], middleName: "" };
+      const lastPart = parts[parts.length - 1];
+      const looksLikePatronymic = /(вич|вна|чна|иничн?а|оглы|кызы)$/i.test(lastPart);
+      return looksLikePatronymic
+        ? { lastName: parts[0], firstName: parts[1], middleName: parts.slice(2).join(" ") }
+        : { lastName: lastPart, firstName: parts[0], middleName: parts.slice(1, -1).join(" ") };
+    }
+
+    function namePartsFromUser(user) {
+      const parts = {
+        lastName: cleanNamePart(user?.lastName),
+        firstName: cleanNamePart(user?.firstName),
+        middleName: cleanNamePart(user?.middleName)
+      };
+      return parts.lastName || parts.firstName || parts.middleName ? parts : namePartsFromDisplayName(user?.displayName || "");
+    }
+
+    function userNameProfileFromParts(lastName, firstName, middleName = "") {
+      const profile = {
+        lastName: cleanNamePart(lastName),
+        firstName: cleanNamePart(firstName),
+        middleName: cleanNamePart(middleName)
+      };
       return {
-        firstName: parts.slice(0, -1).join(" "),
-        lastName: parts[parts.length - 1]
+        ...profile,
+        displayName: fullNameFromParts(profile.lastName, profile.firstName, profile.middleName)
       };
     }
 
@@ -10400,9 +10510,10 @@
       userProfileStatus.className = "status";
       userProfileStatus.textContent = "";
       userProfileModalText.textContent = `Пользователь: ${user.login}`;
-      const nameParts = namePartsFromDisplayName(user.displayName || "");
-      userProfileFirstNameInput.value = nameParts.firstName;
+      const nameParts = namePartsFromUser(user);
       userProfileLastNameInput.value = nameParts.lastName;
+      userProfileFirstNameInput.value = nameParts.firstName;
+      userProfileMiddleNameInput.value = nameParts.middleName;
       userProfileDepartmentInput.value = user.department || "";
       userProfilePhoneInput.value = user.phone || "";
       userProfileCommentInput.value = user.comment || "";
@@ -10419,7 +10530,7 @@
         return;
       }
       const profile = {
-        displayName: fullNameFromParts(userProfileFirstNameInput.value, userProfileLastNameInput.value),
+        ...userNameProfileFromParts(userProfileLastNameInput.value, userProfileFirstNameInput.value, userProfileMiddleNameInput.value),
         department: userProfileDepartmentInput.value.trim(),
         phone: userProfilePhoneInput.value.trim(),
         comment: userProfileCommentInput.value.trim()
@@ -11556,6 +11667,12 @@
       return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
     }
 
+    function shouldUseStageDot(duration) {
+      const dayWidth = numberFromVar("--day-col") || 34;
+      const visibleWidth = duration * dayWidth - 8;
+      return state.zoom === "day" && visibleWidth < 180;
+    }
+
     function updateSelectedFormFromCycle(cycle) {
       if (state.selectedCycleId !== cycle.id) return;
       tankInput.value = cycle.tankId;
@@ -12606,7 +12723,13 @@
           ? `<span class="cycle-output">Остаток: ${formatLiters(productionOutputForCycle(cycle))} л</span>`
           : "";
         const sourceText = cycle.sourceCycleId ? `<span class="cycle-output">Производный</span>` : "";
-        item.innerHTML = `<span class="resize-handle left" data-resize="left"></span><small class="stage-badge" style="background:${colorForStage(stage)}">${stage}</small><span class="cycle-title"><b>${escapeHtml(cycle.product)}</b><span class="cycle-output">${plannedOutputText}</span>${sourceText}${remainingOutputText}</span><span class="cycle-batch">${packagingAlert}${escapeHtml(cycle.batch)}</span><span class="dates">${cycleDetailsLine(cycle)}</span><span class="resize-handle right" data-resize="right"></span>`;
+        const batchText = showCycleBatchNumbers() && cycle.batch ? escapeHtml(cycle.batch) : "";
+        const batchLine = packagingAlert || batchText ? `<span class="cycle-batch">${packagingAlert}${batchText}</span>` : "";
+        const stageColor = colorForStage(stage);
+        const stageBadge = shouldUseStageDot(duration)
+          ? `<small class="stage-badge stage-dot" style="background:${stageColor}" data-tooltip="${escapeHtml(stage)}" aria-label="${escapeHtml(stage)}"></small>`
+          : `<small class="stage-badge" style="background:${stageColor}">${stage}</small>`;
+        item.innerHTML = `<span class="resize-handle left" data-resize="left"></span>${stageBadge}<span class="cycle-title"><b>${escapeHtml(cycle.product)}</b><span class="cycle-output">${plannedOutputText}</span>${sourceText}${remainingOutputText}</span>${batchLine}<span class="dates">${cycleDetailsLine(cycle)}</span><span class="resize-handle right" data-resize="right"></span>`;
         item.querySelectorAll("[data-alert]").forEach((alert) => {
           alert.addEventListener("mouseenter", (event) => showCommentTooltip(alert.dataset.alert, event));
           alert.addEventListener("mousemove", moveCommentTooltip);
@@ -14197,6 +14320,7 @@
       const start = cycleStartInput.value;
       const end = cycleEndInput.value;
       const tankId = tankInput.value;
+      const existingCycle = cycles.find((cycle) => cycle.id === state.selectedCycleId) || null;
       if (end < start) {
         formStatus.className = "status error";
         formStatus.textContent = "Дата розлива должна быть позже старта";
@@ -16021,7 +16145,8 @@
         const email = newUserLoginInput.value.trim();
         ensureRussianPhonePrefix(newUserPhoneInput);
         const phone = newUserPhoneInput.value.trim();
-        const displayName = fullNameFromParts(newUserFirstNameInput.value, newUserLastNameInput.value);
+        const profile = userNameProfileFromParts(newUserLastNameInput.value, newUserFirstNameInput.value, newUserMiddleNameInput.value);
+        const displayName = profile.displayName;
         if (!email.includes("@")) {
           userStatus.className = "status error";
           userStatus.textContent = "Укажите email пользователя, например user@company.ru";
@@ -16036,7 +16161,7 @@
           let authUser;
           let emailSent = false;
           if (isYandexBackend) {
-            const data = await createYandexUser(email, displayName, newUserRoleInput.value, phone);
+            const data = await createYandexUser(email, profile, newUserRoleInput.value, phone);
             authUser = data.user;
             emailSent = Boolean(data.emailSent);
           } else {
