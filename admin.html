@@ -474,6 +474,24 @@
       margin: 4px 0 0;
     }
 
+    .backup-tree {
+      display: grid;
+      gap: 8px;
+    }
+
+    .backup-node {
+      display: grid;
+      gap: 7px;
+    }
+
+    .backup-children {
+      display: grid;
+      gap: 7px;
+      margin-left: 24px;
+      padding-left: 14px;
+      border-left: 2px solid rgba(37, 99, 235, .18);
+    }
+
     .backup-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -485,9 +503,20 @@
       background: #fff;
     }
 
+    .backup-row[data-child="true"] {
+      background: #f8fbff;
+      border-color: rgba(37, 99, 235, .22);
+    }
+
     .backup-row b,
     .backup-row span {
       display: block;
+    }
+
+    .backup-relation {
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 850;
     }
 
     .backup-actions {
@@ -747,7 +776,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.24.14-saas</span>
+        <span>v2026.06.24.16-saas</span>
       </div>
     </aside>
 
@@ -1207,15 +1236,22 @@
 
     async function loadSelectedOrganizationUsers() {
       const organization = selectedOrganization();
+      const organizationId = organization?.id || "";
+      setStatus($("#backupsStatus"), "");
       if (!organization) {
         selectedOrgUsers = [];
         selectedOrgBackups = [];
         selectedOrgBackupsError = "";
       } else {
+        selectedOrgUsers = [];
+        selectedOrgBackups = [];
+        selectedOrgBackupsError = "";
+        renderOrganizationDetails();
         const [usersData, backupsData] = await Promise.all([
           request(`/organizations/${encodeURIComponent(organization.id)}/users`),
           request(`/organizations/${encodeURIComponent(organization.id)}/backups`).catch((error) => ({ error }))
         ]);
+        if (organizationId !== selectedOrganizationId) return;
         selectedOrgUsers = usersData.users || [];
         if (backupsData.error) {
           selectedOrgBackups = [];
@@ -1280,6 +1316,7 @@
 
     function renderOrganizationDetails() {
       const organization = selectedOrganization();
+      setStatus($("#backupsStatus"), "");
       $("#selectedOrganizationTitle").textContent = organization?.name || "Выберите организацию";
       $("#selectedOrganizationBadge").textContent = organization ? `${organization.status} · ${organization.tariff}` : "-";
       $("#organizationEditNameInput").value = organization?.name || "";
@@ -1419,6 +1456,57 @@
       ].join(" · ");
     }
 
+    function backupParentId(backup = {}) {
+      if (backup.parentBackupId) return backup.parentBackupId;
+      if (backup.type !== "pre_restore") return "";
+      const match = String(backup.reason || "").match(/из\s+([^\s]+)/i);
+      return match ? match[1] : "";
+    }
+
+    function backupRelationLabel(backup = {}) {
+      if (backup.type === "pre_restore") return "Состояние перед восстановлением этой копии";
+      return "";
+    }
+
+    function backupTree(backups = []) {
+      const nodes = new Map(backups.map((backup) => [backup.id, { backup, children: [] }]));
+      const roots = [];
+      nodes.forEach((node) => {
+        const parentId = backupParentId(node.backup);
+        const parent = parentId ? nodes.get(parentId) : null;
+        if (parent && parent.backup.id !== node.backup.id) parent.children.push(node);
+        else roots.push(node);
+      });
+      const sortNodes = (items) => {
+        items.sort((a, b) => String(b.backup.createdAt || "").localeCompare(String(a.backup.createdAt || "")));
+        items.forEach((item) => sortNodes(item.children));
+      };
+      sortNodes(roots);
+      return roots;
+    }
+
+    function backupNodeHtml(node, isChild = false) {
+      const backup = node.backup;
+      const relation = backupRelationLabel(backup);
+      return `
+        <div class="backup-node">
+          <div class="backup-row" data-backup-id="${escapeHtml(backup.id)}" data-child="${isChild ? "true" : "false"}">
+            <div>
+              ${relation ? `<span class="backup-relation">${escapeHtml(relation)}</span>` : ""}
+              <b>${escapeHtml(formatDateTime(backup.createdAt))} · ${escapeHtml(backupTypeLabel(backup.type))}</b>
+              <span class="small">${escapeHtml(backup.reason || "Без комментария")}</span>
+              <span class="small">Ревизия: ${escapeHtml(backup.sourceRevision || 0)} · ${escapeHtml(backupCountsText(backup.counts || {}))}</span>
+              <span class="small">Создал: ${escapeHtml(backup.createdBy?.name || backup.createdBy?.email || "система")}</span>
+            </div>
+            <div class="backup-actions">
+              <button class="secondary" type="button" data-restore-backup>Восстановить</button>
+            </div>
+          </div>
+          ${node.children.length ? `<div class="backup-children">${node.children.map((child) => backupNodeHtml(child, true)).join("")}</div>` : ""}
+        </div>
+      `;
+    }
+
     function renderOrganizationBackups() {
       const container = $("#organizationBackups");
       if (!container) return;
@@ -1426,19 +1514,9 @@
         container.innerHTML = `<p class="small">Не удалось загрузить резервные копии: ${escapeHtml(selectedOrgBackupsError)}</p>`;
         return;
       }
-      container.innerHTML = selectedOrgBackups.length ? selectedOrgBackups.map((backup) => `
-        <div class="backup-row" data-backup-id="${escapeHtml(backup.id)}">
-          <div>
-            <b>${escapeHtml(formatDateTime(backup.createdAt))} · ${escapeHtml(backupTypeLabel(backup.type))}</b>
-            <span class="small">${escapeHtml(backup.reason || "Без комментария")}</span>
-            <span class="small">Ревизия: ${escapeHtml(backup.sourceRevision || 0)} · ${escapeHtml(backupCountsText(backup.counts || {}))}</span>
-            <span class="small">Создал: ${escapeHtml(backup.createdBy?.name || backup.createdBy?.email || "система")}</span>
-          </div>
-          <div class="backup-actions">
-            <button class="secondary" type="button" data-restore-backup>Восстановить</button>
-          </div>
-        </div>
-      `).join("") : `<p class="small">Резервных копий пока нет. Можно создать первую вручную.</p>`;
+      container.innerHTML = selectedOrgBackups.length
+        ? `<div class="backup-tree">${backupTree(selectedOrgBackups).map((node) => backupNodeHtml(node)).join("")}</div>`
+        : `<p class="small">Резервных копий пока нет. Можно создать первую вручную.</p>`;
       container.querySelectorAll("[data-restore-backup]").forEach((button) => {
         button.addEventListener("click", async () => {
           const row = button.closest("[data-backup-id]");
