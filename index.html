@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.24.42-saas";
+      content: "v2026.06.24.43-saas";
     }
 
     .toolbar {
@@ -4628,9 +4628,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.42-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.43-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.42-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.43-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5386,7 +5386,27 @@
               <label class="field">
                 <span>Часовой пояс</span>
                 <select id="orgTimezoneInput">
+                  <option value="Europe/Kaliningrad">Калининград, UTC+2</option>
                   <option value="Europe/Moscow">Москва, UTC+3</option>
+                  <option value="Europe/Samara">Самара, UTC+4</option>
+                  <option value="Asia/Yekaterinburg">Екатеринбург, UTC+5</option>
+                  <option value="Asia/Omsk">Омск, UTC+6</option>
+                  <option value="Asia/Novosibirsk">Новосибирск, UTC+7</option>
+                  <option value="Asia/Krasnoyarsk">Красноярск, UTC+7</option>
+                  <option value="Asia/Irkutsk">Иркутск, UTC+8</option>
+                  <option value="Asia/Yakutsk">Якутск, UTC+9</option>
+                  <option value="Asia/Vladivostok">Владивосток, UTC+10</option>
+                  <option value="Asia/Magadan">Магадан, UTC+11</option>
+                  <option value="Asia/Kamchatka">Камчатка, UTC+12</option>
+                  <option value="Europe/Minsk">Минск, UTC+3</option>
+                  <option value="Asia/Almaty">Алматы, UTC+5</option>
+                  <option value="Asia/Tashkent">Ташкент, UTC+5</option>
+                  <option value="Asia/Tbilisi">Тбилиси, UTC+4</option>
+                  <option value="Asia/Yerevan">Ереван, UTC+4</option>
+                  <option value="Europe/Istanbul">Стамбул, UTC+3</option>
+                  <option value="Europe/Berlin">Берлин, UTC+1/UTC+2</option>
+                  <option value="Europe/London">Лондон, UTC+0/UTC+1</option>
+                  <option value="UTC">UTC</option>
                 </select>
               </label>
             </div>
@@ -5729,7 +5749,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.24.42-saas";
+    const appVersion = "v2026.06.24.43-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
