@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.24.50-saas";
+      content: "v2026.06.24.51-saas";
     }
 
     .toolbar {
@@ -4682,9 +4682,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.50-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.24.51-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.50-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.24.51-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5806,7 +5806,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.24.50-saas";
+    const appVersion = "v2026.06.24.51-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -13715,7 +13715,9 @@
       const linkedCycles = cycles.filter((cycle) => cycle.tankId === tank.id);
       if (linkedCycles.length) {
         tankStatus.className = "status error";
-        tankStatus.textContent = `Нельзя удалить емкость: в ней есть ${formatNumber(linkedCycles.length)} ${cycleWord(linkedCycles.length)}`;
+        tankStatus.textContent = `Нельзя удалить емкость ${tank.name}: в ней есть ${formatNumber(linkedCycles.length)} ${cycleWord(linkedCycles.length)}`;
+        deleteModal.classList.remove("open");
+        pendingDelete = null;
         return;
       }
       pendingDelete = { type: "tank", id: tank.id };
@@ -13724,26 +13726,27 @@
       deleteModal.classList.add("open");
     }
 
-    function deleteTank(tankId) {
+    async function deleteTank(tankId) {
       const tank = tanks.find((item) => item.id === tankId);
-      if (!tank) return;
+      if (!tank) return false;
       if (cycles.some((cycle) => cycle.tankId === tank.id)) {
         tankStatus.className = "status error";
         tankStatus.textContent = "Нельзя удалить емкость, в которой есть циклы";
-        return;
+        return false;
       }
       pushUndoSnapshot("удаление емкости");
       tanks = tanks.filter((item) => item.id !== tank.id);
       resequenceTankSortOrders();
       state.selectedTankId = null;
       if (state.pickedTankId === tank.id) state.pickedTankId = null;
-      savePlan();
+      await savePlan();
       logAction("tank_deleted", "tank", tank.id, tank.name, {
         site: siteNameById(tank.siteId)
       });
       state.panelMode = "hidden";
       tankStatus.className = "status";
       tankStatus.textContent = "Емкость удалена";
+      return true;
     }
 
     function prepareNewSite() {
@@ -13787,40 +13790,52 @@
         return;
       }
       const siteTanks = tanks.filter((tank) => tank.siteId === site.id);
-      if (siteTanks.length) {
+      const siteTankIds = new Set(siteTanks.map((tank) => tank.id));
+      const linkedCycles = cycles.filter((cycle) => siteTankIds.has(cycle.tankId));
+      if (linkedCycles.length) {
         siteStatus.className = "status error";
-        siteStatus.textContent = `Нельзя удалить площадку: сначала удалите ${formatNumber(siteTanks.length)} емк.`;
+        siteStatus.textContent = `Нельзя удалить площадку: в ней есть ${formatNumber(linkedCycles.length)} ${cycleWord(linkedCycles.length)}`;
         return;
       }
       pendingDelete = { type: "site", id: site.id };
       deleteModalTitle.textContent = "Удалить площадку?";
-      deleteModalText.textContent = `Будет удалена площадка ${site.name}. Это действие можно отменить кнопкой «Отменить».`;
+      deleteModalText.textContent = siteTanks.length
+        ? `Будет удалена площадка ${site.name} и ${formatNumber(siteTanks.length)} пустых емк. Это действие можно отменить кнопкой «Отменить».`
+        : `Будет удалена площадка ${site.name}. Это действие можно отменить кнопкой «Отменить».`;
       deleteModal.classList.add("open");
     }
 
-    function deleteSite(siteId) {
+    async function deleteSite(siteId) {
       const site = sites.find((item) => item.id === siteId);
-      if (!site) return;
+      if (!site) return false;
       if (sites.length <= 1) {
         siteStatus.className = "status error";
         siteStatus.textContent = "Нельзя удалить единственную площадку";
-        return;
+        return false;
       }
-      if (tanks.some((tank) => tank.siteId === site.id)) {
+      const siteTanks = tanks.filter((tank) => tank.siteId === site.id);
+      const siteTankIds = new Set(siteTanks.map((tank) => tank.id));
+      const linkedCycles = cycles.filter((cycle) => siteTankIds.has(cycle.tankId));
+      if (linkedCycles.length) {
         siteStatus.className = "status error";
-        siteStatus.textContent = "Нельзя удалить площадку, на которой есть емкости";
-        return;
+        siteStatus.textContent = "Нельзя удалить площадку, на которой есть циклы";
+        return false;
       }
       pushUndoSnapshot("удаление площадки");
       sites = sites.filter((item) => item.id !== site.id);
+      tanks = tanks.filter((tank) => tank.siteId !== site.id);
+      resequenceTankSortOrders();
       state.siteOrder = normalizedSiteOrder(state.siteOrder).filter((id) => id !== site.id);
       state.selectedSiteId = null;
+      if (siteTankIds.has(state.selectedTankId)) state.selectedTankId = null;
+      if (siteTankIds.has(state.pickedTankId)) state.pickedTankId = null;
       saveUserUiPreferences();
-      savePlan();
+      await savePlan();
       logAction("site_deleted", "site", site.id, site.name);
       state.panelMode = "hidden";
       siteStatus.className = "status";
       siteStatus.textContent = "Площадка удалена";
+      return true;
     }
 
     async function saveCycleFromForm() {
@@ -15218,65 +15233,70 @@
         if (event.target === userProfileModal) closeUserProfileModal();
       });
 
-      confirmDeleteButton.addEventListener("click", () => {
+      confirmDeleteButton.addEventListener("click", async () => {
         if (!requireEdit()) return;
-        if (pendingDelete?.type === "template") {
-          const template = productTemplates.find((item) => item.id === pendingDelete.id);
-          pushUndoSnapshot("удаление шаблона");
-          productTemplates = productTemplates.filter((template) => template.id !== pendingDelete.id);
-          if (state.selectedTemplateId === pendingDelete.id) resetTemplateForm();
-          templateStatus.className = "status";
-          templateStatus.textContent = "Шаблон удален";
-          savePlan();
-          if (template) logAction("template_deleted", "template", template.id, template.name);
-        } else if (pendingDelete?.type === "cycle") {
-          const cycle = cycles.find((item) => item.id === pendingDelete.id);
-          pushUndoSnapshot("удаление цикла");
-          cycles = cycles.filter((cycle) => cycle.id !== pendingDelete.id);
-          state.selectedCycleId = null;
-          savePlan();
-          if (cycle) logAction("cycle_deleted", "cycle", cycle.id, cycle.product, {
-            tank: tanks.find((tank) => tank.id === cycle.tankId)?.name || "",
-            start: cycle.start,
-            end: cycle.end
-          });
-          formStatus.className = "status";
-          formStatus.textContent = "Цикл удален";
-        } else if (pendingDelete?.type === "cycles") {
-          const ids = new Set(pendingDelete.ids || []);
-          const removedCycles = cycles.filter((cycle) => ids.has(cycle.id));
-          if (removedCycles.length) {
-            pushUndoSnapshot("групповое удаление циклов");
-            cycles = cycles.filter((cycle) => !ids.has(cycle.id));
-            state.selectedCycleId = null;
-            clearCycleMultiSelection();
+        confirmDeleteButton.disabled = true;
+        try {
+          if (pendingDelete?.type === "template") {
+            const template = productTemplates.find((item) => item.id === pendingDelete.id);
+            pushUndoSnapshot("удаление шаблона");
+            productTemplates = productTemplates.filter((template) => template.id !== pendingDelete.id);
+            if (state.selectedTemplateId === pendingDelete.id) resetTemplateForm();
+            templateStatus.className = "status";
+            templateStatus.textContent = "Шаблон удален";
             savePlan();
-            removedCycles.forEach((cycle) => {
-              logAction("cycle_deleted", "cycle", cycle.id, cycle.product, {
-                tank: tanks.find((tank) => tank.id === cycle.tankId)?.name || "",
-                start: cycle.start,
-                end: cycle.end
-              });
+            if (template) logAction("template_deleted", "template", template.id, template.name);
+          } else if (pendingDelete?.type === "cycle") {
+            const cycle = cycles.find((item) => item.id === pendingDelete.id);
+            pushUndoSnapshot("удаление цикла");
+            cycles = cycles.filter((cycle) => cycle.id !== pendingDelete.id);
+            state.selectedCycleId = null;
+            savePlan();
+            if (cycle) logAction("cycle_deleted", "cycle", cycle.id, cycle.product, {
+              tank: tanks.find((tank) => tank.id === cycle.tankId)?.name || "",
+              start: cycle.start,
+              end: cycle.end
             });
             formStatus.className = "status";
-            formStatus.textContent = `Удалено ${formatNumber(removedCycles.length)} ${cycleWord(removedCycles.length)}`;
+            formStatus.textContent = "Цикл удален";
+          } else if (pendingDelete?.type === "cycles") {
+            const ids = new Set(pendingDelete.ids || []);
+            const removedCycles = cycles.filter((cycle) => ids.has(cycle.id));
+            if (removedCycles.length) {
+              pushUndoSnapshot("групповое удаление циклов");
+              cycles = cycles.filter((cycle) => !ids.has(cycle.id));
+              state.selectedCycleId = null;
+              clearCycleMultiSelection();
+              savePlan();
+              removedCycles.forEach((cycle) => {
+                logAction("cycle_deleted", "cycle", cycle.id, cycle.product, {
+                  tank: tanks.find((tank) => tank.id === cycle.tankId)?.name || "",
+                  start: cycle.start,
+                  end: cycle.end
+                });
+              });
+              formStatus.className = "status";
+              formStatus.textContent = `Удалено ${formatNumber(removedCycles.length)} ${cycleWord(removedCycles.length)}`;
+            }
+          } else if (pendingDelete?.type === "tank") {
+            await deleteTank(pendingDelete.id);
+          } else if (pendingDelete?.type === "site") {
+            await deleteSite(pendingDelete.id);
+          } else if (pendingDelete?.type === "partialBottling") {
+            deletePartialBottling(pendingDelete.cycleId, pendingDelete.partialId);
+          } else if (pendingDelete?.type === "cycleTask") {
+            state.selectedCycleId = pendingDelete.cycleId;
+            deleteCycleTask(pendingDelete.taskId);
+          } else if (pendingDelete?.type === "taskAttachment") {
+            state.selectedCycleId = pendingDelete.cycleId;
+            deleteTaskAttachment(pendingDelete.taskId, pendingDelete.fileId);
           }
-        } else if (pendingDelete?.type === "tank") {
-          deleteTank(pendingDelete.id);
-        } else if (pendingDelete?.type === "site") {
-          deleteSite(pendingDelete.id);
-        } else if (pendingDelete?.type === "partialBottling") {
-          deletePartialBottling(pendingDelete.cycleId, pendingDelete.partialId);
-        } else if (pendingDelete?.type === "cycleTask") {
-          state.selectedCycleId = pendingDelete.cycleId;
-          deleteCycleTask(pendingDelete.taskId);
-        } else if (pendingDelete?.type === "taskAttachment") {
-          state.selectedCycleId = pendingDelete.cycleId;
-          deleteTaskAttachment(pendingDelete.taskId, pendingDelete.fileId);
+        } finally {
+          pendingDelete = null;
+          deleteModal.classList.remove("open");
+          confirmDeleteButton.disabled = !canEdit();
+          render();
         }
-        pendingDelete = null;
-        deleteModal.classList.remove("open");
-        render();
       });
 
       deleteModal.addEventListener("click", (event) => {
