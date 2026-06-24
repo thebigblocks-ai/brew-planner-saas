@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.25.72-saas";
+      content: "v2026.06.25.75-saas";
     }
 
     .toolbar {
@@ -1387,10 +1387,11 @@
       left: 50%;
       top: 50%;
       z-index: 65;
-      display: block;
+      display: flex;
+      flex-direction: column;
       width: min(980px, calc(100vw - 32px));
-      max-height: calc(100vh - 40px);
-      overflow: auto;
+      height: min(760px, calc(100vh - 40px));
+      overflow: hidden;
       transform: translate(-50%, -50%);
       border: 1px solid var(--line-strong);
       border-radius: 8px;
@@ -1399,7 +1400,9 @@
     }
 
     #organizationSettingsPanel.open .settings-form {
-      padding-bottom: 2px;
+      min-height: 0;
+      overflow-y: auto;
+      padding-bottom: 12px;
     }
 
     .settings-tabs {
@@ -3404,6 +3407,110 @@
       display: grid;
     }
 
+    .help-modal {
+      width: min(920px, calc(100vw - 32px));
+      max-height: min(860px, calc(100vh - 40px));
+      overflow: auto;
+    }
+
+    .help-doc {
+      display: grid;
+      gap: 14px;
+      margin: 16px 0;
+    }
+
+    .help-section {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft-bg);
+    }
+
+    .help-section h3 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.25;
+    }
+
+    .help-section p,
+    .help-section li {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.42;
+      font-weight: 650;
+    }
+
+    .help-section ul {
+      display: grid;
+      gap: 5px;
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .onboarding-tip {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 58;
+      width: min(360px, calc(100vw - 28px));
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      box-shadow: var(--shadow);
+    }
+
+    .onboarding-tip[hidden] {
+      display: none !important;
+    }
+
+    .onboarding-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .onboarding-head b {
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    .onboarding-head span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .onboarding-tip p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+      font-weight: 650;
+    }
+
+    .onboarding-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .onboarding-actions button {
+      min-height: 32px;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+
     .login-backdrop {
       position: fixed;
       inset: 0;
@@ -3700,12 +3807,21 @@
     }
 
     #supportModal .modal {
-      width: min(720px, 100%);
-      max-height: calc(100vh - 40px);
-      overflow: auto;
+      width: min(760px, calc(100vw - 32px));
+      height: min(760px, calc(100vh - 40px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #supportModal .support-pane {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
     }
 
     .support-tabs {
+      flex: 0 0 auto;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 6px;
@@ -3771,6 +3887,7 @@
 
     .support-ticket-list {
       display: grid;
+      align-content: start;
       gap: 10px;
       padding: 14px 16px 16px;
     }
@@ -3935,6 +4052,7 @@
     .support-ticket-reply {
       display: grid;
       gap: 8px;
+      margin-top: 12px;
       padding: 0 10px 10px;
     }
 
@@ -4888,9 +5006,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.72-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.75-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.72-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.75-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -4959,6 +5077,10 @@
               <button class="top-action" id="mySettingsButton" type="button">
                 <svg viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z"/><path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.8 1.8 0 0 0 15 19.4a1.8 1.8 0 0 0-1 .6V20a2 2 0 1 1-4 0v-.1a1.8 1.8 0 0 0-1-.6 1.8 1.8 0 0 0-1.98.36l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.8 1.8 0 0 0 4.6 15a1.8 1.8 0 0 0-.6-1H4a2 2 0 1 1 0-4h.1a1.8 1.8 0 0 0 .6-1 1.8 1.8 0 0 0-.36-1.98l-.06-.06A2 2 0 1 1 7.1 4.14l.06.06A1.8 1.8 0 0 0 9 4.6a1.8 1.8 0 0 0 1-.6V4a2 2 0 1 1 4 0v.1a1.8 1.8 0 0 0 1 .6 1.8 1.8 0 0 0 1.98-.36l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.8 1.8 0 0 0 19.4 9c.2.36.4.7.6 1H20a2 2 0 1 1 0 4h-.1a1.8 1.8 0 0 0-.5 1Z"/></svg>
                 Настройки
+              </button>
+              <button class="top-action" id="helpButton" type="button">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 0 1 4.5 1.2c0 1.6-1.8 1.9-2.2 3"/><path d="M12 17h.01"/></svg>
+                Справка
               </button>
               <button class="top-action" id="supportButton" type="button">
                 <svg viewBox="0 0 24 24"><path d="M20.5 11.5a7.5 7.5 0 0 1-7.5 7.5H8l-4.5 2 1.4-4.2A7.5 7.5 0 1 1 20.5 11.5Z"/><path d="M10 9.2a2.2 2.2 0 0 1 4.1 1.1c0 1.45-1.7 1.7-2.05 2.65"/><path d="M12 16h.01"/></svg>
@@ -6025,6 +6147,94 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+    <div class="modal help-modal">
+      <h2 id="helpModalTitle">Справка по сервису</h2>
+      <p>Короткий ориентир по планировщику производства, основным зависимостям и ежедневным действиям.</p>
+      <div class="help-doc">
+        <section class="help-section">
+          <h3>Навигация</h3>
+          <ul>
+            <li>Основной экран — календарный график по площадкам и емкостям. Верхняя панель управляет периодом, масштабом, фильтрами и режимами.</li>
+            <li>Меню пользователя открывает задачи, личные настройки, справку, поддержку и выход.</li>
+            <li>Администрирование доступно пользователям с правами администратора организации.</li>
+          </ul>
+        </section>
+        <section class="help-section">
+          <h3>Работа с циклами</h3>
+          <ul>
+            <li>Варку можно создать через меню добавления или двойным кликом по свободной ячейке графика.</li>
+            <li>Цикл привязан к емкости, датам старта и розлива, сорту, партии, стадии и плановому выходу.</li>
+            <li>Карточка цикла содержит производство, процесс, задачи, комментарии и распределение розлива.</li>
+            <li>При изменении планового выхода распределение нужно задать заново, чтобы оно соответствовало новому объему.</li>
+          </ul>
+        </section>
+        <section class="help-section">
+          <h3>Розлив и склад</h3>
+          <ul>
+            <li>Распределение банок и кег считается от планового выхода и текущих значений в карточке цикла.</li>
+            <li>Если распределение не заполнено, в ближайших розливах и на цикле появляется красный индикатор.</li>
+            <li>Частичные розливы создаются только у уже сохраненных циклов и только с ненулевыми значениями.</li>
+            <li>Календарь розливов и складской вид собираются из дат розлива и упаковки циклов.</li>
+          </ul>
+        </section>
+        <section class="help-section">
+          <h3>Автоматизация</h3>
+          <ul>
+            <li>Стадии могут обновляться автоматически по датам, если это включено в логике планировщика.</li>
+            <li>Комментарии с выбранным ответственным создают задачу на дату комментария.</li>
+            <li>Задачи отображаются в карточке цикла, на графике и в блоке “Мои задачи”.</li>
+            <li>Отмена и возврат действий хранят последние изменения в пределах текущей сессии.</li>
+          </ul>
+        </section>
+        <section class="help-section">
+          <h3>Организация и пользователи</h3>
+          <ul>
+            <li>Площадки группируют емкости. Емкости нельзя удалять, если в них уже есть циклы.</li>
+            <li>Роли ограничивают доступ: администратор управляет пользователями и настройками, редактор ведет план, читатель смотрит данные.</li>
+            <li>Логотип, уведомления, шаблоны комментариев и задач настраиваются в параметрах организации.</li>
+            <li>Суперадмин управляет компаниями, функциями, резервными копиями и обращениями поддержки.</li>
+          </ul>
+        </section>
+        <section class="help-section">
+          <h3>Поддержка и резервные копии</h3>
+          <ul>
+            <li>Через поддержку можно создать обращение, приложить скриншоты и вести переписку в рамках заявки.</li>
+            <li>Если поддержке нужен доступ к данным организации, пользователь может временно разрешить его из окна поддержки.</li>
+            <li>Резервные копии помогают восстановить план организации после ошибочных изменений.</li>
+            <li>Email-уведомления используются для задач, обращений, смены статусов и ссылок установки пароля.</li>
+          </ul>
+        </section>
+        <section class="help-section">
+          <h3>Зависимости данных</h3>
+          <ul>
+            <li>Цикл зависит от площадки, емкости, дат, стадии, сорта, партии, планового выхода и распределения упаковки.</li>
+            <li>Шаблоны сортов ускоряют создание циклов и задают базовые параметры сорта.</li>
+            <li>Связанные и производные циклы учитывают доступный остаток исходного объема.</li>
+            <li>Фильтры по сорту, стадии и заказчику работают поверх текущего видимого периода графика.</li>
+          </ul>
+        </section>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary" id="resetOnboardingButton" type="button">Показать подсказки снова</button>
+        <button class="primary" id="closeHelpButton" type="button">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="onboarding-tip" id="onboardingTip" hidden>
+    <div class="onboarding-head">
+      <b id="onboardingTitle"></b>
+      <span id="onboardingCounter"></span>
+    </div>
+    <p id="onboardingText"></p>
+    <div class="onboarding-actions">
+      <button class="secondary" id="onboardingHelpButton" type="button">Справка</button>
+      <button class="secondary" id="dismissOnboardingButton" type="button">Не показывать</button>
+      <button class="primary" id="nextOnboardingButton" type="button">Далее</button>
+    </div>
+  </div>
+
   <div class="comment-tooltip" id="commentTooltip"></div>
 
   <script>
@@ -6046,10 +6256,32 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.25.72-saas";
+    const appVersion = "v2026.06.25.75-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
+    const onboardingTips = [
+      {
+        title: "Быстрое создание варки",
+        text: "Варку можно создать двойным кликом по свободной ячейке графика: сразу откроется карточка цикла с выбранной емкостью и датой."
+      },
+      {
+        title: "Плановый выход и распределение",
+        text: "Распределение банок и кег считается от планового выхода. Если плановый выход меняется, распределение нужно проверить заново."
+      },
+      {
+        title: "Комментарии превращаются в задачи",
+        text: "Если при сохранении комментария выбрать ответственного, планировщик создаст задачу на дату этого комментария."
+      },
+      {
+        title: "Индикаторы на графике",
+        text: "Красный круг с восклицательным знаком показывает цикл, где нужно обратить внимание на распределение розлива."
+      },
+      {
+        title: "Где искать помощь",
+        text: "Справка всегда доступна в меню пользователя. Там же находятся поддержка, личные настройки и ваши задачи."
+      }
+    ];
     const storageKey = "production-planner-v1";
     const backendMode = "yandex";
     const yandexApiBaseUrl = window.BREW_PLANNER_YANDEX_API_BASE_URL || "";
@@ -6117,6 +6349,7 @@
     let suppressRealtimeUntil = 0;
     let supportTicketSignature = localStorage.getItem(`${storageKey}-support-ticket-signature`) || "";
     let supportUnreadCount = 0;
+    let openSupportTicketId = "";
     let forcePasswordAttemptId = 0;
     let passwordSetupToken = "";
     let organizationSettings = null;
@@ -6385,6 +6618,74 @@
       supportButton.dataset.hasUnread = visible ? "true" : "false";
     }
 
+    function onboardingStorageKey() {
+      return `${storageKey}-onboarding-${currentUser?.id || currentUser?.login || "guest"}`;
+    }
+
+    function readOnboardingState() {
+      try {
+        return JSON.parse(localStorage.getItem(onboardingStorageKey()) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function writeOnboardingState(stateValue) {
+      localStorage.setItem(onboardingStorageKey(), JSON.stringify(stateValue));
+    }
+
+    function openHelpModal() {
+      if (!helpModal) return;
+      userBox.classList.remove("open");
+      helpModal.classList.add("open");
+    }
+
+    function closeHelpModal() {
+      helpModal?.classList.remove("open");
+    }
+
+    function renderOnboardingTip() {
+      if (!onboardingTip) return;
+      if (!currentUser) {
+        onboardingTip.hidden = true;
+        return;
+      }
+      const stateValue = readOnboardingState();
+      if (stateValue.dismissed) {
+        onboardingTip.hidden = true;
+        return;
+      }
+      const index = clamp(Number(stateValue.index || 0), 0, onboardingTips.length - 1);
+      const tip = onboardingTips[index];
+      onboardingTitle.textContent = tip.title;
+      onboardingText.textContent = tip.text;
+      onboardingCounter.textContent = `${index + 1}/${onboardingTips.length}`;
+      nextOnboardingButton.textContent = index >= onboardingTips.length - 1 ? "Понятно" : "Далее";
+      onboardingTip.hidden = false;
+    }
+
+    function showNextOnboardingTip() {
+      const stateValue = readOnboardingState();
+      const nextIndex = Number(stateValue.index || 0) + 1;
+      if (nextIndex >= onboardingTips.length) {
+        writeOnboardingState({ dismissed: true, index: onboardingTips.length - 1 });
+      } else {
+        writeOnboardingState({ dismissed: false, index: nextIndex });
+      }
+      renderOnboardingTip();
+    }
+
+    function dismissOnboardingTips() {
+      writeOnboardingState({ dismissed: true, index: onboardingTips.length - 1 });
+      if (onboardingTip) onboardingTip.hidden = true;
+    }
+
+    function resetOnboardingTips() {
+      writeOnboardingState({ dismissed: false, index: 0 });
+      renderOnboardingTip();
+      closeHelpModal();
+    }
+
     function updateSupportNotification(tickets = [], { markSeen = false } = {}) {
       const signature = supportTicketsSignature(tickets);
       if (markSeen || !supportTicketSignature) {
@@ -6404,10 +6705,15 @@
     function renderSupportTickets(tickets = [], options = {}) {
       if (!supportTicketList) return;
       updateSupportNotification(tickets, options);
+      if (options.openTicketId) openSupportTicketId = String(options.openTicketId);
+      const openedTicketId = openSupportTicketId && tickets.some((ticket) => String(ticket.id) === String(openSupportTicketId))
+        ? String(openSupportTicketId)
+        : "";
+      openSupportTicketId = openedTicketId;
       supportTicketList.innerHTML = tickets.length ? tickets.map((ticket) => {
         const messages = Array.isArray(ticket.messages) ? ticket.messages.filter((message) => !message.isInternal) : [];
         const deadline = supportTicketDeadlineText(ticket);
-        const opened = options.openTicketId && String(options.openTicketId) === String(ticket.id);
+        const opened = openedTicketId && openedTicketId === String(ticket.id);
         return `
           <details class="support-ticket-card" data-ticket-id="${escapeHtml(ticket.id)}" ${opened ? "open" : ""}>
             <summary>
@@ -6441,6 +6747,18 @@
           </details>
         `;
       }).join("") : `<p class="small">У вас пока нет обращений.</p>`;
+      supportTicketList.querySelectorAll(".support-ticket-card").forEach((card) => {
+        card.addEventListener("toggle", () => {
+          if (card.open) {
+            openSupportTicketId = card.dataset.ticketId || "";
+            supportTicketList.querySelectorAll(".support-ticket-card[open]").forEach((other) => {
+              if (other !== card) other.open = false;
+            });
+          } else if (openSupportTicketId === card.dataset.ticketId) {
+            openSupportTicketId = "";
+          }
+        });
+      });
       supportTicketList.querySelectorAll("[data-ticket-reply]").forEach((form) => {
         form.querySelector("textarea").addEventListener("keydown", (event) => {
           if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
@@ -7903,6 +8221,17 @@
     const enableSupportAccessButton = document.querySelector("#enableSupportAccessButton");
     const disableSupportAccessButton = document.querySelector("#disableSupportAccessButton");
     const cancelSupportButton = document.querySelector("#cancelSupportButton");
+    const helpButton = document.querySelector("#helpButton");
+    const helpModal = document.querySelector("#helpModal");
+    const closeHelpButton = document.querySelector("#closeHelpButton");
+    const resetOnboardingButton = document.querySelector("#resetOnboardingButton");
+    const onboardingTip = document.querySelector("#onboardingTip");
+    const onboardingTitle = document.querySelector("#onboardingTitle");
+    const onboardingText = document.querySelector("#onboardingText");
+    const onboardingCounter = document.querySelector("#onboardingCounter");
+    const onboardingHelpButton = document.querySelector("#onboardingHelpButton");
+    const dismissOnboardingButton = document.querySelector("#dismissOnboardingButton");
+    const nextOnboardingButton = document.querySelector("#nextOnboardingButton");
     const organizationLogo = document.querySelector("#organizationLogo");
     const organizationBrandName = document.querySelector("#organizationBrandName");
     const currentUserName = document.querySelector("#currentUserName");
@@ -11093,6 +11422,14 @@
       return Number(partial.can045.liters || 0) > 0 || Number(partial.keg20.liters || 0) > 0;
     }
 
+    function showPartialBottlingPlannedOutputWarning(partial, plannedOutput = Math.max(0, numberValue(plannedOutputInput))) {
+      const overage = Math.max(0, partialBottlingLiters(partial) - plannedOutput);
+      if (!overage) return false;
+      formStatus.className = "status error";
+      formStatus.textContent = `Объем ГП превышает плановый выход на ${formatLiters(overage)} л`;
+      return true;
+    }
+
     function setPartialBottlingFields(partial) {
       partialBottlingDateInput.value = partial?.date || toISO(appToday());
       partialCanQtyInput.value = roundedWhole(partial?.can045?.quantity || 0);
@@ -11390,7 +11727,9 @@
       const previous = currentItems.find((item) => item.id === state.partialBottlingEditId);
       const previousLiters = previous ? partialBottlingLiters(previous) : 0;
       const partialLiters = partialBottlingLiters(partial);
-      const available = Math.max(0, Number(cycle.plannedOutput || 0) - partialBottlingTotalLiters(cycle) + previousLiters);
+      const plannedOutput = Math.max(0, Number(cycle.plannedOutput || 0));
+      if (showPartialBottlingPlannedOutputWarning(partial, plannedOutput)) return false;
+      const available = Math.max(0, plannedOutput - partialBottlingTotalLiters(cycle) + previousLiters);
       if (partialLiters > available) {
         formStatus.className = "status error";
         formStatus.textContent = `Частичный розлив превышает остаток в ЦКТ на ${formatLiters(partialLiters - available)} л`;
@@ -13873,6 +14212,7 @@
       renderBulkActions();
       renderMyTasksButton();
       renderUserMenuNotificationBadge();
+      renderOnboardingTip();
       renderConfigurableTemplates();
       renderCycleTabs();
       if (featureEnabled("cycleProcess")) renderCycleProcess();
@@ -14350,6 +14690,7 @@
       }
       const partialBottling = partialBottlingFromForm();
       const partialLiters = Number(partialBottling.can045.liters || 0) + Number(partialBottling.keg20.liters || 0);
+      if (partialBottlingFormHasValue() && showPartialBottlingPlannedOutputWarning(partialBottling)) return false;
       if (sourceCycleId) {
         const sourceCycle = cycles.find((cycle) => cycle.id === sourceCycleId);
         const availableFromSource = Math.max(0, remainingOutputForCycle(sourceCycle || {}) - derivedOutputForCycle(sourceCycleId, state.selectedCycleId));
@@ -15247,6 +15588,16 @@
         state.panelMode = "hidden";
         render();
       });
+
+      helpButton.addEventListener("click", openHelpModal);
+      closeHelpButton.addEventListener("click", closeHelpModal);
+      helpModal.addEventListener("click", (event) => {
+        if (event.target === helpModal) closeHelpModal();
+      });
+      resetOnboardingButton.addEventListener("click", resetOnboardingTips);
+      onboardingHelpButton.addEventListener("click", openHelpModal);
+      dismissOnboardingButton.addEventListener("click", dismissOnboardingTips);
+      nextOnboardingButton.addEventListener("click", showNextOnboardingTip);
 
       closeActionLogButton.addEventListener("click", () => {
         state.panelMode = "hidden";
