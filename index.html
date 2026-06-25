@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.25.114-saas";
+      content: "v2026.06.25.118-saas";
     }
 
     .toolbar {
@@ -5243,9 +5243,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.114-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.118-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.114-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.118-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6079,6 +6079,16 @@
               <div class="feature-list">
                 <label class="feature-row"><span><b>Отражать партии</b><small>Показывать номера партий на карточках производственных циклов.</small></span><input id="orgShowBatchNumbersInput" type="checkbox"></label>
               </div>
+              <div class="settings-email-fields">
+                <label class="field">
+                  <span>Требовать распределения по таре за, дней</span>
+                  <input id="orgPackagingAlertDaysInput" type="number" min="0" max="90" step="1" value="14">
+                </label>
+                <label class="field">
+                  <span>Требовать допуск к розливу за, дней</span>
+                  <input id="orgReadinessAlertDaysInput" type="number" min="0" max="90" step="1" value="5">
+                </label>
+              </div>
               <section class="settings-template-editor" data-template-editor="comments">
                 <div class="settings-template-title">
                   <span>Шаблоны комментариев</span>
@@ -6133,20 +6143,6 @@
                 <option value="expanded">Полный</option>
                 <option value="compact">Компактный</option>
               </select>
-            </label>
-            <div class="two">
-              <label class="field">
-                <span>ФИО</span>
-                <input id="myDisplayNameInput">
-              </label>
-              <label class="field">
-                <span>Телефон</span>
-                <input id="myPhoneInput">
-              </label>
-            </div>
-            <label class="field">
-              <span>Должность/отдел</span>
-              <input id="myDepartmentInput">
             </label>
             <button class="primary" type="submit">Сохранить мои настройки</button>
             <div class="status" id="mySettingsStatus"></div>
@@ -6404,6 +6400,8 @@
             <a href="#helpNavigation">Навигация</a>
             <a href="#helpInfoPanel">Информационная панель</a>
             <a href="#helpCycles">Циклы</a>
+            <a href="#helpStageLogic">Стадии</a>
+            <a href="#helpReadinessControl">Контроль готовности</a>
             <a href="#helpPackaging">Розлив и склад</a>
             <a href="#helpAutomation">Автоматизация</a>
             <a href="#helpOrganization">Организация</a>
@@ -6436,6 +6434,28 @@
                 <li>Новый цикл создается через меню добавления или двойным кликом по свободной ячейке.</li>
                 <li>Основные поля цикла: сорт, ЦКТ, партия, даты, стадия и плановый выход.</li>
                 <li>Во вкладках цикла доступны производство, процесс, задачи и комментарии.</li>
+              </ul>
+            </section>
+            <section class="help-section" id="helpStageLogic">
+              <h3>Логика стадий</h3>
+              <ul>
+                <li>Стадия отражает текущее состояние производственного цикла и используется для фильтрации графика, отображения статуса и контроля готовности к розливу.</li>
+                <li>“План” означает, что цикл запланирован, но еще не начался. Если наступила дата старта цикла, сервис автоматически переводит такой цикл в стадию “В производстве”.</li>
+                <li>“В производстве” используется для основного периода работы по циклу до готовности к розливу.</li>
+                <li>“Ждет фруктов” — дополнительная рабочая стадия для циклов, где процесс зависит от внесения фруктов или другого сырья.</li>
+                <li>“Готов к розливу” означает, что цикл допущен к розливу. Если до даты розлива осталось меньше установленного в настройках количества дней, отсутствие этой стадии будет считаться поводом для внимания.</li>
+                <li>“Розлит” означает, что цикл завершен. Если цикл был в стадии “Готов к розливу”, то после наступления дня, следующего за датой розлива, сервис автоматически переводит его в “Розлит”.</li>
+                <li>Старые значения стадий “Брожение”, “Созревание” и “Карбонизация” автоматически приводятся к стадии “В производстве”.</li>
+              </ul>
+            </section>
+            <section class="help-section" id="helpReadinessControl">
+              <h3>Контроль готовности</h3>
+              <ul>
+                <li>В настройках организации администратор задает сроки контроля перед окончанием производственного цикла.</li>
+                <li>“Требовать распределения по таре за Х дней” определяет, за сколько дней до даты розлива сервис начнет помечать цикл как требующий внимания, если в нем не заполнено распределение по таре. По умолчанию используется значение 14 дней.</li>
+                <li>“Требовать допуск к розливу за Х дней” определяет, за сколько дней до даты розлива сервис начнет помечать цикл как требующий внимания, если стадия цикла еще не переведена в “Готов к розливу” или “Розлит”. По умолчанию используется значение 5 дней.</li>
+                <li>Если цикл попадает в заданный контрольный период, на его карточке появляется восклицательный знак. При наведении на знак показывается причина: не заполнено распределение, не подтвержден допуск к розливу или есть другие контрольные события.</li>
+                <li>Эти же правила используются в блоке “Требуют внимания” и в ближайших розливах.</li>
               </ul>
             </section>
             <section class="help-section" id="helpPackaging">
@@ -6523,7 +6543,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.25.114-saas";
+    const appVersion = "v2026.06.25.118-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -9327,6 +9347,11 @@
       return settings.plannerSettings || {};
     }
 
+    function plannerAlertDays(key, fallback) {
+      const value = Number(organizationPlannerSettings()[key]);
+      return Number.isFinite(value) ? clamp(Math.round(value), 0, 90) : fallback;
+    }
+
     function showCycleBatchNumbers() {
       return organizationPlannerSettings().showBatchNumbers !== false;
     }
@@ -9353,6 +9378,8 @@
       document.querySelector("#orgWorkdayEndInput").value = settings.calendarSettings?.workdayEnd || "18:00";
       document.querySelector("#orgTimezoneInput").value = settings.calendarSettings?.timezone || "Europe/Moscow";
       document.querySelector("#orgShowBatchNumbersInput").checked = settings.plannerSettings?.showBatchNumbers !== false;
+      document.querySelector("#orgPackagingAlertDaysInput").value = settings.plannerSettings?.packagingAlertDays ?? 14;
+      document.querySelector("#orgReadinessAlertDaysInput").value = settings.plannerSettings?.readinessAlertDays ?? 5;
       renderOrganizationTemplateEditors(settings);
       organizationSettingsFormDirty = false;
       renderOrganizationSettingsTabs();
@@ -9389,7 +9416,9 @@
           workdayEnd: document.querySelector("#orgWorkdayEndInput").value || "18:00"
         },
         plannerSettings: {
-          showBatchNumbers: document.querySelector("#orgShowBatchNumbersInput").checked
+          showBatchNumbers: document.querySelector("#orgShowBatchNumbersInput").checked,
+          packagingAlertDays: Number(document.querySelector("#orgPackagingAlertDaysInput").value || 14),
+          readinessAlertDays: Number(document.querySelector("#orgReadinessAlertDaysInput").value || 5)
         },
         commentTemplates: templatesFromTextarea(orgCommentTemplatesInput.value),
         taskTemplates: templatesFromTextarea(orgTaskTemplatesInput.value)
@@ -9442,9 +9471,6 @@
       document.querySelector("#myNotifyOverdueInput").checked = settings.notifyOverdue !== false;
       document.querySelector("#myNotifySupportInput").checked = settings.notifySupport !== false;
       document.querySelector("#myPlannerViewInput").value = settings.plannerView === "expanded" ? "expanded" : "compact";
-      document.querySelector("#myDisplayNameInput").value = currentUser?.displayName || "";
-      document.querySelector("#myPhoneInput").value = currentUser?.phone || "";
-      document.querySelector("#myDepartmentInput").value = currentUser?.department || "";
       mySettingsFormDirty = false;
     }
 
@@ -9464,19 +9490,9 @@
         button.classList.toggle("active", button.dataset.view === state.view);
       });
       saveMySettingsLocal(settings);
-      const profile = {
-        displayName: document.querySelector("#myDisplayNameInput").value.trim(),
-        department: document.querySelector("#myDepartmentInput").value.trim(),
-        phone: document.querySelector("#myPhoneInput").value.trim(),
-        comment: currentUser.comment || ""
-      };
-      const updatedUser = await updateUserProfile(currentUser, profile);
-      Object.assign(currentUser, profile, updatedUser || {});
-      currentUserName.textContent = userDisplayName(currentUser);
       mySettingsStatus.className = "status";
       mySettingsStatus.textContent = "Мои настройки сохранены";
       mySettingsFormDirty = false;
-      renderUsers();
     }
 
     function selectedCycleIds() {
@@ -12349,12 +12365,12 @@
 
     function shouldShowPackagingAlert(cycle) {
       const daysUntilEnd = diffDays(toISO(appToday()), cycle.end);
-      return daysUntilEnd >= 0 && daysUntilEnd < 14 && !cycleHasPackagingDistribution(cycle);
+      return daysUntilEnd >= 0 && daysUntilEnd <= plannerAlertDays("packagingAlertDays", 14) && !cycleHasPackagingDistribution(cycle);
     }
 
     function shouldShowBottlingReadinessAlert(cycle) {
       const daysUntilEnd = diffDays(toISO(appToday()), cycle.end);
-      return daysUntilEnd >= 0 && daysUntilEnd <= 5 && normalizeStage(cycle.stage) !== "Готов к розливу" && normalizeStage(cycle.stage) !== "Розлит";
+      return daysUntilEnd >= 0 && daysUntilEnd <= plannerAlertDays("readinessAlertDays", 5) && normalizeStage(cycle.stage) !== "Готов к розливу" && normalizeStage(cycle.stage) !== "Розлит";
     }
 
     function cycleAlertMessages(cycle) {
@@ -14873,7 +14889,7 @@
               const tank = tanks.find((item) => item.id === cycle.tankId);
               const site = sites.find((item) => item.id === tank?.siteId);
               const packaging = event.packaging;
-              const missingPackaging = event.type === "final" && !cycleHasPackagingDistribution(cycle);
+              const missingPackaging = event.type === "final" && shouldShowPackagingAlert(cycle);
               return `
                 <button class="bottling-row" type="button" data-id="${cycle.id}" data-missing-packaging="${missingPackaging ? "true" : "false"}">
                   <span>${fullDateFormatter.format(parseDate(event.date))}</span>
@@ -16082,6 +16098,14 @@
         event.stopPropagation();
         userBox.classList.toggle("open");
         userMenuButton.setAttribute("aria-expanded", userBox.classList.contains("open") ? "true" : "false");
+        if (userBox.classList.contains("open")) {
+          adminMenu.classList.remove("open");
+          addMenu.classList.remove("open");
+          filterMenu.classList.remove("open");
+          adminMenuButton.classList.toggle("active", state.panelMode === "log" || state.panelMode === "users" || state.panelMode === "features" || state.panelMode === "orgSettings");
+          addMenuButton.classList.remove("active");
+          filterButton.classList.toggle("active", activeFiltersCount() > 0);
+        }
       });
 
       logoutButton.addEventListener("click", async () => {
@@ -16170,12 +16194,18 @@
         if (!requireEdit()) return;
         addMenu.classList.toggle("open");
         filterMenu.classList.remove("open");
+        adminMenu.classList.remove("open");
+        userBox.classList.remove("open");
+        userMenuButton.setAttribute("aria-expanded", "false");
         render();
       });
 
       filterButton.addEventListener("click", () => {
         filterMenu.classList.toggle("open");
         addMenu.classList.remove("open");
+        adminMenu.classList.remove("open");
+        userBox.classList.remove("open");
+        userMenuButton.setAttribute("aria-expanded", "false");
         render();
       });
 
@@ -16298,6 +16328,8 @@
         adminMenu.classList.toggle("open");
         addMenu.classList.remove("open");
         filterMenu.classList.remove("open");
+        userBox.classList.remove("open");
+        userMenuButton.setAttribute("aria-expanded", "false");
         render();
       });
 
