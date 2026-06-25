@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.25.94-saas";
+      content: "v2026.06.25.97-saas";
     }
 
     .toolbar {
@@ -3541,7 +3541,7 @@
     }
 
     .help-modal {
-      width: 80vw;
+      width: 96vw;
       min-width: min(760px, calc(100vw - 24px));
       max-width: calc(100vw - 24px);
       height: min(860px, calc(100vh - 32px));
@@ -5243,9 +5243,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.94-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.97-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.94-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.97-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6523,7 +6523,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.25.94-saas";
+    const appVersion = "v2026.06.25.97-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6532,11 +6532,12 @@
         {
           title: "Добро пожаловать в Brew Planner",
           text: "В организации пока нет ЦКТ, поэтому самое время создать первые емкости. Нажмите «Добавить ...» → «Емкость», укажите название, объем и площадку, а затем сохраните. Если нужно завести сразу несколько ЦКТ и в аккаунте включено первичное заполнение, в карточке емкости выберите «Несколько емкостей», задайте префикс, первый номер, количество и общий объем. После сохранения на графике появятся строки ЦКТ, и можно будет планировать первые варки.",
-          target: "#addMenuButton"
+          target: "emptyPlannerAddTarget"
         }
       ],
       planner: [
         {
+          id: "quickBrew",
           title: "Быстрое создание варки",
           text: "Двойной клик по свободной ячейке сразу открывает новую варку с выбранной емкостью и датой.",
           target: ["firstEmptySlot", "#planner"]
@@ -7013,7 +7014,9 @@
     }
 
     function onboardingTipsFor(context) {
-      return onboardingTipGroups[context] || [];
+      const tips = onboardingTipGroups[context] || [];
+      if (context === "planner" && !tanks.length) return tips.filter((tip) => tip.id !== "quickBrew");
+      return tips;
     }
 
     function onboardingStorageKey(context = onboardingContext()) {
@@ -7054,7 +7057,9 @@
             ? Array.from(document.querySelectorAll(".cycle")).find(isVisibleOnboardingTarget)
             : selector === "firstEmptySlot"
               ? Array.from(document.querySelectorAll(".slot[data-empty='true']")).find(isVisibleOnboardingTarget)
-              : document.querySelector(selector);
+              : selector === "emptyPlannerAddTarget"
+                ? (addMenu.classList.contains("open") && isVisibleOnboardingTarget(addTankButton) ? addTankButton : addMenuButton)
+                : document.querySelector(selector);
           if (isVisibleOnboardingTarget(element)) return element;
         } catch {
           // Ignore an invalid selector and try the next fallback target.
