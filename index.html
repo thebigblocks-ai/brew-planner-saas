@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.25.112-saas";
+      content: "v2026.06.25.114-saas";
     }
 
     .toolbar {
@@ -5243,9 +5243,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.112-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.114-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.112-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.114-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6523,7 +6523,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.25.112-saas";
+    const appVersion = "v2026.06.25.114-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6784,10 +6784,17 @@
       return user?.serviceRole === "super_admin" || isLegacySuperAdminUser(user);
     }
 
-    function redirectSuperAdminToCabinet() {
+    function hasPlannerOrganizationAccess(user = currentUser) {
+      const organizations = Array.isArray(user?.organizations) ? user.organizations : [];
+      return organizations.some((organization) => organization.id === user?.organizationId);
+    }
+
+    function ensureSuperAdminPlannerAccess() {
       if (!isSuperAdminUser()) return false;
-      const target = new URL("admin.html", window.location.href);
-      window.location.replace(target.toString());
+      if (hasPlannerOrganizationAccess()) return false;
+      currentUser = null;
+      if (isYandexBackend) setYandexToken("");
+      showLoginError("Эта учетная запись не добавлена в сотрудники организации. Для админки откройте admin.html, для планировщика добавьте учетную запись в нужную организацию.", { prefix: false });
       return true;
     }
 
@@ -8154,7 +8161,8 @@
           organizationDisplayName: data.user.organizationDisplayName || "",
           organizationLogoDataUrl: data.user.organizationLogoDataUrl || "",
           organizationLogoName: data.user.organizationLogoName || "",
-          organizationSettings: data.user.organizationSettings || null
+          organizationSettings: data.user.organizationSettings || null,
+          organizations: Array.isArray(data.user.organizations) ? data.user.organizations : []
         };
         organizationSettings = profile.organizationSettings || organizationSettings;
         if (!data.user.serviceRole && profile.role === "admin" && !profile.organizationId) {
@@ -8581,7 +8589,7 @@
           return;
         }
         currentUser = profile;
-        if (redirectSuperAdminToCabinet()) return;
+        if (ensureSuperAdminPlannerAccess()) return;
         if (isYandexBackend && currentUser.mustChangePassword) {
           enterTemporaryPasswordMode(currentUser);
           return;
@@ -15946,7 +15954,7 @@
             "Проверяем сохраненный вход..."
           );
           if (currentUser) {
-            if (redirectSuperAdminToCabinet()) return;
+            if (ensureSuperAdminPlannerAccess()) return;
             if (isYandexBackend && currentUser.mustChangePassword) {
               setYandexToken(yandexToken(), { persist: false });
               enterTemporaryPasswordMode(currentUser);
@@ -16038,7 +16046,7 @@
             showLoginError("Для пользователя не назначена роль", { prefix: false });
             return;
           }
-          if (redirectSuperAdminToCabinet()) return;
+          if (ensureSuperAdminPlannerAccess()) return;
           if (isYandexBackend && currentUser.mustChangePassword) {
             setYandexToken(yandexToken(), { persist: false });
             enterTemporaryPasswordMode(currentUser);
