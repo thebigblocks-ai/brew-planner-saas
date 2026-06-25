@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.25.118-saas";
+      content: "v2026.06.25.120-saas";
     }
 
     .toolbar {
@@ -1298,7 +1298,7 @@
     }
 
     .workspace[data-panel="templates"] {
-      grid-template-columns: 1fr 336px;
+      grid-template-columns: minmax(0, 1fr) minmax(560px, 620px);
     }
 
     .workspace[data-panel="templates"] #cyclePanel,
@@ -4840,6 +4840,15 @@
       font-size: 13px;
     }
 
+    .template-card-copy {
+      min-width: 0;
+    }
+
+    .template-card-meta {
+      display: block;
+      margin-top: 2px;
+    }
+
     .template-card span {
       color: var(--muted);
       font-size: 13px;
@@ -4884,6 +4893,125 @@
       border-bottom: 1px solid var(--line);
     }
 
+    .template-form-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .template-form-tab {
+      flex: 1 1 0;
+      min-height: 38px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .template-form-tab[data-active="true"] {
+      border-color: var(--brand);
+      background: var(--soft-bg);
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1px rgba(255, 139, 0, .18);
+    }
+
+    .template-form-pane {
+      display: grid;
+      gap: 12px;
+    }
+
+    .template-form-pane[hidden] {
+      display: none;
+    }
+
+    .template-checklist-toolbar {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .template-checklist-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .template-checklist-row {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr) 150px 82px 34px;
+      gap: 8px;
+      align-items: end;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft-bg);
+    }
+
+    .template-checklist-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 38px;
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .template-checklist-row .field {
+      gap: 4px;
+    }
+
+    .template-checklist-row .field span {
+      font-size: 11px;
+    }
+
+    .template-checklist-row input,
+    .template-checklist-row select {
+      min-height: 38px;
+      padding: 8px 9px;
+      font-size: 13px;
+    }
+
+    .template-checklist-note {
+      grid-column: 2 / -2;
+    }
+
+    .template-checklist-remove {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      width: 34px;
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid var(--line-strong);
+      background: var(--panel);
+      color: var(--danger);
+    }
+
+    .template-checklist-remove svg {
+      width: 17px;
+      height: 17px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .template-checklist-empty {
+      padding: 12px;
+      border: 1px dashed var(--line-strong);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
     .color-dot {
       width: 16px;
       height: 16px;
@@ -4896,7 +5024,7 @@
     }
 
     #templateForm .two {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .badge {
@@ -5243,9 +5371,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.118-saas</span>
+    <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.120-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.118-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.120-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5837,35 +5965,48 @@
           </div>
           <div class="template-list" id="templateList"></div>
           <form class="form template-inline-form" id="templateForm" hidden>
-            <div class="two">
+            <div class="template-form-tabs" role="tablist" aria-label="Разделы шаблона сорта">
+              <button class="template-form-tab" id="templateInfoTab" type="button" data-template-tab="info" data-active="true">Информация</button>
+              <button class="template-form-tab" id="templateChecklistTab" type="button" data-template-tab="checklist">Чек-лист</button>
+            </div>
+            <div class="template-form-pane" id="templateInfoPane" data-template-pane="info">
+              <div class="two">
+                <label class="field">
+                  <span>Название сорта</span>
+                  <input id="templateNameInput" required>
+                </label>
+                <label class="field">
+                  <span>Наименование по ДС</span>
+                  <input id="templateDsNameInput">
+                </label>
+              </div>
+              <div class="two">
+                <label class="field">
+                  <span>Длительность цикла</span>
+                  <input id="templateDurationInput" type="number" min="1" step="1" required>
+                </label>
+                <label class="field">
+                  <span>Плановый выход ГП, л</span>
+                  <input id="templateOutputInput" type="number" min="0" step="0.01">
+                </label>
+              </div>
               <label class="field">
-                <span>Название сорта</span>
-                <input id="templateNameInput" required>
+                <span>Цвет по умолчанию</span>
+                <input id="templateColorInput" type="color" value="#FF8B00">
               </label>
-              <label class="field">
-                <span>Наименование по ДС</span>
-                <input id="templateDsNameInput">
+              <label class="field" id="templateCustomerField" hidden>
+                <span>Заказчик</span>
+                <input id="templateCustomerInput" list="templateCustomersList">
+                <datalist id="templateCustomersList"></datalist>
               </label>
             </div>
-            <div class="two">
-              <label class="field">
-                <span>Длительность цикла</span>
-                <input id="templateDurationInput" type="number" min="1" step="1" required>
-              </label>
-              <label class="field">
-                <span>Плановый выход ГП, л</span>
-                <input id="templateOutputInput" type="number" min="0" step="0.01">
-              </label>
+            <div class="template-form-pane" id="templateChecklistPane" data-template-pane="checklist" hidden>
+              <div class="template-checklist-toolbar">
+                <button class="secondary" id="templateChecklistAddButton" type="button">Добавить пункт</button>
+                <button class="secondary" id="templateChecklistDefaultButton" type="button">Типовой чек-лист</button>
+              </div>
+              <div class="template-checklist-list" id="templateChecklistList"></div>
             </div>
-            <label class="field">
-              <span>Цвет по умолчанию</span>
-              <input id="templateColorInput" type="color" value="#FF8B00">
-            </label>
-            <label class="field" id="templateCustomerField" hidden>
-              <span>Заказчик</span>
-              <input id="templateCustomerInput" list="templateCustomersList">
-              <datalist id="templateCustomersList"></datalist>
-            </label>
             <button class="top-action" type="submit">Сохранить шаблон</button>
             <div class="status" id="templateStatus"></div>
           </form>
@@ -6543,7 +6684,15 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.25.118-saas";
+    const templateChecklistTimings = [
+      { value: "before_start", label: "До старта" },
+      { value: "start", label: "В день старта" },
+      { value: "after_start", label: "После старта" },
+      { value: "before_end", label: "До розлива" },
+      { value: "end", label: "В день розлива" },
+      { value: "condition", label: "По показателю" }
+    ];
+    const appVersion = "v2026.06.25.120-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -8755,6 +8904,7 @@
       selectedSiteId: null,
       selectedTemplateId: null,
       showArchivedTemplates: false,
+      templateTab: "info",
       selectedGpProduct: "",
       collapsedTemplateCustomers: {},
       filters: {
@@ -8899,6 +9049,10 @@
     const productTemplatesList = document.querySelector("#productTemplatesList");
     const templateList = document.querySelector("#templateList");
     const templateForm = document.querySelector("#templateForm");
+    const templateInfoTab = document.querySelector("#templateInfoTab");
+    const templateChecklistTab = document.querySelector("#templateChecklistTab");
+    const templateInfoPane = document.querySelector("#templateInfoPane");
+    const templateChecklistPane = document.querySelector("#templateChecklistPane");
     const templateNameInput = document.querySelector("#templateNameInput");
     const templateDsNameInput = document.querySelector("#templateDsNameInput");
     const templateDurationInput = document.querySelector("#templateDurationInput");
@@ -8907,6 +9061,9 @@
     const templateCustomerField = document.querySelector("#templateCustomerField");
     const templateCustomerInput = document.querySelector("#templateCustomerInput");
     const templateCustomersList = document.querySelector("#templateCustomersList");
+    const templateChecklistList = document.querySelector("#templateChecklistList");
+    const templateChecklistAddButton = document.querySelector("#templateChecklistAddButton");
+    const templateChecklistDefaultButton = document.querySelector("#templateChecklistDefaultButton");
     const templateStatus = document.querySelector("#templateStatus");
     const tankForm = document.querySelector("#tankForm");
     const closeTankButton = document.querySelector("#closeTankButton");
@@ -12900,6 +13057,105 @@
       return newId();
     }
 
+    function checklistTimingAllowed(value) {
+      return templateChecklistTimings.some((item) => item.value === value);
+    }
+
+    function createTemplateChecklistItem(item = {}) {
+      const timing = checklistTimingAllowed(item.timing) ? item.timing : "condition";
+      return {
+        id: item.id || newId(),
+        title: String(item.title || item.name || "").trim(),
+        timing,
+        offsetDays: Math.max(0, Math.min(365, Math.round(Number(item.offsetDays) || 0))),
+        note: String(item.note || item.condition || item.comment || "").trim()
+      };
+    }
+
+    function defaultTemplateChecklist() {
+      return [
+        createTemplateChecklistItem({ title: "Проверить готовность сырья и дрожжей", timing: "before_start", offsetDays: 2 }),
+        createTemplateChecklistItem({ title: "Подготовить и санировать ЦКТ", timing: "before_start", offsetDays: 1 }),
+        createTemplateChecklistItem({ title: "Зафиксировать параметры варки", timing: "start", note: "Экстрактивность, объем, температуры" }),
+        createTemplateChecklistItem({ title: "Контроль брожения", timing: "after_start", offsetDays: 2, note: "Плотность, температура, активность брожения" }),
+        createTemplateChecklistItem({ title: "Решение по добавкам или сухому охмелению", timing: "condition", note: "По рецептуре и фактическим показателям продукта" }),
+        createTemplateChecklistItem({ title: "Контроль окончания брожения", timing: "condition", note: "Стабильная плотность, температура, состояние осадка" }),
+        createTemplateChecklistItem({ title: "Подготовить тару и расходники", timing: "before_end", offsetDays: 2 }),
+        createTemplateChecklistItem({ title: "Подтвердить допуск к розливу", timing: "before_end", offsetDays: 1 })
+      ];
+    }
+
+    function normalizeTemplateChecklist(items, options = {}) {
+      const source = Array.isArray(items) ? items : [];
+      const normalized = source
+        .map((item) => createTemplateChecklistItem(item))
+        .filter((item) => item.title || item.note);
+      if (!normalized.length && options.withDefaults) return defaultTemplateChecklist();
+      return normalized;
+    }
+
+    function checklistTimingOptionsHtml(selected) {
+      return templateChecklistTimings
+        .map((item) => `<option value="${item.value}" ${item.value === selected ? "selected" : ""}>${escapeHtml(item.label)}</option>`)
+        .join("");
+    }
+
+    function renderTemplateChecklistEditor(items = []) {
+      if (!templateChecklistList) return;
+      const source = Array.isArray(items) ? items : [];
+      const normalized = source.map((item) => createTemplateChecklistItem(item));
+      if (!normalized.length) {
+        templateChecklistList.innerHTML = `<div class="template-checklist-empty">Пункты чек-листа пока не добавлены</div>`;
+        return;
+      }
+      templateChecklistList.innerHTML = normalized.map((item, index) => `
+        <div class="template-checklist-row" data-checklist-id="${escapeHtml(item.id)}">
+          <span class="template-checklist-number">${index + 1}</span>
+          <label class="field">
+            <span>Пункт</span>
+            <input data-checklist-field="title" value="${escapeHtml(item.title)}" placeholder="Контроль плотности">
+          </label>
+          <label class="field">
+            <span>Срок</span>
+            <select data-checklist-field="timing">${checklistTimingOptionsHtml(item.timing)}</select>
+          </label>
+          <label class="field">
+            <span>Дней</span>
+            <input data-checklist-field="offsetDays" type="number" min="0" step="1" value="${item.offsetDays}">
+          </label>
+          <button class="template-checklist-remove" type="button" data-remove-checklist-item="${escapeHtml(item.id)}" aria-label="Удалить пункт чек-листа" title="Удалить">
+            <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+          <label class="field template-checklist-note">
+            <span>Условие / комментарий</span>
+            <input data-checklist-field="note" value="${escapeHtml(item.note)}" placeholder="По фактическим показателям продукта">
+          </label>
+        </div>
+      `).join("");
+    }
+
+    function templateChecklistFromForm() {
+      if (!templateChecklistList) return [];
+      return Array.from(templateChecklistList.querySelectorAll("[data-checklist-id]"))
+        .map((row) => createTemplateChecklistItem({
+          id: row.dataset.checklistId || newId(),
+          title: row.querySelector('[data-checklist-field="title"]')?.value || "",
+          timing: row.querySelector('[data-checklist-field="timing"]')?.value || "condition",
+          offsetDays: row.querySelector('[data-checklist-field="offsetDays"]')?.value || 0,
+          note: row.querySelector('[data-checklist-field="note"]')?.value || ""
+        }))
+        .filter((item) => item.title || item.note);
+    }
+
+    function setTemplateFormTab(tab) {
+      const nextTab = tab === "checklist" ? "checklist" : "info";
+      state.templateTab = nextTab;
+      templateInfoTab.dataset.active = nextTab === "info" ? "true" : "false";
+      templateChecklistTab.dataset.active = nextTab === "checklist" ? "true" : "false";
+      templateInfoPane.hidden = nextTab !== "info";
+      templateChecklistPane.hidden = nextTab !== "checklist";
+    }
+
     function normalizeProductTemplates(templates) {
       const seen = new Set();
       return templates.map((template, index) => {
@@ -12914,6 +13170,7 @@
           duration: Math.max(1, Number(template.duration) || 1),
           plannedOutput: Math.max(0, Number(template.plannedOutput) || 0),
           color: template.color || palette[index % palette.length],
+          checklist: normalizeTemplateChecklist(template.checklist || template.checkList || []),
           archived: Boolean(template.archived)
         };
       });
@@ -12939,6 +13196,7 @@
         duration: cycleLengthDays(cycle.start, cycle.end),
         plannedOutput: cycle.plannedOutput || 0,
         color: cycle.color || defaultTemplateColor(),
+        checklist: [],
         archived: false
       });
     }
@@ -13033,19 +13291,30 @@
         templateList.innerHTML = `<div class="empty-state">${state.showArchivedTemplates ? "Архив шаблонов пуст" : "Активных шаблонов сортов пока нет"}</div>`;
         return;
       }
-      const templateRowHtml = (template) => `
-        <div class="template-row-item">
-          <button class="template-card" type="button" data-id="${template.id}" data-selected="${state.selectedTemplateId === template.id ? "true" : "false"}">
-            <span class="color-dot" style="background:${template.color || defaultTemplateColor()}"></span>
-            <span><b>${escapeHtml(template.name)}</b>${featureEnabled("contractBrews") && template.customer ? `<span>${escapeHtml(template.customer)}</span>` : ""}</span>
-          </button>
-          <button class="template-delete-btn" type="button" data-archive-template="${template.id}" aria-label="${template.archived ? "Вернуть из архива" : "Архивировать"} ${escapeHtml(template.name)}" title="${template.archived ? "Вернуть из архива" : "Архивировать"}">
-            ${template.archived
-              ? `<svg viewBox="0 0 24 24"><path d="M3 7h18"/><path d="M5 7v12h14V7"/><path d="M9 13l3-3 3 3"/><path d="M12 10v7"/></svg>`
-              : `<svg viewBox="0 0 24 24"><path d="M3 7h18"/><path d="M5 7v12h14V7"/><path d="M10 11h4"/><path d="M9 15h6"/></svg>`}
-          </button>
-        </div>
-      `;
+      const templateRowHtml = (template) => {
+        const checklistCount = normalizeTemplateChecklist(template.checklist).length;
+        const meta = [
+          featureEnabled("contractBrews") && template.customer ? template.customer : "",
+          `${formatNumber(template.duration || 1)} дн.`,
+          checklistCount ? `чек-лист ${formatNumber(checklistCount)}` : "чек-лист пуст"
+        ].filter(Boolean).join(" · ");
+        return `
+          <div class="template-row-item">
+            <button class="template-card" type="button" data-id="${template.id}" data-selected="${state.selectedTemplateId === template.id ? "true" : "false"}">
+              <span class="color-dot" style="background:${template.color || defaultTemplateColor()}"></span>
+              <span class="template-card-copy">
+                <b>${escapeHtml(template.name)}</b>
+                <span class="template-card-meta">${escapeHtml(meta)}</span>
+              </span>
+            </button>
+            <button class="template-delete-btn" type="button" data-archive-template="${template.id}" aria-label="${template.archived ? "Вернуть из архива" : "Архивировать"} ${escapeHtml(template.name)}" title="${template.archived ? "Вернуть из архива" : "Архивировать"}">
+              ${template.archived
+                ? `<svg viewBox="0 0 24 24"><path d="M3 7h18"/><path d="M5 7v12h14V7"/><path d="M9 13l3-3 3 3"/><path d="M12 10v7"/></svg>`
+                : `<svg viewBox="0 0 24 24"><path d="M3 7h18"/><path d="M5 7v12h14V7"/><path d="M10 11h4"/><path d="M9 15h6"/></svg>`}
+            </button>
+          </div>
+        `;
+      };
       if (featureEnabled("contractBrews")) {
         const groups = new Map();
         templates.forEach((template) => {
@@ -13161,7 +13430,8 @@
         customer: templateCustomerInput.value.trim(),
         duration: Math.max(1, Number(templateDurationInput.value) || 1),
         plannedOutput: Math.max(0, Number(templateOutputInput.value) || 0),
-        color: templateColorInput.value || defaultTemplateColor()
+        color: templateColorInput.value || defaultTemplateColor(),
+        checklist: templateChecklistFromForm()
       };
     }
 
@@ -13196,6 +13466,8 @@
       templateDurationInput.value = template.duration || 1;
       templateOutputInput.value = rounded(template.plannedOutput || 0);
       templateColorInput.value = template.color || defaultTemplateColor();
+      renderTemplateChecklistEditor(normalizeTemplateChecklist(template.checklist, { withDefaults: true }));
+      setTemplateFormTab("info");
       templateStatus.className = "status";
       templateStatus.textContent = "Шаблон выбран";
       rememberTemplateFormSnapshot();
@@ -13210,6 +13482,8 @@
       templateCustomerInput.value = "";
       templateCustomerField.hidden = !featureEnabled("contractBrews");
       templateColorInput.value = defaultTemplateColor();
+      renderTemplateChecklistEditor([]);
+      setTemplateFormTab("info");
       templateStatus.className = "status";
       templateStatus.textContent = "";
       templateList.insertAdjacentElement("afterend", templateForm);
@@ -13940,6 +14214,10 @@
             suppressCycleClick = false;
             return;
           }
+          if (state.addMode) {
+            event.preventDefault();
+            return;
+          }
           if (state.commentMode) {
             openCommentModal(cycle, event);
             return;
@@ -13956,6 +14234,11 @@
           }, 260);
         });
         item.addEventListener("dblclick", (event) => {
+          if (state.addMode) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+          }
           if (!canEdit()) return;
           if (event.target.closest("[data-resize]")) return;
           event.preventDefault();
@@ -14248,6 +14531,7 @@
     function startCycleInteraction(event, cycle) {
       if (!canEdit()) return;
       if (state.commentMode) return;
+      if (state.addMode) return;
       if (event.metaKey || event.ctrlKey) {
         event.preventDefault();
         return;
@@ -15725,7 +16009,14 @@
       }
     }
 
-    function pickProductionStart(tankId, date) {
+    function refreshNewBrewSelectionView() {
+      updateCyclePanelTitle();
+      updateEditorState();
+      renderPickedCell();
+      renderOnboardingTip();
+    }
+
+    function pickProductionStart(tankId, date, options = {}) {
       if (!canEdit()) return;
       if (!state.addMode) return;
       state.selectedCycleId = null;
@@ -15741,7 +16032,11 @@
         formStatus.className = "status";
         formStatus.textContent = "Дата старта выбрана";
       }
-      render();
+      if (options.fullRender) {
+        render();
+        return;
+      }
+      refreshNewBrewSelectionView();
     }
 
     function prepareNewBrewForm() {
@@ -15779,7 +16074,7 @@
 
     function prepareBrewFromGridCell(tankId, date) {
       prepareNewBrewForm();
-      pickProductionStart(tankId, date);
+      pickProductionStart(tankId, date, { fullRender: true });
     }
 
     function copySelectedCycle() {
@@ -17344,6 +17639,28 @@
         render();
       });
 
+      templateInfoTab.addEventListener("click", () => setTemplateFormTab("info"));
+      templateChecklistTab.addEventListener("click", () => setTemplateFormTab("checklist"));
+      templateChecklistAddButton.addEventListener("click", () => {
+        const next = templateChecklistFromForm().concat(createTemplateChecklistItem({
+          title: "",
+          timing: "condition",
+          note: ""
+        }));
+        renderTemplateChecklistEditor(next);
+        setTemplateFormTab("checklist");
+      });
+      templateChecklistDefaultButton.addEventListener("click", () => {
+        renderTemplateChecklistEditor(defaultTemplateChecklist());
+        setTemplateFormTab("checklist");
+      });
+      templateChecklistList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-remove-checklist-item]");
+        if (!button) return;
+        const removedId = button.dataset.removeChecklistItem;
+        renderTemplateChecklistEditor(templateChecklistFromForm().filter((item) => item.id !== removedId));
+      });
+
       templateForm.addEventListener("submit", (event) => {
         event.preventDefault();
         if (!requireEdit()) return;
@@ -17361,7 +17678,8 @@
           customer: templateCustomerInput.value.trim(),
           duration: Math.max(1, Number(templateDurationInput.value) || 1),
           plannedOutput: Math.max(0, Number(templateOutputInput.value) || 0),
-          color: templateColorInput.value || defaultTemplateColor()
+          color: templateColorInput.value || defaultTemplateColor(),
+          checklist: templateChecklistFromForm()
         };
         const existing = productTemplates.find((template) => template.id === state.selectedTemplateId);
         if (existing) {
