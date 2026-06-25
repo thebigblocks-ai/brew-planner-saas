@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.25.109-saas";
+      content: "v2026.06.25.110-saas";
     }
 
     .toolbar {
@@ -5243,9 +5243,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.109-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.110-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.109-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.110-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6523,7 +6523,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.25.109-saas";
+    const appVersion = "v2026.06.25.110-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6754,7 +6754,6 @@
     let lastActionLogSignature = "";
     let skippedRemoteRefreshCount = 0;
     let baseGridRenderKey = "";
-    let zoomStyleKey = "";
     let dynamicGridElements = new Set();
     let onboardingTargetElement = null;
     let lastTabActiveAt = Date.now();
@@ -13453,12 +13452,8 @@
       const rowSize = rowSizes[state.view === "compact" ? "compact" : "full"];
       const rowZoomStep = Math.max(state.zoomStep, -1);
       const tankRow = clamp(rowSize.base + rowZoomStep * rowSize.step, rowSize.min, rowSize.max);
-      const headerDay = state.zoom === "week" ? "0px" : "42px";
-      const nextZoomStyleKey = `${dayColumn}|${headerDay}|${tankRow}`;
-      if (zoomStyleKey === nextZoomStyleKey) return;
-      zoomStyleKey = nextZoomStyleKey;
       document.documentElement.style.setProperty("--day-col", `${dayColumn}px`);
-      document.documentElement.style.setProperty("--header-day", headerDay);
+      document.documentElement.style.setProperty("--header-day", state.zoom === "week" ? "0px" : "42px");
       document.documentElement.style.setProperty("--tank-row", `${tankRow}px`);
     }
 
@@ -15725,16 +15720,20 @@
       render();
     }
 
-    function prepareBrewFromGridCell(tankId, date) {
+    function prepareNewBrewForm() {
       clearCycleMultiSelection();
       state.selectedCycleId = null;
       state.selectedTankId = null;
       state.addMode = true;
       state.commentMode = false;
       state.panelMode = "cycle";
+      state.pickedTankId = null;
+      state.pickedDate = null;
       state.packagingSource = null;
+      state.partialBottlingEditId = null;
       state.cycleFormSnapshot = null;
       state.cycleTab = "production";
+      state.processTab = "brew";
       state.taskEditId = null;
       state.pendingTaskFileTaskId = null;
       addMenu.classList.remove("open");
@@ -15742,11 +15741,20 @@
       productInput.value = "";
       sourceCycleInput.value = "";
       batchInput.value = `B-${String(new Date().getMonth() + 1).padStart(2, "0")}26`;
+      cycleStartInput.value = toISO(appToday());
       cycleDurationInput.value = "21";
+      syncEndDate();
       stageInput.value = "План";
       plannedOutputInput.value = "3000";
       setPackagingFields({ can045: { quantity: 0, liters: 0 }, keg20: { quantity: 0, liters: 0 } });
       resetPartialBottlingForm();
+      resetTaskForm();
+      formStatus.className = "status";
+      formStatus.textContent = "Выберите дату в строке нужной ЦКТ";
+    }
+
+    function prepareBrewFromGridCell(tankId, date) {
+      prepareNewBrewForm();
       pickProductionStart(tankId, date);
     }
 
@@ -16705,16 +16713,19 @@
 
       addBrewButton.addEventListener("click", () => {
         if (!requireEdit()) return;
-        clearCycleMultiSelection();
-        state.addMode = !state.addMode;
-        state.commentMode = false;
-        state.selectedCycleId = null;
-        state.selectedTankId = null;
-        state.packagingSource = null;
-        state.panelMode = state.addMode ? "cycle" : "hidden";
-        addMenu.classList.remove("open");
-        formStatus.className = "status";
-        formStatus.textContent = state.addMode ? "Выберите дату в строке нужной ЦКТ" : "";
+        const shouldOpen = !state.addMode || state.panelMode !== "cycle";
+        if (shouldOpen) {
+          prepareNewBrewForm();
+        } else {
+          state.addMode = false;
+          state.commentMode = false;
+          state.panelMode = "hidden";
+          state.pickedTankId = null;
+          state.pickedDate = null;
+          addMenu.classList.remove("open");
+          formStatus.className = "status";
+          formStatus.textContent = "";
+        }
         render();
       });
 
