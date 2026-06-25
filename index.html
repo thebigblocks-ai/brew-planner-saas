@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.26.129-saas";
+      content: "v2026.06.26.134-saas";
     }
 
     .toolbar {
@@ -584,6 +584,22 @@
       font-weight: 850;
     }
 
+    .product-input-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 38px;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .product-input-row input {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .product-template-link {
+      min-width: 38px;
+    }
+
     .zoom-stepper button:hover {
       background: var(--soft-bg);
     }
@@ -794,6 +810,15 @@
       min-width: 0;
       color: var(--ink);
       white-space: nowrap;
+    }
+
+    .cycle-create-tasks-check {
+      align-self: end;
+      min-height: 38px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--soft);
     }
 
     .filter-menu .secondary {
@@ -1389,7 +1414,7 @@
       z-index: 65;
       display: flex;
       flex-direction: column;
-      width: min(1040px, calc(100vw - 32px));
+      width: min(1144px, calc(100vw - 32px));
       height: min(660px, calc(100vh - 40px));
       overflow: hidden;
       transform: translate(-50%, -50%);
@@ -3503,12 +3528,6 @@
       box-shadow: 0 8px 18px rgba(17, 24, 39, .06);
     }
 
-    .status.error[data-attention="true"] {
-      border-radius: 6px;
-      outline: 2px solid color-mix(in srgb, var(--danger) 34%, transparent);
-      outline-offset: 3px;
-    }
-
     .template-row {
       display: flex;
       flex-wrap: wrap;
@@ -5371,9 +5390,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-    <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.26.129-saas</span>
+    <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.26.134-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.26.129-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.26.134-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5666,11 +5685,16 @@
             <button class="cycle-tab" id="cycleTasksTab" type="button" data-tab="tasks" role="tab" aria-controls="cycleTasksPane" data-active="false">Задачи</button>
           </div>
             <form class="form cycle-pane" id="cycleForm" data-pane="production" role="tabpanel" aria-labelledby="cycleProductionTab">
-              <label class="field">
+              <div class="field product-field">
                 <span>Продукт</span>
-                <input id="productInput" list="productTemplatesList" value="" required>
+                <div class="product-input-row">
+                  <input id="productInput" list="productTemplatesList" value="" required>
+                  <button class="icon-btn product-template-link" id="openProductTemplateButton" type="button" aria-label="Открыть карточку сорта" title="Выберите существующий сорт" disabled>
+                    <svg viewBox="0 0 24 24"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+                  </button>
+                </div>
                 <datalist id="productTemplatesList"></datalist>
-              </label>
+              </div>
               <label class="field">
                 <span>Создан на основе</span>
                 <select id="sourceCycleInput"></select>
@@ -5700,7 +5724,10 @@
                   <span>Розлив</span>
                   <input id="cycleEndInput" type="date" value="2026-07-03" required>
                 </label>
-                <span></span>
+                <label class="filter-check cycle-create-tasks-check" id="createTasksFromChecklistField" hidden>
+                  <input id="createTasksFromChecklistInput" type="checkbox">
+                  <span>Создать с задачами</span>
+                </label>
               </div>
               <label class="field">
                 <span>Стадия</span>
@@ -6692,7 +6719,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.06.26.129-saas";
+    const appVersion = "v2026.06.26.134-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -7773,6 +7800,8 @@
           done: Boolean(task.done),
           createdAt: task.createdAt || new Date().toISOString(),
           completedAt: task.completedAt || "",
+          source: String(task.source || "").trim(),
+          templateChecklistItemId: String(task.templateChecklistItemId || "").trim(),
           attachments: normalizeTaskAttachments(task.attachments)
         }))
         .filter((task) => task.title);
@@ -8966,6 +8995,7 @@
     const themeIcon = document.querySelector("#themeIcon");
     const cyclePanelTitle = document.querySelector("#cyclePanelTitle");
     const productInput = document.querySelector("#productInput");
+    const openProductTemplateButton = document.querySelector("#openProductTemplateButton");
     const batchInput = document.querySelector("#batchInput");
     const tankInput = document.querySelector("#tankInput");
     const sourceCycleInput = document.querySelector("#sourceCycleInput");
@@ -8998,6 +9028,8 @@
     const cycleStartInput = document.querySelector("#cycleStartInput");
     const cycleDurationInput = document.querySelector("#cycleDurationInput");
     const cycleEndInput = document.querySelector("#cycleEndInput");
+    const createTasksFromChecklistField = document.querySelector("#createTasksFromChecklistField");
+    const createTasksFromChecklistInput = document.querySelector("#createTasksFromChecklistInput");
     const plannedOutputInput = document.querySelector("#plannedOutputInput");
     const canQtyInput = document.querySelector("#canQtyInput");
     const canLitersInput = document.querySelector("#canLitersInput");
@@ -13149,6 +13181,65 @@
         .filter((item) => item.title || item.note);
     }
 
+    function templateChecklistTaskTitle(item) {
+      const title = String(item.title || "").trim();
+      const note = String(item.note || "").trim();
+      if (!note) return title;
+      return `${title} - ${note}`;
+    }
+
+    function templateChecklistTaskDueDate(item, cycle) {
+      const offset = Math.max(0, Number(item.offsetDays) || 0);
+      if (item.timing === "before_start") return toISO(addDays(parseDate(cycle.start), -offset));
+      if (item.timing === "start") return cycle.start;
+      if (item.timing === "after_start") return toISO(addDays(parseDate(cycle.start), offset));
+      if (item.timing === "before_end") return toISO(addDays(parseDate(cycle.end), -offset));
+      if (item.timing === "end") return cycle.end;
+      return "";
+    }
+
+    function tasksFromTemplateChecklist(template, cycle) {
+      if (!featureEnabled("cycleTasks") || !template || !cycle) return [];
+      const createdAt = new Date().toISOString();
+      return normalizeTemplateChecklist(template.checklist)
+        .map((item) => ({
+          id: newId(),
+          title: templateChecklistTaskTitle(item),
+          assignee: "",
+          dueDate: templateChecklistTaskDueDate(item, cycle),
+          done: false,
+          createdAt,
+          completedAt: "",
+          source: "template-checklist",
+          templateChecklistItemId: item.id,
+          attachments: []
+        }))
+        .filter((task) => task.title);
+    }
+
+    function updateCreateTasksFromChecklistControl({ reset = false } = {}) {
+      if (!createTasksFromChecklistField || !createTasksFromChecklistInput) return;
+      const isNewCycle = state.panelMode === "cycle" && !state.selectedCycleId;
+      const template = templateByName(productInput.value);
+      const checklistCount = normalizeTemplateChecklist(template?.checklist || []).length;
+      const visible = Boolean(featureEnabled("cycleTasks") && isNewCycle && checklistCount);
+      const templateKey = visible ? String(template.id || template.name || "") : "";
+
+      createTasksFromChecklistField.hidden = !visible;
+      createTasksFromChecklistInput.disabled = !visible || !canEdit();
+
+      if (!visible) {
+        createTasksFromChecklistInput.checked = false;
+        createTasksFromChecklistInput.dataset.templateKey = "";
+        return;
+      }
+
+      if (reset || createTasksFromChecklistInput.dataset.templateKey !== templateKey) {
+        createTasksFromChecklistInput.checked = false;
+        createTasksFromChecklistInput.dataset.templateKey = templateKey;
+      }
+    }
+
     function setTemplateFormTab(tab) {
       const nextTab = tab === "checklist" ? "checklist" : "info";
       state.templateTab = nextTab;
@@ -13181,6 +13272,20 @@
     function templateByName(name, { includeArchived = false } = {}) {
       const normalized = normalizeName(name);
       return productTemplates.find((template) => normalizeName(template.name) === normalized && (includeArchived || !template.archived));
+    }
+
+    function cycleFormProductTemplate() {
+      return templateByName(productInput.value, { includeArchived: true });
+    }
+
+    function updateProductTemplateLinkButton() {
+      if (!openProductTemplateButton) return;
+      const template = cycleFormProductTemplate();
+      const enabled = Boolean(featureEnabled("productTemplates") && template);
+      openProductTemplateButton.disabled = !enabled;
+      openProductTemplateButton.dataset.templateId = enabled ? template.id : "";
+      openProductTemplateButton.title = enabled ? "Открыть карточку сорта" : "Выберите существующий сорт";
+      openProductTemplateButton.setAttribute("aria-label", enabled ? `Открыть карточку сорта ${template.name}` : "Выберите существующий сорт");
     }
 
     function defaultTemplateColor() {
@@ -13446,10 +13551,17 @@
       return JSON.stringify(templateFormSnapshot()) !== state.templateFormSnapshot;
     }
 
-    function openProductTemplate(id) {
+    function openProductTemplate(id, options = {}) {
+      const forceOpen = Boolean(options.forceOpen);
       const template = productTemplates.find((item) => item.id === id);
       if (!template) return;
       if (state.selectedTemplateId === id && !templateForm.hidden) {
+        if (forceOpen) {
+          templateStatus.className = "status";
+          templateStatus.textContent = "Шаблон выбран";
+          renderTemplateList();
+          return;
+        }
         if (templateFormHasUnsavedChanges()) {
           templateStatus.className = "status error";
           templateStatus.textContent = "Есть несохраненные изменения";
@@ -13474,6 +13586,32 @@
       templateStatus.textContent = "Шаблон выбран";
       rememberTemplateFormSnapshot();
       renderTemplateList();
+    }
+
+    function openProductTemplateFromCycleForm() {
+      const template = cycleFormProductTemplate();
+      if (!template) {
+        updateProductTemplateLinkButton();
+        return;
+      }
+      addMenu.classList.remove("open");
+      filterMenu.classList.remove("open");
+      adminMenu.classList.remove("open");
+      userBox.classList.remove("open");
+      userMenuButton.setAttribute("aria-expanded", "false");
+      state.panelMode = "templates";
+      state.addMode = false;
+      state.commentMode = false;
+      state.selectedCycleId = null;
+      state.selectedTankId = null;
+      state.pickedTankId = null;
+      state.pickedDate = null;
+      state.showArchivedTemplates = Boolean(template.archived);
+      render();
+      openProductTemplate(template.id, { forceOpen: true });
+      requestAnimationFrame(() => {
+        templateForm?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      });
     }
 
     function resetTemplateForm() {
@@ -15386,6 +15524,7 @@
         }
         if (state.panelMode === "myTasks") renderMyTasks();
         applyAccessControl();
+        updateProductTemplateLinkButton();
         updateTankPanelState();
         updateSitePanelState();
         initializeFastTooltips();
@@ -15954,6 +16093,9 @@
         process: normalizeCycleProcess(),
         color: productTemplate?.color || palette[cycles.length % palette.length]
       };
+      newCycle.tasks = createTasksFromChecklistInput?.checked
+        ? tasksFromTemplateChecklist(productTemplate, newCycle)
+        : [];
       cycles = cycles.concat(newCycle);
       ensureProductTemplate(newCycle);
       formStatus.className = "status";
@@ -15967,7 +16109,8 @@
         tank: tanks.find((tank) => tank.id === newCycle.tankId)?.name || "",
         start: newCycle.start,
         end: newCycle.end,
-        stage: newCycle.stage
+        stage: newCycle.stage,
+        tasks: newCycle.tasks.length ? formatNumber(newCycle.tasks.length) : ""
       });
       formStatus.className = "status";
       formStatus.textContent = "Цикл добавлен";
@@ -16010,6 +16153,8 @@
     function updateEditorState() {
       const cycle = cycles.find((item) => item.id === state.selectedCycleId);
       updateCyclePanelTitle(cycle);
+      updateCreateTasksFromChecklistControl();
+      updateProductTemplateLinkButton();
       if (!cycle) {
         submitCycleText.textContent = "Добавить цикл";
         const hint = state.commentMode ? "Выберите место внутри полосы цикла" : state.addMode ? "Выберите свободную ячейку в плане" : "Выберите свободную ячейку в плане или существующий цикл";
@@ -16128,6 +16273,7 @@
       resetTaskForm();
       formStatus.className = "status";
       formStatus.textContent = "Выберите дату в строке нужной ЦКТ";
+      updateCreateTasksFromChecklistControl({ reset: true });
     }
 
     function prepareBrewFromGridCell(tankId, date) {
@@ -16160,6 +16306,7 @@
       plannedOutputInput.value = rounded(cycle.plannedOutput || 0);
       setPackagingFields(packagingForCycle(cycle));
       resetPartialBottlingForm();
+      updateCreateTasksFromChecklistControl({ reset: true });
       formStatus.className = "status";
       formStatus.textContent = "Копия подготовлена. Выберите новую дату в нужной ЦКТ";
       render();
@@ -16191,6 +16338,7 @@
       plannedOutputInput.value = "0";
       setPackagingFields({ can045: { quantity: 0, liters: 0 }, keg20: { quantity: 0, liters: 0 } });
       resetPartialBottlingForm();
+      updateCreateTasksFromChecklistControl({ reset: true });
       formStatus.className = "status";
       formStatus.textContent = `Производный цикл подготовлен. Доступно из исходного: ${formatLiters(sourceAvailable)} л`;
       render();
@@ -16223,6 +16371,7 @@
       setPackagingFields(packagingForCycle(cycle));
       resetPartialBottlingForm(cycle);
       resetTaskForm(cycle);
+      updateCreateTasksFromChecklistControl({ reset: true });
       formStatus.className = "status";
       formStatus.textContent = "Цикл выбран";
       render();
@@ -17027,12 +17176,17 @@
       stageInput.addEventListener("change", updateSelectedStage);
       productInput.addEventListener("input", () => {
         applyProductTemplate(templateByName(productInput.value));
+        updateCreateTasksFromChecklistControl({ reset: true });
+        updateProductTemplateLinkButton();
         updateCyclePanelTitle();
       });
       productInput.addEventListener("change", () => {
         applyProductTemplate(templateByName(productInput.value));
+        updateCreateTasksFromChecklistControl({ reset: true });
+        updateProductTemplateLinkButton();
         updateCyclePanelTitle();
       });
+      openProductTemplateButton.addEventListener("click", openProductTemplateFromCycleForm);
       cycleStartInput.addEventListener("change", () => {
         syncCycleDates("start");
         state.pickedDate = cycleStartInput.value;
