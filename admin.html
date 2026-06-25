@@ -469,7 +469,7 @@
     }
 
     .user-row {
-      grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
+      grid-template-columns: minmax(0, 1fr) minmax(224px, 250px);
       align-items: start;
     }
 
@@ -565,8 +565,8 @@
     .user-controls-grid select,
     .user-controls-grid button {
       width: 100%;
-      height: 42px;
-      min-height: 42px;
+      height: 38px;
+      min-height: 38px;
       padding: 6px 9px;
       font-size: 12px;
       line-height: 1.15;
@@ -577,6 +577,16 @@
       display: grid;
       gap: 4px;
       margin-top: 4px;
+    }
+
+    .user-edit-action {
+      width: fit-content;
+      min-height: 30px;
+      padding: 6px 9px;
+      color: var(--text);
+      background: #fff;
+      border-color: var(--line);
+      font-size: 12px;
     }
 
     .presence-badge {
@@ -650,6 +660,63 @@
 
     .user-create-form button,
     .user-create-form .status {
+      grid-column: 1 / -1;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(15, 23, 42, .44);
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(680px, 100%);
+      max-height: min(86vh, 720px);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .modal-body {
+      padding: 16px;
+      overflow: auto;
+    }
+
+    .modal-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .modal-form .actions,
+    .modal-form .status {
       grid-column: 1 / -1;
     }
 
@@ -847,6 +914,7 @@
       .logo-editor { grid-template-columns: 1fr; }
       .users-layout { grid-template-columns: 1fr; }
       .user-create-form { grid-template-columns: 1fr; }
+      .modal-form { grid-template-columns: 1fr; }
       .profile-name-row { grid-template-columns: 1fr; }
       .ticket-filters { grid-template-columns: 1fr; }
       .user-row,
@@ -883,7 +951,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.25.28-saas</span>
+        <span>v2026.06.25.29-saas</span>
       </div>
     </aside>
 
@@ -973,6 +1041,14 @@
                   <label class="field">
                     <span>Отчество</span>
                     <input id="orgUserMiddleNameInput" autocomplete="additional-name" placeholder="Иванович">
+                  </label>
+                  <label class="field">
+                    <span>Контактный телефон</span>
+                    <input id="orgUserPhoneInput" type="tel" autocomplete="tel" value="+7">
+                  </label>
+                  <label class="field">
+                    <span>Должность</span>
+                    <input id="orgUserDepartmentInput" autocomplete="organization-title" placeholder="Технолог">
                   </label>
                   <label class="field">
                     <span>Роль</span>
@@ -1132,6 +1208,44 @@
     </section>
   </main>
 
+  <div class="modal-backdrop" id="userEditModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="userEditTitle">
+      <div class="modal-head">
+        <h2 id="userEditTitle">Редактирование сотрудника</h2>
+        <button id="closeUserEditButton" type="button">Закрыть</button>
+      </div>
+      <div class="modal-body">
+        <form id="userEditForm" class="modal-form">
+          <label class="field">
+            <span>Фамилия</span>
+            <input id="editUserLastNameInput" autocomplete="family-name">
+          </label>
+          <label class="field">
+            <span>Имя</span>
+            <input id="editUserFirstNameInput" autocomplete="given-name">
+          </label>
+          <label class="field">
+            <span>Отчество</span>
+            <input id="editUserMiddleNameInput" autocomplete="additional-name">
+          </label>
+          <label class="field">
+            <span>Контактный телефон</span>
+            <input id="editUserPhoneInput" type="tel" autocomplete="tel">
+          </label>
+          <label class="field">
+            <span>Должность</span>
+            <input id="editUserDepartmentInput" autocomplete="organization-title">
+          </label>
+          <div class="actions">
+            <button class="primary" type="submit">Сохранить</button>
+            <button id="cancelUserEditButton" type="button">Отмена</button>
+          </div>
+          <div class="status" id="userEditStatus"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script>
     window.BREW_PLANNER_YANDEX_API_BASE_URL = window.BREW_PLANNER_YANDEX_API_BASE_URL || "https://d5dn5no723gof5n2nu74.628pfjdx.apigw.yandexcloud.net";
 
@@ -1252,6 +1366,7 @@
     let activeView = "organizations";
     let activeOrgTab = "users";
     let pendingOrganizationLogo = null;
+    let editingUserId = "";
 
     const $ = (selector) => document.querySelector(selector);
     const $$ = (selector) => Array.from(document.querySelectorAll(selector));
@@ -1271,6 +1386,22 @@
 
     function fullNameFromParts(lastName, firstName, middleName = "") {
       return [lastName, firstName, middleName].map(cleanNamePart).filter(Boolean).join(" ");
+    }
+
+    function normalizedRussianPhone(value) {
+      const raw = String(value || "").trim();
+      if (!raw) return "+7";
+      if (raw.startsWith("+7")) return raw;
+      const digits = raw.replace(/\D/g, "");
+      if (!digits) return "+7";
+      if (digits.startsWith("8")) return `+7 ${digits.slice(1)}`.trim();
+      if (digits.startsWith("7")) return `+${digits}`;
+      return `+7 ${digits}`.trim();
+    }
+
+    function ensureRussianPhonePrefix(input) {
+      if (!input) return;
+      input.value = normalizedRussianPhone(input.value);
     }
 
     function nameInitial(value) {
@@ -1669,6 +1800,33 @@
       `;
     }
 
+    function closeUserEditModal() {
+      editingUserId = "";
+      $("#userEditForm").reset();
+      $("#userEditStatus").textContent = "";
+      $("#userEditStatus").className = "status";
+      $("#userEditModal").classList.remove("open");
+      $("#userEditModal").setAttribute("aria-hidden", "true");
+    }
+
+    function openUserEditModal(userId) {
+      const user = selectedOrgUsers.find((item) => item.id === userId);
+      if (!user) return;
+      const parts = namePartsFromUser(user);
+      editingUserId = user.id;
+      $("#userEditTitle").textContent = `Редактирование: ${shortUserName(user)}`;
+      $("#editUserLastNameInput").value = parts.lastName || "";
+      $("#editUserFirstNameInput").value = parts.firstName || "";
+      $("#editUserMiddleNameInput").value = parts.middleName || "";
+      $("#editUserPhoneInput").value = normalizedRussianPhone(user.phone || "");
+      $("#editUserDepartmentInput").value = user.department || "";
+      $("#userEditStatus").textContent = "";
+      $("#userEditStatus").className = "status";
+      $("#userEditModal").classList.add("open");
+      $("#userEditModal").setAttribute("aria-hidden", "false");
+      $("#editUserLastNameInput").focus();
+    }
+
     function renderOrganizationUsers() {
       $("#organizationUsers").innerHTML = selectedOrgUsers.length ? selectedOrgUsers.map((user) => `
         <div class="user-row" data-user-id="${escapeHtml(user.id)}">
@@ -1676,8 +1834,11 @@
             <b>${escapeHtml(shortUserName(user))}</b>
             <div class="user-meta-grid">
               <span class="small">${escapeHtml(user.email)}${user.mustChangePassword ? " · ждет смены пароля" : ""}${user.isBlocked ? " · отключен" : ""}</span>
+              ${user.department ? `<span class="small">Должность: ${escapeHtml(user.department)}</span>` : ""}
+              ${user.phone ? `<span class="small">Телефон: ${escapeHtml(user.phone)}</span>` : ""}
               <span class="presence-badge" data-online="${user.isOnline ? "true" : "false"}">${user.isOnline ? "online" : "offline"}</span>
               <span class="small">Последняя активность: ${escapeHtml(user.lastSeen ? formatDateTime(user.lastSeen) : user.lastLoginAt ? formatDateTime(user.lastLoginAt) : "не было")}</span>
+              <button class="user-edit-action" type="button" data-edit-user>Редактировать данные</button>
             </div>
           </div>
           <div class="user-controls-grid">
@@ -1694,6 +1855,9 @@
       `).join("") : `<p class="small">В организации пока нет пользователей.</p>`;
 
       $("#organizationUsers").querySelectorAll(".user-row").forEach((row) => {
+        row.querySelector("[data-edit-user]").addEventListener("click", () => {
+          openUserEditModal(row.dataset.userId);
+        });
         row.querySelector("[data-role]").addEventListener("change", async (event) => {
           await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users/${encodeURIComponent(row.dataset.userId)}`, {
             method: "PATCH",
@@ -2326,6 +2490,45 @@
       }
     });
 
+    $("#closeUserEditButton").addEventListener("click", closeUserEditModal);
+    $("#cancelUserEditButton").addEventListener("click", closeUserEditModal);
+    $("#userEditModal").addEventListener("click", (event) => {
+      if (event.target === $("#userEditModal")) closeUserEditModal();
+    });
+    $("#orgUserPhoneInput").addEventListener("focus", (event) => ensureRussianPhonePrefix(event.currentTarget));
+    $("#orgUserPhoneInput").addEventListener("blur", (event) => ensureRussianPhonePrefix(event.currentTarget));
+    $("#editUserPhoneInput").addEventListener("focus", (event) => ensureRussianPhonePrefix(event.currentTarget));
+    $("#editUserPhoneInput").addEventListener("blur", (event) => ensureRussianPhonePrefix(event.currentTarget));
+
+    $("#userEditForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!selectedOrganizationId || !editingUserId) return;
+      const lastName = $("#editUserLastNameInput").value.trim();
+      const firstName = $("#editUserFirstNameInput").value.trim();
+      const middleName = $("#editUserMiddleNameInput").value.trim();
+      const phone = normalizedRussianPhone($("#editUserPhoneInput").value);
+      const department = $("#editUserDepartmentInput").value.trim();
+      setStatus($("#userEditStatus"), "Сохраняем данные сотрудника...");
+      try {
+        await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users/${encodeURIComponent(editingUserId)}`, {
+          method: "PATCH",
+          body: {
+            displayName: fullNameFromParts(lastName, firstName, middleName),
+            lastName,
+            firstName,
+            middleName,
+            phone,
+            department
+          }
+        });
+        setStatus($("#usersStatus"), "Данные сотрудника сохранены", "ok");
+        closeUserEditModal();
+        await loadSelectedOrganizationUsers();
+      } catch (error) {
+        setStatus($("#userEditStatus"), error.message, "error");
+      }
+    });
+
     $("#organizationUserForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       if (!selectedOrganizationId) return;
@@ -2339,6 +2542,8 @@
         const lastName = $("#orgUserLastNameInput").value.trim();
         const firstName = $("#orgUserFirstNameInput").value.trim();
         const middleName = $("#orgUserMiddleNameInput").value.trim();
+        const phone = normalizedRussianPhone($("#orgUserPhoneInput").value);
+        const department = $("#orgUserDepartmentInput").value.trim();
         const data = await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users`, {
           method: "POST",
           body: {
@@ -2347,10 +2552,13 @@
             lastName,
             firstName,
             middleName,
+            phone,
+            department,
             organizationRole: $("#orgUserRoleInput").value
           }
         });
         event.target.reset();
+        $("#orgUserPhoneInput").value = "+7";
         setStatus($("#usersStatus"), data.emailSent ? "Пользователь добавлен. Ссылка установки пароля отправлена на email" : "Пользователь добавлен", "ok");
         await loadSelectedOrganizationUsers();
       } catch (error) {
