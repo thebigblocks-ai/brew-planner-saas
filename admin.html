@@ -469,7 +469,7 @@
     }
 
     .user-row {
-      grid-template-columns: minmax(0, 1fr) minmax(190px, 220px);
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
       align-items: start;
     }
 
@@ -557,6 +557,7 @@
 
     .user-controls-grid {
       display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 7px;
       align-self: stretch;
     }
@@ -564,10 +565,12 @@
     .user-controls-grid select,
     .user-controls-grid button {
       width: 100%;
-      min-height: 34px;
-      padding: 7px 9px;
+      height: 42px;
+      min-height: 42px;
+      padding: 6px 9px;
       font-size: 12px;
-      line-height: 1.2;
+      line-height: 1.15;
+      white-space: normal;
     }
 
     .user-meta-grid {
@@ -880,7 +883,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.25.27-saas</span>
+        <span>v2026.06.25.28-saas</span>
       </div>
     </aside>
 
