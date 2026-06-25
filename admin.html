@@ -536,9 +536,50 @@
       justify-items: end;
     }
 
+    .log-row {
+      display: grid;
+      gap: 5px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .log-row b,
+    .log-row span {
+      display: block;
+    }
+
     .user-actions {
       display: grid;
       gap: 7px;
+    }
+
+    .user-meta-grid {
+      display: grid;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .presence-badge {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 22px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .presence-badge[data-online="true"] {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .presence-badge[data-online="false"] {
+      background: #e5e7eb;
+      color: #475569;
     }
 
     .user-main {
@@ -788,7 +829,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.25.20-saas</span>
+        <span>v2026.06.25.21-saas</span>
       </div>
     </aside>
 
@@ -858,6 +899,7 @@
               <button type="button" data-org-tab="profile">Параметры</button>
               <button type="button" data-org-tab="tickets">Обращения</button>
               <button type="button" data-org-tab="backups">Резервные копии</button>
+              <button type="button" data-org-tab="logs">Логи</button>
             </div>
             <div class="card-body" id="orgUsersTab">
               <div class="users-layout">
@@ -968,6 +1010,16 @@
               </div>
               <div class="status" id="backupsStatus"></div>
               <div class="table" id="organizationBackups"></div>
+            </div>
+            <div class="card-body hidden" id="orgLogsTab">
+              <div class="backup-toolbar">
+                <div>
+                  <b>Логи действий компании</b>
+                  <p class="small">Последние действия пользователей внутри выбранной организации.</p>
+                </div>
+              </div>
+              <div class="status" id="logsStatus"></div>
+              <div class="table" id="organizationLogs"></div>
             </div>
           </div>
         </div>
@@ -1096,6 +1148,18 @@
       8: "8 часов",
       24: "24 часа"
     };
+    const organizationLogActionLabels = {
+      backup_created: "Создана резервная копия",
+      backup_restored: "Восстановлена резервная копия",
+      features_updated: "Изменены функции",
+      organization_updated: "Изменены параметры организации",
+      user_added: "Добавлен сотрудник",
+      user_updated: "Изменен сотрудник",
+      user_password_reset: "Отправлена ссылка пароля",
+      user_blocked: "Сотрудник заблокирован",
+      user_unblocked: "Сотрудник разблокирован",
+      user_removed: "Сотрудник удален"
+    };
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
 
     let currentUser = null;
@@ -1104,6 +1168,8 @@
     let selectedOrgUsers = [];
     let selectedOrgBackups = [];
     let selectedOrgBackupsError = "";
+    let selectedOrgLogs = [];
+    let selectedOrgLogsError = "";
     let tickets = [];
     let selectedTicketId = "";
     let ticketStatusFilter = "";
@@ -1333,18 +1399,24 @@
       const organization = selectedOrganization();
       const organizationId = organization?.id || "";
       setStatus($("#backupsStatus"), "");
+      setStatus($("#logsStatus"), "");
       if (!organization) {
         selectedOrgUsers = [];
         selectedOrgBackups = [];
         selectedOrgBackupsError = "";
+        selectedOrgLogs = [];
+        selectedOrgLogsError = "";
       } else {
         selectedOrgUsers = [];
         selectedOrgBackups = [];
         selectedOrgBackupsError = "";
+        selectedOrgLogs = [];
+        selectedOrgLogsError = "";
         renderOrganizationDetails();
-        const [usersData, backupsData] = await Promise.all([
+        const [usersData, backupsData, logsData] = await Promise.all([
           request(`/organizations/${encodeURIComponent(organization.id)}/users`),
-          request(`/organizations/${encodeURIComponent(organization.id)}/backups`).catch((error) => ({ error }))
+          request(`/organizations/${encodeURIComponent(organization.id)}/backups`).catch((error) => ({ error })),
+          request(`/organizations/${encodeURIComponent(organization.id)}/logs`).catch((error) => ({ error }))
         ]);
         if (organizationId !== selectedOrganizationId) return;
         selectedOrgUsers = usersData.users || [];
@@ -1354,6 +1426,13 @@
         } else {
           selectedOrgBackups = backupsData.backups || [];
           selectedOrgBackupsError = "";
+        }
+        if (logsData.error) {
+          selectedOrgLogs = [];
+          selectedOrgLogsError = logsData.error.message;
+        } else {
+          selectedOrgLogs = logsData.logs || [];
+          selectedOrgLogsError = "";
         }
       }
       renderOrganizationDetails();
@@ -1425,6 +1504,7 @@
       renderOrganizationUsers();
       renderOrganizationTickets();
       renderOrganizationBackups();
+      renderOrganizationLogs();
       renderOrgTabs();
     }
 
@@ -1434,11 +1514,13 @@
       $("[data-org-tab='tickets']").classList.toggle("active", activeOrgTab === "tickets");
       $("[data-org-tab='profile']").classList.toggle("active", activeOrgTab === "profile");
       $("[data-org-tab='backups']").classList.toggle("active", activeOrgTab === "backups");
+      $("[data-org-tab='logs']").classList.toggle("active", activeOrgTab === "logs");
       $("#orgFeaturesTab").classList.toggle("hidden", activeOrgTab !== "features");
       $("#orgUsersTab").classList.toggle("hidden", activeOrgTab !== "users");
       $("#orgTicketsTab").classList.toggle("hidden", activeOrgTab !== "tickets");
       $("#orgProfileTab").classList.toggle("hidden", activeOrgTab !== "profile");
       $("#orgBackupsTab").classList.toggle("hidden", activeOrgTab !== "backups");
+      $("#orgLogsTab").classList.toggle("hidden", activeOrgTab !== "logs");
     }
 
     function renderFeatureList(features) {
@@ -1462,7 +1544,11 @@
           <div class="user-main">
             <div>
               <b>${escapeHtml(shortUserName(user))}</b>
-              <div class="small">${escapeHtml(user.email)}${user.mustChangePassword ? " · ждет смены пароля" : ""}${user.isBlocked ? " · отключен" : ""}</div>
+              <div class="user-meta-grid">
+                <span class="small">${escapeHtml(user.email)}${user.mustChangePassword ? " · ждет смены пароля" : ""}${user.isBlocked ? " · отключен" : ""}</span>
+                <span class="presence-badge" data-online="${user.isOnline ? "true" : "false"}">${user.isOnline ? "online" : "offline"}</span>
+                <span class="small">Последний вход: ${escapeHtml(user.lastLoginAt ? formatDateTime(user.lastLoginAt) : "не было")}</span>
+              </div>
             </div>
             <div class="user-role-actions">
               <select data-role>
@@ -1625,13 +1711,45 @@
               method: "POST"
             });
             selectedOrgBackups = data.backups || selectedOrgBackups;
-            renderOrganizationBackups();
+            await loadSelectedOrganizationUsers();
             setStatus($("#backupsStatus"), "План организации восстановлен. Текущее состояние перед восстановлением сохранено отдельной копией.", "ok");
           } catch (error) {
             setStatus($("#backupsStatus"), error.message, "error");
           }
         });
       });
+    }
+
+    function logDetailsText(details = {}) {
+      if (!details || typeof details !== "object" || Array.isArray(details)) return "";
+      return Object.entries(details)
+        .filter(([, value]) => value !== undefined && value !== null && value !== "")
+        .map(([key, value]) => `${key}: ${typeof value === "object" ? JSON.stringify(value) : String(value)}`)
+        .join(" · ");
+    }
+
+    function organizationLogActionLabel(action) {
+      return organizationLogActionLabels[action] || action || "Действие";
+    }
+
+    function renderOrganizationLogs() {
+      const container = $("#organizationLogs");
+      if (!container) return;
+      if (selectedOrgLogsError) {
+        container.innerHTML = `<p class="small">Не удалось загрузить логи: ${escapeHtml(selectedOrgLogsError)}</p>`;
+        return;
+      }
+      container.innerHTML = selectedOrgLogs.length ? selectedOrgLogs.map((log) => {
+        const details = logDetailsText(log.details);
+        return `
+          <div class="log-row">
+            <b>${escapeHtml(formatDateTime(log.createdAt))} · ${escapeHtml(organizationLogActionLabel(log.action))}</b>
+            <span class="small">${escapeHtml(log.userName || log.userEmail || "пользователь")} · ${escapeHtml(log.entityType || "объект")}${log.entityId ? ` · ${escapeHtml(log.entityId)}` : ""}</span>
+            ${log.title ? `<span>${escapeHtml(log.title)}</span>` : ""}
+            ${details ? `<span class="small">${escapeHtml(details)}</span>` : ""}
+          </div>
+        `;
+      }).join("") : `<p class="small">Логов действий по этой организации пока нет.</p>`;
     }
 
     function renderTickets() {
@@ -1948,7 +2066,7 @@
         organizations = organizations.map((organization) => organization.id === selectedOrganizationId ? saved : organization);
         pendingOrganizationLogo = null;
         renderOrganizations();
-        renderOrganizationDetails();
+        await loadSelectedOrganizationUsers();
         setStatus($("#profileStatus"), "Сохранено", "ok");
       } catch (error) {
         setStatus($("#profileStatus"), error.message, "error");
@@ -2022,6 +2140,7 @@
         });
         setStatus($("#featuresStatus"), "Функции сохранены", "ok");
         await loadOrganizations();
+        await loadSelectedOrganizationUsers();
       } catch (error) {
         setStatus($("#featuresStatus"), error.message, "error");
       }
@@ -2031,13 +2150,11 @@
       if (!selectedOrganizationId) return;
       setStatus($("#backupsStatus"), "Создаем резервную копию...");
       try {
-        const data = await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/backups`, {
+        await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/backups`, {
           method: "POST",
           body: { reason: "Ручная копия из админки" }
         });
-        selectedOrgBackups = data.backups || (data.backup ? [data.backup].concat(selectedOrgBackups) : selectedOrgBackups);
-        selectedOrgBackupsError = "";
-        renderOrganizationBackups();
+        await loadSelectedOrganizationUsers();
         setStatus($("#backupsStatus"), "Резервная копия создана", "ok");
       } catch (error) {
         setStatus($("#backupsStatus"), error.message, "error");
