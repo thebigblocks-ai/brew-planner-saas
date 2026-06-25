@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.25.102-saas";
+      content: "v2026.06.25.104-saas";
     }
 
     .toolbar {
@@ -5243,9 +5243,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.102-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.104-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.102-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.104-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6523,7 +6523,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.25.102-saas";
+    const appVersion = "v2026.06.25.104-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6711,6 +6711,7 @@
     let remoteReady = false;
     let savingPlan = false;
     let saveQueued = false;
+    let planSaveStartedAt = 0;
     let planSaveWaiters = [];
     let realtimeChannel = null;
     let presenceChannel = null;
@@ -6741,8 +6742,20 @@
     let taskCreateInProgress = false;
     let pendingTaskToggleIds = new Set();
     let loadDiagnostics = [];
+    let performanceDiagnostics = [];
+    let renderDiagnostics = {
+      count: 0,
+      repeatedCount: 0,
+      lastAt: 0,
+      lastDurationMs: 0,
+      lastDetails: null
+    };
     let baseGridRenderKey = "";
     let onboardingTargetElement = null;
+    let lastTabActiveAt = Date.now();
+    let resumeRefreshInProgress = false;
+    const inactiveResumeThresholdMs = 5 * 60 * 1000;
+    const staleSaveThresholdMs = 45 * 1000;
 
     function newId() {
       return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -6776,6 +6789,101 @@
 
     function perfNow() {
       return window.performance?.now ? window.performance.now() : Date.now();
+    }
+
+    function roundMetric(value, digits = 1) {
+      const multiplier = 10 ** digits;
+      return Math.round(Number(value || 0) * multiplier) / multiplier;
+    }
+
+    function textSizeKb(text) {
+      return roundMetric(String(text || "").length / 1024);
+    }
+
+    function valueSizeKb(value) {
+      try {
+        return textSizeKb(JSON.stringify(value));
+      } catch {
+        return 0;
+      }
+    }
+
+    function planCountMetrics() {
+      const cycleList = Array.isArray(cycles) ? cycles : [];
+      return {
+        sites: Array.isArray(sites) ? sites.length : 0,
+        tanks: Array.isArray(tanks) ? tanks.length : 0,
+        cycles: cycleList.length,
+        templates: Array.isArray(productTemplates) ? productTemplates.length : 0,
+        comments: cycleList.reduce((sum, cycle) => sum + (Array.isArray(cycle.comments) ? cycle.comments.length : 0), 0),
+        tasks: cycleList.reduce((sum, cycle) => sum + (Array.isArray(cycle.tasks) ? cycle.tasks.length : 0), 0),
+        partialBottlings: cycleList.reduce((sum, cycle) => sum + (Array.isArray(cycle.partialBottlings) ? cycle.partialBottlings.length : 0), 0),
+        actionLogs: Array.isArray(actionLogs) ? actionLogs.length : 0
+      };
+    }
+
+    function domCountMetrics() {
+      const gridNode = document.querySelector("#grid");
+      return {
+        domNodes: document.getElementsByTagName("*").length,
+        gridNodes: gridNode ? gridNode.children.length : 0,
+        visibleCycles: gridNode ? gridNode.querySelectorAll(":scope > .cycle").length : 0
+      };
+    }
+
+    function recordPerformanceMetric(label, details = {}) {
+      const record = {
+        time: new Date().toISOString(),
+        label,
+        ...details
+      };
+      performanceDiagnostics = performanceDiagnostics.concat(record).slice(-120);
+      window.brewPlannerPerformanceDiagnostics = performanceDiagnostics;
+      console.info("[brew-planner][perf]", label, details);
+      return record;
+    }
+
+    function recordPlanSnapshotMetric(label, extra = {}) {
+      let planKb = 0;
+      try {
+        planKb = valueSizeKb(clonePlanData());
+      } catch {
+        planKb = 0;
+      }
+      return recordPerformanceMetric(label, {
+        ...extra,
+        ...planCountMetrics(),
+        planKb
+      });
+    }
+
+    function recordRenderMetric(startedAt) {
+      const durationMs = Math.round(perfNow() - startedAt);
+      const now = Date.now();
+      const intervalMs = renderDiagnostics.lastAt ? now - renderDiagnostics.lastAt : null;
+      const repeated = intervalMs !== null && intervalMs < 120;
+      renderDiagnostics.count += 1;
+      if (repeated) renderDiagnostics.repeatedCount += 1;
+      const details = {
+        durationMs,
+        count: renderDiagnostics.count,
+        repeated,
+        repeatedCount: renderDiagnostics.repeatedCount,
+        intervalMs
+      };
+      renderDiagnostics.lastAt = now;
+      renderDiagnostics.lastDurationMs = durationMs;
+      renderDiagnostics.lastDetails = details;
+      window.brewPlannerRenderDiagnostics = { ...renderDiagnostics };
+      const shouldLog = durationMs >= 40
+        || renderDiagnostics.count % 20 === 0
+        || (repeated && renderDiagnostics.repeatedCount % 10 === 1);
+      if (shouldLog) {
+        recordPerformanceMetric("render", {
+          ...details,
+          ...domCountMetrics()
+        });
+      }
     }
 
     function recordLoadStep(label, startedAt) {
@@ -7345,6 +7453,13 @@
       return String(message || "").toLowerCase().includes("учетная запись отключена");
     }
 
+    function isAuthExpiredMessage(message) {
+      const normalized = String(message || "").toLowerCase();
+      return normalized.includes("unauthorized")
+        || normalized.includes("invalid token")
+        || normalized.includes("token expired");
+    }
+
     function showAccountDisabledMessage(message) {
       if (!loginStatus) return;
       loginStatus.className = "status account-disabled";
@@ -7412,7 +7527,7 @@
       const data = text ? JSON.parse(text) : {};
       if (!response.ok) {
         const message = data.message || data.error || `Ошибка Yandex API: ${response.status}`;
-        if (isAccountDisabledMessage(message)) setYandexToken("");
+        if (isAccountDisabledMessage(message) || isAuthExpiredMessage(message)) setYandexToken("");
         throw new Error(message);
       }
       return data;
@@ -7530,6 +7645,7 @@
           }
         }
       }));
+      recordPlanSnapshotMetric("plan-applied");
     }
 
     function loadSavedPlan() {
@@ -7557,7 +7673,16 @@
         return savePlanToSupabase();
       }
       try {
-        localStorage.setItem(storageKey, JSON.stringify(clonePlanData()));
+        const startedAt = perfNow();
+        const plan = clonePlanData();
+        const planJson = JSON.stringify(plan);
+        localStorage.setItem(storageKey, planJson);
+        recordPerformanceMetric("save-local", {
+          durationMs: Math.round(perfNow() - startedAt),
+          saved: true,
+          ...planCountMetrics(),
+          planKb: textSizeKb(planJson)
+        });
         return Promise.resolve(true);
       } catch {
         formStatus.className = "status error";
@@ -7576,6 +7701,18 @@
       const waiters = planSaveWaiters;
       planSaveWaiters = [];
       waiters.forEach((resolve) => resolve(saved));
+    }
+
+    function resetStalePlanSave(reason = "resume") {
+      if (!savingPlan) return false;
+      if (planSaveStartedAt && Date.now() - planSaveStartedAt < staleSaveThresholdMs) return false;
+      console.warn("[brew-planner] stale-save-reset", { reason, planSaveStartedAt });
+      savingPlan = false;
+      saveQueued = false;
+      planSaveStartedAt = 0;
+      resolvePlanSaveWaiters(false);
+      setSyncStatus("Проверяем", "pending");
+      return true;
     }
 
     function clonePlanData() {
@@ -8109,15 +8246,20 @@
         return waitForActivePlanSave();
       }
       savingPlan = true;
+      planSaveStartedAt = Date.now();
       suppressRealtimeUntil = Date.now() + 2500;
       setSyncStatus("Сохраняем", "saving");
       let saved = false;
+      let attempts = 0;
+      const saveStartedAt = perfNow();
       try {
         do {
           saveQueued = false;
+          attempts += 1;
+          const plan = clonePlanData();
           const data = await yandexRequest("/plan", {
             method: "PUT",
-            body: { plan: clonePlanData() }
+            body: { plan }
           });
           if (data.plan && !saveQueued) applyPlanData(data.plan);
         } while (saveQueued);
@@ -8130,7 +8272,13 @@
         formStatus.textContent = `Не удалось сохранить в Yandex API: ${error.message}`;
         return false;
       } finally {
+        recordPlanSnapshotMetric("save-yandex", {
+          durationMs: Math.round(perfNow() - saveStartedAt),
+          saved,
+          attempts
+        });
         savingPlan = false;
+        planSaveStartedAt = 0;
         suppressRealtimeUntil = Date.now() + 2500;
         resolvePlanSaveWaiters(saved);
       }
@@ -8235,12 +8383,16 @@
         return waitForActivePlanSave();
       }
       savingPlan = true;
+      planSaveStartedAt = Date.now();
       suppressRealtimeUntil = Date.now() + 2500;
       setSyncStatus("Сохраняем", "saving");
       let saved = false;
+      let attempts = 0;
+      const saveStartedAt = perfNow();
       try {
         do {
           saveQueued = false;
+          attempts += 1;
           const siteRows = sites.map((site) => ({ id: site.id, name: site.name }));
           const tankRows = tanks.map((tank) => ({
             id: tank.id,
@@ -8301,7 +8453,13 @@
         formStatus.textContent = `Не удалось сохранить в общей базе: ${error.message}`;
         return false;
       } finally {
+        recordPlanSnapshotMetric("save-supabase", {
+          durationMs: Math.round(perfNow() - saveStartedAt),
+          saved,
+          attempts
+        });
         savingPlan = false;
+        planSaveStartedAt = 0;
         suppressRealtimeUntil = Date.now() + 2500;
         resolvePlanSaveWaiters(saved);
       }
@@ -8342,6 +8500,7 @@
     function scheduleRealtimeRefresh() {
       if (!currentUser || !remoteReady) return;
       if (Date.now() < suppressRealtimeUntil) return;
+      resetStalePlanSave("polling");
       if (realtimeRefreshTimer) clearTimeout(realtimeRefreshTimer);
       realtimeRefreshTimer = setTimeout(async () => {
         realtimeRefreshTimer = null;
@@ -8360,6 +8519,88 @@
           formStatus.textContent = `Не удалось обновить данные: ${error.message}`;
         }
       }, 500);
+    }
+
+    async function recoverAfterInactivity(reason = "resume") {
+      const now = Date.now();
+      const inactiveMs = now - lastTabActiveAt;
+      lastTabActiveAt = now;
+      resetStalePlanSave(reason);
+      if (document.hidden || resumeRefreshInProgress || !currentUser) return;
+      if (inactiveMs < inactiveResumeThresholdMs && reason !== "pageshow-persisted") return;
+      resumeRefreshInProgress = true;
+      try {
+        console.info("[brew-planner] resume-recovery", { reason, inactiveMs });
+        setSyncStatus("Проверяем", "pending");
+        teardownRealtime();
+        const profile = await withTimeout(loadCurrentProfile(), 6000, "Проверка сессии после простоя заняла слишком много времени");
+        if (!profile) {
+          currentUser = null;
+          remoteReady = false;
+          if (isYandexBackend) setYandexToken("");
+          applyAccessControl();
+          clearAuthLoading();
+          return;
+        }
+        currentUser = profile;
+        if (redirectSuperAdminToCabinet()) return;
+        if (isYandexBackend && currentUser.mustChangePassword) {
+          enterTemporaryPasswordMode(currentUser);
+          return;
+        }
+        if (cycleFormHasUnsavedChanges()) {
+          await withTimeout(loadProfiles(), 6000, "Обновление пользователей после простоя заняло слишком много времени");
+        } else {
+          await withTimeout(Promise.all([
+            loadProfiles(),
+            loadRemotePlan(() => {}, { resetHistory: false })
+          ]), 14000, "Обновление данных после простоя заняло слишком много времени");
+        }
+        setupRealtime();
+        setupPresence();
+        if (isYandexBackend) updateYandexPresence();
+        setSyncStatus("Онлайн", "online");
+        applyAccessControl();
+        render();
+      } catch (error) {
+        const message = loginErrorMessage(error);
+        if (isAccountDisabledMessage(message)) {
+          setYandexToken("");
+          showAccountDisabledMessage(message);
+        } else if (isAuthExpiredMessage(message)) {
+          setYandexToken("");
+          showLoginError("Сессия истекла. Войдите снова.", { prefix: false });
+        } else {
+          setSyncStatus("Ошибка", "error");
+          formStatus.className = "status error";
+          formStatus.textContent = `Не удалось восстановить вкладку после простоя: ${message}`;
+          setupRealtime();
+          setupPresence();
+          applyAccessControl();
+          render();
+        }
+      } finally {
+        resumeRefreshInProgress = false;
+        lastTabActiveAt = Date.now();
+      }
+    }
+
+    function installResumeRecovery() {
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          lastTabActiveAt = Date.now();
+          return;
+        }
+        recoverAfterInactivity("visibility");
+      });
+      window.addEventListener("pageshow", (event) => {
+        if (event.persisted) {
+          recoverAfterInactivity("pageshow-persisted");
+          return;
+        }
+        lastTabActiveAt = Date.now();
+      });
+      window.addEventListener("focus", () => recoverAfterInactivity("focus"));
     }
 
     function setupRealtime() {
@@ -14719,67 +14960,72 @@
     }
 
     function render() {
-      applyAutomaticStages({ save: true });
-      setZoom();
-      renderSummaryVisibility();
-      const dates = getDates();
-      deriveCycleButton.disabled = !state.selectedCycleId || !canEdit();
-      copyCycleButton.disabled = !state.selectedCycleId || !canEdit();
-      deleteCycleButton.disabled = !state.selectedCycleId || !canEdit();
-      partialBottlingToggle.disabled = !canEdit() || !state.selectedCycleId || !featureEnabled("partialBottlings");
-      partialBottlingToggle.hidden = !featureEnabled("partialBottlings");
-      if (!state.selectedCycleId && !partialBottlingFields.hidden) {
-        setPartialBottlingFields(null);
-      }
-      updateUndoButton();
-      workspace.dataset.panel = state.panelMode;
-      organizationSettingsPanel.classList.toggle("open", state.panelMode === "orgSettings");
-      userMenuButton.setAttribute("aria-expanded", userBox.classList.contains("open") ? "true" : "false");
-      addMenuButton.classList.toggle("active", addMenu.classList.contains("open"));
-      addBrewButton.classList.toggle("active", state.addMode);
-      addCommentButton.classList.toggle("active", state.commentMode);
-      filterButton.classList.toggle("active", filterMenu.classList.contains("open") || activeFiltersCount() > 0);
-      adminMenuButton.classList.toggle("active", adminMenu.classList.contains("open") || state.panelMode === "log" || state.panelMode === "users" || state.panelMode === "features" || state.panelMode === "orgSettings");
-      mySettingsButton.classList.toggle("active", state.panelMode === "mySettings");
-      bottlingsButton.classList.toggle("active", state.panelMode === "bottlings");
-      warehouseButton.classList.toggle("active", state.panelMode === "warehouse");
-      templatesButton.classList.toggle("active", state.panelMode === "templates");
-      actionLogButton.classList.toggle("active", state.panelMode === "log");
-      if (featuresButton) featuresButton.classList.toggle("active", state.panelMode === "features");
-      updateEditorState();
-      renderFilterOptions();
-      renderBaseGrid(dates);
-      renderCycles();
-      renderPickedCell();
-      renderMetrics();
-      renderBulkActions();
-      renderMyTasksButton();
-      renderUserMenuNotificationBadge();
-      renderOnboardingTip();
-      renderConfigurableTemplates();
-      renderCycleTabs();
-      if (featureEnabled("cycleProcess")) renderCycleProcess();
-      renderCycleTasks();
-      if (state.panelMode === "bottlings") renderBottlingList();
-      if (state.panelMode === "warehouse") renderWarehouseCalendar();
-      renderTankOptions();
-      renderSourceCycleOptions();
-      renderSiteOptions();
-      renderTemplateOptions();
-      if (state.panelMode === "templates") renderTemplateList();
-      if (state.panelMode === "users") renderUsers();
-      if (state.panelMode === "log") renderActionLog();
-      if (state.panelMode === "orgSettings") renderOrganizationSettings();
-      if (state.panelMode === "mySettings") renderMySettingsForm();
-      if (state.panelMode === "features") {
-        state.panelMode = "hidden";
+      const renderStartedAt = perfNow();
+      try {
+        applyAutomaticStages({ save: true });
+        setZoom();
+        renderSummaryVisibility();
+        const dates = getDates();
+        deriveCycleButton.disabled = !state.selectedCycleId || !canEdit();
+        copyCycleButton.disabled = !state.selectedCycleId || !canEdit();
+        deleteCycleButton.disabled = !state.selectedCycleId || !canEdit();
+        partialBottlingToggle.disabled = !canEdit() || !state.selectedCycleId || !featureEnabled("partialBottlings");
+        partialBottlingToggle.hidden = !featureEnabled("partialBottlings");
+        if (!state.selectedCycleId && !partialBottlingFields.hidden) {
+          setPartialBottlingFields(null);
+        }
+        updateUndoButton();
         workspace.dataset.panel = state.panelMode;
+        organizationSettingsPanel.classList.toggle("open", state.panelMode === "orgSettings");
+        userMenuButton.setAttribute("aria-expanded", userBox.classList.contains("open") ? "true" : "false");
+        addMenuButton.classList.toggle("active", addMenu.classList.contains("open"));
+        addBrewButton.classList.toggle("active", state.addMode);
+        addCommentButton.classList.toggle("active", state.commentMode);
+        filterButton.classList.toggle("active", filterMenu.classList.contains("open") || activeFiltersCount() > 0);
+        adminMenuButton.classList.toggle("active", adminMenu.classList.contains("open") || state.panelMode === "log" || state.panelMode === "users" || state.panelMode === "features" || state.panelMode === "orgSettings");
+        mySettingsButton.classList.toggle("active", state.panelMode === "mySettings");
+        bottlingsButton.classList.toggle("active", state.panelMode === "bottlings");
+        warehouseButton.classList.toggle("active", state.panelMode === "warehouse");
+        templatesButton.classList.toggle("active", state.panelMode === "templates");
+        actionLogButton.classList.toggle("active", state.panelMode === "log");
+        if (featuresButton) featuresButton.classList.toggle("active", state.panelMode === "features");
+        updateEditorState();
+        renderFilterOptions();
+        renderBaseGrid(dates);
+        renderCycles();
+        renderPickedCell();
+        renderMetrics();
+        renderBulkActions();
+        renderMyTasksButton();
+        renderUserMenuNotificationBadge();
+        renderOnboardingTip();
+        renderConfigurableTemplates();
+        renderCycleTabs();
+        if (featureEnabled("cycleProcess")) renderCycleProcess();
+        renderCycleTasks();
+        if (state.panelMode === "bottlings") renderBottlingList();
+        if (state.panelMode === "warehouse") renderWarehouseCalendar();
+        renderTankOptions();
+        renderSourceCycleOptions();
+        renderSiteOptions();
+        renderTemplateOptions();
+        if (state.panelMode === "templates") renderTemplateList();
+        if (state.panelMode === "users") renderUsers();
+        if (state.panelMode === "log") renderActionLog();
+        if (state.panelMode === "orgSettings") renderOrganizationSettings();
+        if (state.panelMode === "mySettings") renderMySettingsForm();
+        if (state.panelMode === "features") {
+          state.panelMode = "hidden";
+          workspace.dataset.panel = state.panelMode;
+        }
+        if (state.panelMode === "myTasks") renderMyTasks();
+        applyAccessControl();
+        updateTankPanelState();
+        updateSitePanelState();
+        initializeFastTooltips();
+      } finally {
+        recordRenderMetric(renderStartedAt);
       }
-      if (state.panelMode === "myTasks") renderMyTasks();
-      applyAccessControl();
-      updateTankPanelState();
-      updateSitePanelState();
-      initializeFastTooltips();
     }
 
     function renderPickedCell() {
@@ -15616,6 +15862,7 @@
       loadTheme();
       installNumberInputWheelGuard();
       installStatusErrorAutoScroll();
+      installResumeRecovery();
       renderTankOptions();
       startInput.value = state.start;
       rangeSelect.value = state.rangeMode;
