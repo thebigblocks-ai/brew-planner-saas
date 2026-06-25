@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.26.127-saas";
+      content: "v2026.06.26.129-saas";
     }
 
     .toolbar {
@@ -5371,9 +5371,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-    <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.26.127-saas</span>
+    <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.26.129-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.26.127-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.26.129-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6692,7 +6692,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.06.26.127-saas";
+    const appVersion = "v2026.06.26.129-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -15831,6 +15831,13 @@
       return true;
     }
 
+    function showCycleFormError(message) {
+      formStatus.className = "status error";
+      formStatus.textContent = message;
+      requestAnimationFrame(() => scrollStatusErrorIntoView(formStatus));
+      return false;
+    }
+
     async function saveCycleFromForm() {
       if (!requireEdit()) return false;
       if (!cycleEndInput.value) syncCycleDates("duration");
@@ -15839,14 +15846,10 @@
       const tankId = tankInput.value;
       const existingCycle = cycles.find((cycle) => cycle.id === state.selectedCycleId) || null;
       if (end < start) {
-        formStatus.className = "status error";
-        formStatus.textContent = "Дата розлива должна быть позже старта";
-        return false;
+        return showCycleFormError("Дата розлива должна быть позже старта");
       }
       if (overlapsCycle(tankId, start, end, state.selectedCycleId)) {
-        formStatus.className = "status error";
-        formStatus.textContent = "Этот цикл пересекается с другим циклом в этом ЦКТ. Выберите другую дату или ЦКТ";
-        return false;
+        return showCycleFormError("Этот цикл пересекается с другим циклом в этом ЦКТ. Выберите другую дату или ЦКТ");
       }
       if (showPackagingWarning()) return false;
       const sourceCycleId = sourceCycleInput.value;
@@ -16273,6 +16276,7 @@
 
     function scrollStatusErrorIntoView(status) {
       if (!status?.classList?.contains("error") || !status.textContent.trim()) return;
+      if (status.dataset.attention === "true") return;
       status.dataset.attention = "true";
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -16288,7 +16292,7 @@
       document.querySelectorAll(".status").forEach((status) => {
         if (status.id === "loginStatus" || status.id === "forcePasswordStatus") return;
         const observer = new MutationObserver(() => scrollStatusErrorIntoView(status));
-        observer.observe(status, { attributes: true, childList: true, characterData: true, subtree: true });
+        observer.observe(status, { attributes: true, attributeFilter: ["class"], childList: true, characterData: true, subtree: true });
       });
     }
 
