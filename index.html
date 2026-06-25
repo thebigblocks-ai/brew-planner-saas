@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.25.104-saas";
+      content: "v2026.06.25.105-saas";
     }
 
     .toolbar {
@@ -5243,9 +5243,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.104-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.105-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.104-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.105-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6523,7 +6523,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.25.104-saas";
+    const appVersion = "v2026.06.25.105-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6750,6 +6750,9 @@
       lastDurationMs: 0,
       lastDetails: null
     };
+    let lastAppliedPlanSignature = "";
+    let lastActionLogSignature = "";
+    let skippedRemoteRefreshCount = 0;
     let baseGridRenderKey = "";
     let onboardingTargetElement = null;
     let lastTabActiveAt = Date.now();
@@ -6805,6 +6808,14 @@
         return textSizeKb(JSON.stringify(value));
       } catch {
         return 0;
+      }
+    }
+
+    function dataSignature(value) {
+      try {
+        return JSON.stringify(value ?? null);
+      } catch {
+        return "";
       }
     }
 
@@ -7612,8 +7623,13 @@
       };
     }
 
-    function applyPlanData(saved) {
-      if (!saved || !Array.isArray(saved.tanks) || !Array.isArray(saved.cycles)) return;
+    function applyPlanData(saved, options = {}) {
+      if (!saved || !Array.isArray(saved.tanks) || !Array.isArray(saved.cycles)) return false;
+      const nextSignature = dataSignature(saved);
+      if (options.skipUnchanged && nextSignature && nextSignature === lastAppliedPlanSignature) {
+        return false;
+      }
+      if (nextSignature) lastAppliedPlanSignature = nextSignature;
       appFeatures = normalizeFeatures(saved.features);
       sites = Array.isArray(saved.sites) && saved.sites.length ? saved.sites : sites;
       productTemplates = Array.isArray(saved.productTemplates) ? normalizeProductTemplates(saved.productTemplates) : [];
@@ -7645,7 +7661,8 @@
           }
         }
       }));
-      recordPlanSnapshotMetric("plan-applied");
+      recordPlanSnapshotMetric("plan-applied", { changed: true });
+      return true;
     }
 
     function loadSavedPlan() {
@@ -7954,14 +7971,19 @@
       return !error;
     }
 
-    async function loadActionLogs() {
+    async function loadActionLogs(options = {}) {
       if (isYandexBackend) {
         const data = await yandexRequest("/logs");
-        actionLogs = Array.isArray(data.logs) ? data.logs : [];
+        const nextLogs = Array.isArray(data.logs) ? data.logs : [];
+        const nextSignature = dataSignature(nextLogs);
+        const changed = nextSignature !== lastActionLogSignature;
+        if (options.skipUnchanged && !changed) return false;
+        lastActionLogSignature = nextSignature;
+        actionLogs = nextLogs;
         pruneLocalActionLogs();
-        return;
+        return changed;
       }
-      if (!db || !supportsActionLogs) return;
+      if (!db || !supportsActionLogs) return false;
       const cutoff = actionLogCutoffDate().toISOString();
       const { data, error } = await db
         .from("action_logs")
@@ -7974,6 +7996,7 @@
       db.from("action_logs").delete().lt("created_at", cutoff).then(({ error: pruneError }) => {
         if (pruneError) console.warn("[brew-planner] Не удалось очистить старый журнал", pruneError);
       });
+      return true;
     }
 
     function logAction(action, entityType, entityId, title, details = {}) {
@@ -8229,15 +8252,29 @@
       supportsActionLogs = true;
       supportsTemplateArchive = true;
       const data = await yandexRequest("/plan");
-      applyPlanData(data.plan || {});
+      const skipUnchanged = options.skipUnchanged === true;
+      const planChanged = applyPlanData(data.plan || {}, { skipUnchanged });
       if (options.resetHistory !== false && !restoringUndo) {
         undoStack = [];
         redoStack = [];
       }
       progress("Загружаем журнал действий...");
-      await loadActionLogs();
+      const logsChanged = await loadActionLogs({ skipUnchanged });
       if (!sites.length) sites = [{ id: newId(), name: "Основная площадка" }];
       remoteReady = true;
+      const changed = Boolean(planChanged || logsChanged);
+      if (skipUnchanged && !changed) {
+        skippedRemoteRefreshCount += 1;
+        if (skippedRemoteRefreshCount % 6 === 1) {
+          recordPerformanceMetric("remote-unchanged", {
+            skipped: skippedRemoteRefreshCount,
+            ...planCountMetrics()
+          });
+        }
+      } else if (changed) {
+        skippedRemoteRefreshCount = 0;
+      }
+      return { changed };
     }
 
     async function savePlanToYandex() {
@@ -8509,10 +8546,10 @@
           return;
         }
         try {
-          await loadRemotePlan(() => {}, { resetHistory: false });
+          const result = await loadRemotePlan(() => {}, { resetHistory: false, skipUnchanged: true });
           if (featureEnabled("supportTickets")) loadSupportTickets();
           setSyncStatus("Обновлено", "updated");
-          render();
+          if (result?.changed !== false) render();
         } catch (error) {
           setSyncStatus("Ошибка", "error");
           formStatus.className = "status error";
