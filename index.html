@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.26.122-saas";
+      content: "v2026.06.26.126-saas";
     }
 
     .toolbar {
@@ -5371,9 +5371,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-    <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.26.122-saas</span>
+    <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.26.126-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.26.122-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.26.126-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6692,7 +6692,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.06.26.122-saas";
+    const appVersion = "v2026.06.26.126-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6924,6 +6924,8 @@
     let skippedRemoteRefreshCount = 0;
     let baseGridRenderKey = "";
     let dynamicGridElements = new Set();
+    let pickedSlotElement = null;
+    let brewPickRenderToken = 0;
     let onboardingTargetElement = null;
     let lastTabActiveAt = Date.now();
     let resumeRefreshInProgress = false;
@@ -15423,15 +15425,18 @@
     }
 
     function syncPickedSlotState() {
-      grid.querySelectorAll(":scope > .slot[data-picked='true']").forEach((slot) => {
-        const stillPicked = slot.dataset.tankId === String(state.pickedTankId || "")
-          && slot.dataset.date === String(state.pickedDate || "");
-        if (!stillPicked) slot.dataset.picked = "false";
-      });
-      if (!state.pickedTankId || !state.pickedDate) return;
+      if (pickedSlotElement && pickedSlotElement.isConnected) {
+        pickedSlotElement.dataset.picked = "false";
+      }
+      pickedSlotElement = null;
+      if (!state.pickedTankId || !state.pickedDate) return null;
       const pickedSlot = Array.from(grid.querySelectorAll(":scope > .slot"))
         .find((slot) => slot.dataset.tankId === String(state.pickedTankId) && slot.dataset.date === String(state.pickedDate));
-      if (pickedSlot) pickedSlot.dataset.picked = "true";
+      if (pickedSlot) {
+        pickedSlot.dataset.picked = "true";
+        pickedSlotElement = pickedSlot;
+      }
+      return pickedSlot || null;
     }
 
     function cycleElementFor(cycleId) {
@@ -16036,33 +16041,64 @@
       renderPickedCell();
     }
 
+    function logBrewPickIdle(startedAt, label) {
+      setTimeout(() => {
+        console.info(`brew-click-pick:${label}-idle`, { durationMs: Math.round(perfNow() - startedAt) });
+      }, 120);
+      requestAnimationFrame(() => {
+        console.info(`brew-click-pick:${label}-painted`, { durationMs: Math.round(perfNow() - startedAt) });
+      });
+    }
+
+    function scheduleBrewPickRender(startedAt) {
+      const token = ++brewPickRenderToken;
+      console.info("brew-click-pick:render-scheduled", { token, durationMs: Math.round(perfNow() - startedAt) });
+      requestAnimationFrame(() => {
+        if (token !== brewPickRenderToken) {
+          console.info("brew-click-pick:render-skipped", { token, activeToken: brewPickRenderToken });
+          return;
+        }
+        render();
+        console.info("brew-click-pick:rendered", { token, durationMs: Math.round(perfNow() - startedAt) });
+        logBrewPickIdle(startedAt, "rendered");
+      });
+    }
+
     function pickProductionStart(tankId, date, options = {}) {
       if (!canEdit()) return;
       if (!state.addMode) return;
       const startedAt = perfNow();
-      console.info("brew-click-pick:start", { tankId, date, fullRender: Boolean(options.fullRender) });
+      const firstPick = !state.pickedTankId || !state.pickedDate;
+      const shouldFullRender = Boolean(options.fullRender || firstPick);
+      console.info("brew-click-pick:start", { tankId, date, fullRender: shouldFullRender, firstPick });
+      const proposedDuration = Math.max(1, Number(cycleDurationInput.value) || 1);
+      const proposedEnd = calculatedEnd(date, proposedDuration);
+      console.info("brew-click-pick:proposal", { start: date, end: proposedEnd, duration: proposedDuration });
+      if (overlapsCycle(tankId, date, proposedEnd)) {
+        formStatus.className = "status error";
+        formStatus.textContent = "Нельзя выбрать период: он пересекается с существующим циклом в этой емкости";
+        console.info("brew-click-pick:overlap-blocked", { tankId, start: date, end: proposedEnd, durationMs: Math.round(perfNow() - startedAt) });
+        logBrewPickIdle(startedAt, "overlap");
+        return;
+      }
       state.selectedCycleId = null;
       state.pickedTankId = tankId;
       state.pickedDate = date;
       tankInput.value = tankId;
       cycleStartInput.value = date;
-      syncEndDate();
+      cycleEndInput.value = proposedEnd;
       console.info("brew-click-pick:dates", { start: cycleStartInput.value, end: cycleEndInput.value });
-      if (overlapsCycle(tankId, cycleStartInput.value, cycleEndInput.value)) {
-        formStatus.className = "status error";
-        formStatus.textContent = "Выбранный период пересекается с существующим циклом в этой емкости";
-      } else {
-        formStatus.className = "status";
-        formStatus.textContent = "Дата старта выбрана";
-      }
+      formStatus.className = "status";
+      formStatus.textContent = "Дата старта выбрана";
       console.info("brew-click-pick:checked", { durationMs: Math.round(perfNow() - startedAt) });
-      if (options.fullRender) {
-        render();
-        console.info("brew-click-pick:rendered", { durationMs: Math.round(perfNow() - startedAt) });
+      if (shouldFullRender) {
+        refreshNewBrewSelectionView();
+        scheduleBrewPickRender(startedAt);
         return;
       }
       refreshNewBrewSelectionView();
       console.info("brew-click-pick:done", { durationMs: Math.round(perfNow() - startedAt) });
+      logBrewPickIdle(startedAt, "done");
     }
 
     function prepareNewBrewForm() {
