@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.25.110-saas";
+      content: "v2026.06.25.111-saas";
     }
 
     .toolbar {
@@ -5243,9 +5243,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.110-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.111-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.110-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.111-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6523,7 +6523,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.25.110-saas";
+    const appVersion = "v2026.06.25.111-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6869,7 +6869,16 @@
       });
     }
 
-    function recordRenderMetric(startedAt) {
+    function measureRenderStep(steps, label, task) {
+      const stepStartedAt = perfNow();
+      try {
+        return task();
+      } finally {
+        steps[label] = roundMetric((steps[label] || 0) + (perfNow() - stepStartedAt));
+      }
+    }
+
+    function recordRenderMetric(startedAt, steps = {}) {
       const durationMs = Math.round(perfNow() - startedAt);
       const now = Date.now();
       const intervalMs = renderDiagnostics.lastAt ? now - renderDiagnostics.lastAt : null;
@@ -6883,6 +6892,7 @@
         repeatedCount: renderDiagnostics.repeatedCount,
         intervalMs
       };
+      if (Object.keys(steps).length) details.steps = steps;
       renderDiagnostics.lastAt = now;
       renderDiagnostics.lastDurationMs = durationMs;
       renderDiagnostics.lastDetails = details;
@@ -15012,70 +15022,87 @@
 
     function render() {
       const renderStartedAt = perfNow();
+      const renderSteps = {};
       try {
-        applyAutomaticStages({ save: true });
-        setZoom();
-        renderSummaryVisibility();
-        const dates = getDates();
-        deriveCycleButton.disabled = !state.selectedCycleId || !canEdit();
-        copyCycleButton.disabled = !state.selectedCycleId || !canEdit();
-        deleteCycleButton.disabled = !state.selectedCycleId || !canEdit();
-        partialBottlingToggle.disabled = !canEdit() || !state.selectedCycleId || !featureEnabled("partialBottlings");
-        partialBottlingToggle.hidden = !featureEnabled("partialBottlings");
-        if (!state.selectedCycleId && !partialBottlingFields.hidden) {
-          setPartialBottlingFields(null);
-        }
-        updateUndoButton();
-        workspace.dataset.panel = state.panelMode;
-        organizationSettingsPanel.classList.toggle("open", state.panelMode === "orgSettings");
-        userMenuButton.setAttribute("aria-expanded", userBox.classList.contains("open") ? "true" : "false");
-        addMenuButton.classList.toggle("active", addMenu.classList.contains("open"));
-        addBrewButton.classList.toggle("active", state.addMode);
-        addCommentButton.classList.toggle("active", state.commentMode);
-        filterButton.classList.toggle("active", filterMenu.classList.contains("open") || activeFiltersCount() > 0);
-        adminMenuButton.classList.toggle("active", adminMenu.classList.contains("open") || state.panelMode === "log" || state.panelMode === "users" || state.panelMode === "features" || state.panelMode === "orgSettings");
-        mySettingsButton.classList.toggle("active", state.panelMode === "mySettings");
-        bottlingsButton.classList.toggle("active", state.panelMode === "bottlings");
-        warehouseButton.classList.toggle("active", state.panelMode === "warehouse");
-        templatesButton.classList.toggle("active", state.panelMode === "templates");
-        actionLogButton.classList.toggle("active", state.panelMode === "log");
-        if (featuresButton) featuresButton.classList.toggle("active", state.panelMode === "features");
-        updateEditorState();
-        renderFilterOptions();
-        renderBaseGrid(dates);
-        renderCycles();
-        renderPickedCell();
-        renderMetrics();
-        renderBulkActions();
-        renderMyTasksButton();
-        renderUserMenuNotificationBadge();
-        renderOnboardingTip();
-        renderConfigurableTemplates();
-        renderCycleTabs();
-        if (featureEnabled("cycleProcess")) renderCycleProcess();
-        renderCycleTasks();
-        if (state.panelMode === "bottlings") renderBottlingList();
-        if (state.panelMode === "warehouse") renderWarehouseCalendar();
-        renderTankOptions();
-        renderSourceCycleOptions();
-        renderSiteOptions();
-        renderTemplateOptions();
-        if (state.panelMode === "templates") renderTemplateList();
-        if (state.panelMode === "users") renderUsers();
-        if (state.panelMode === "log") renderActionLog();
-        if (state.panelMode === "orgSettings") renderOrganizationSettings();
-        if (state.panelMode === "mySettings") renderMySettingsForm();
-        if (state.panelMode === "features") {
-          state.panelMode = "hidden";
+        measureRenderStep(renderSteps, "automaticStages", () => applyAutomaticStages({ save: true }));
+        measureRenderStep(renderSteps, "layout", () => {
+          setZoom();
+          renderSummaryVisibility();
+        });
+        const dates = measureRenderStep(renderSteps, "dates", () => getDates());
+        measureRenderStep(renderSteps, "toolbarState", () => {
+          deriveCycleButton.disabled = !state.selectedCycleId || !canEdit();
+          copyCycleButton.disabled = !state.selectedCycleId || !canEdit();
+          deleteCycleButton.disabled = !state.selectedCycleId || !canEdit();
+          partialBottlingToggle.disabled = !canEdit() || !state.selectedCycleId || !featureEnabled("partialBottlings");
+          partialBottlingToggle.hidden = !featureEnabled("partialBottlings");
+          if (!state.selectedCycleId && !partialBottlingFields.hidden) {
+            setPartialBottlingFields(null);
+          }
+          updateUndoButton();
           workspace.dataset.panel = state.panelMode;
-        }
-        if (state.panelMode === "myTasks") renderMyTasks();
-        applyAccessControl();
-        updateTankPanelState();
-        updateSitePanelState();
-        initializeFastTooltips();
+          organizationSettingsPanel.classList.toggle("open", state.panelMode === "orgSettings");
+          userMenuButton.setAttribute("aria-expanded", userBox.classList.contains("open") ? "true" : "false");
+          addMenuButton.classList.toggle("active", addMenu.classList.contains("open"));
+          addBrewButton.classList.toggle("active", state.addMode);
+          addCommentButton.classList.toggle("active", state.commentMode);
+          filterButton.classList.toggle("active", filterMenu.classList.contains("open") || activeFiltersCount() > 0);
+          adminMenuButton.classList.toggle("active", adminMenu.classList.contains("open") || state.panelMode === "log" || state.panelMode === "users" || state.panelMode === "features" || state.panelMode === "orgSettings");
+          mySettingsButton.classList.toggle("active", state.panelMode === "mySettings");
+          bottlingsButton.classList.toggle("active", state.panelMode === "bottlings");
+          warehouseButton.classList.toggle("active", state.panelMode === "warehouse");
+          templatesButton.classList.toggle("active", state.panelMode === "templates");
+          actionLogButton.classList.toggle("active", state.panelMode === "log");
+          if (featuresButton) featuresButton.classList.toggle("active", state.panelMode === "features");
+          updateEditorState();
+        });
+        measureRenderStep(renderSteps, "filters", renderFilterOptions);
+        measureRenderStep(renderSteps, "baseGrid", () => renderBaseGrid(dates));
+        measureRenderStep(renderSteps, "cycles", renderCycles);
+        measureRenderStep(renderSteps, "pickedCell", renderPickedCell);
+        measureRenderStep(renderSteps, "metrics", renderMetrics);
+        measureRenderStep(renderSteps, "notifications", () => {
+          renderBulkActions();
+          renderMyTasksButton();
+          renderUserMenuNotificationBadge();
+          renderOnboardingTip();
+        });
+        measureRenderStep(renderSteps, "cyclePanels", () => {
+          renderConfigurableTemplates();
+          renderCycleTabs();
+          if (featureEnabled("cycleProcess")) renderCycleProcess();
+          renderCycleTasks();
+        });
+        measureRenderStep(renderSteps, "secondaryPanels", () => {
+          if (state.panelMode === "bottlings") renderBottlingList();
+          if (state.panelMode === "warehouse") renderWarehouseCalendar();
+        });
+        measureRenderStep(renderSteps, "optionLists", () => {
+          renderTankOptions();
+          renderSourceCycleOptions();
+          renderSiteOptions();
+          renderTemplateOptions();
+        });
+        measureRenderStep(renderSteps, "activePanel", () => {
+          if (state.panelMode === "templates") renderTemplateList();
+          if (state.panelMode === "users") renderUsers();
+          if (state.panelMode === "log") renderActionLog();
+          if (state.panelMode === "orgSettings") renderOrganizationSettings();
+          if (state.panelMode === "mySettings") renderMySettingsForm();
+          if (state.panelMode === "features") {
+            state.panelMode = "hidden";
+            workspace.dataset.panel = state.panelMode;
+          }
+          if (state.panelMode === "myTasks") renderMyTasks();
+        });
+        measureRenderStep(renderSteps, "accessAndTooltips", () => {
+          applyAccessControl();
+          updateTankPanelState();
+          updateSitePanelState();
+          initializeFastTooltips();
+        });
       } finally {
-        recordRenderMetric(renderStartedAt);
+        recordRenderMetric(renderStartedAt, renderSteps);
       }
     }
 
