@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.25.101-saas";
+      content: "v2026.06.25.102-saas";
     }
 
     .toolbar {
@@ -5243,9 +5243,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.101-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.102-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.101-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.102-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6523,7 +6523,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.25.101-saas";
+    const appVersion = "v2026.06.25.102-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6711,6 +6711,7 @@
     let remoteReady = false;
     let savingPlan = false;
     let saveQueued = false;
+    let planSaveWaiters = [];
     let realtimeChannel = null;
     let presenceChannel = null;
     let onlineUsers = [];
@@ -6738,6 +6739,7 @@
     let pendingPasswordUserId = null;
     let pendingProfileUserId = null;
     let taskCreateInProgress = false;
+    let pendingTaskToggleIds = new Set();
     let loadDiagnostics = [];
     let baseGridRenderKey = "";
     let onboardingTargetElement = null;
@@ -7564,6 +7566,18 @@
       }
     }
 
+    function waitForActivePlanSave() {
+      return new Promise((resolve) => {
+        planSaveWaiters.push(resolve);
+      });
+    }
+
+    function resolvePlanSaveWaiters(saved) {
+      const waiters = planSaveWaiters;
+      planSaveWaiters = [];
+      waiters.forEach((resolve) => resolve(saved));
+    }
+
     function clonePlanData() {
       return JSON.parse(JSON.stringify({ sites, tanks, cycles, productTemplates, features: appFeatures }));
     }
@@ -8092,11 +8106,12 @@
     async function savePlanToYandex() {
       if (savingPlan) {
         saveQueued = true;
-        return false;
+        return waitForActivePlanSave();
       }
       savingPlan = true;
       suppressRealtimeUntil = Date.now() + 2500;
       setSyncStatus("Сохраняем", "saving");
+      let saved = false;
       try {
         do {
           saveQueued = false;
@@ -8107,6 +8122,7 @@
           if (data.plan && !saveQueued) applyPlanData(data.plan);
         } while (saveQueued);
         setSyncStatus("Сохранено", "saved");
+        saved = true;
         return true;
       } catch (error) {
         setSyncStatus("Ошибка", "error");
@@ -8115,6 +8131,8 @@
         return false;
       } finally {
         savingPlan = false;
+        suppressRealtimeUntil = Date.now() + 2500;
+        resolvePlanSaveWaiters(saved);
       }
     }
 
@@ -8214,11 +8232,12 @@
     async function savePlanToSupabase() {
       if (savingPlan) {
         saveQueued = true;
-        return false;
+        return waitForActivePlanSave();
       }
       savingPlan = true;
       suppressRealtimeUntil = Date.now() + 2500;
       setSyncStatus("Сохраняем", "saving");
+      let saved = false;
       try {
         do {
           saveQueued = false;
@@ -8274,6 +8293,7 @@
           }
         } while (saveQueued);
         setSyncStatus("Сохранено", "saved");
+        saved = true;
         return true;
       } catch (error) {
         setSyncStatus("Ошибка", "error");
@@ -8282,6 +8302,8 @@
         return false;
       } finally {
         savingPlan = false;
+        suppressRealtimeUntil = Date.now() + 2500;
+        resolvePlanSaveWaiters(saved);
       }
     }
 
@@ -10051,9 +10073,10 @@
         .sort((a, b) => Number(a.done) - Number(b.done) || (a.dueDate || "9999-99-99").localeCompare(b.dueDate || "9999-99-99"))
         .map((task) => {
           const manageable = canManageTask(task);
+          const toggleSaving = pendingTaskToggleIds.has(task.id);
           return `
           <article class="cycle-task-item" data-task-id="${escapeHtml(task.id)}" data-done="${task.done ? "true" : "false"}" data-assigned-me="${isTaskAssignedToCurrentUser(task) ? "true" : "false"}">
-            <input type="checkbox" data-task-done="${escapeHtml(task.id)}" ${task.done ? "checked" : ""} ${manageable ? "" : "disabled"} aria-label="Отметить выполнение задачи" title="${manageable ? "Изменить статус задачи" : "Можно менять только свои задачи"}">
+            <input type="checkbox" data-task-done="${escapeHtml(task.id)}" ${task.done ? "checked" : ""} ${manageable && !toggleSaving ? "" : "disabled"} aria-label="Отметить выполнение задачи" title="${toggleSaving ? "Сохраняем статус задачи" : manageable ? "Изменить статус задачи" : "Можно менять только свои задачи"}">
             <div class="cycle-task-body">
               ${taskStatusBadgeHtml(task)}
               <b>${escapeHtml(task.title)}</b>
@@ -10295,7 +10318,7 @@
       deleteModal.classList.add("open");
     }
 
-    function toggleCycleTask(taskId, done) {
+    async function toggleCycleTask(taskId, done) {
       if (!requireEdit()) return;
       const cycle = selectedCycle();
       if (!cycle) return;
@@ -10303,17 +10326,36 @@
       const task = tasks.find((item) => item.id === taskId);
       if (!task) return;
       if (!requireTaskManage(task)) return;
+      if (pendingTaskToggleIds.has(task.id)) return;
+      const previousDone = Boolean(task.done);
+      const previousCompletedAt = task.completedAt || "";
+      const nextDone = Boolean(done);
+      if (previousDone === nextDone) return;
       pushUndoSnapshot(done ? "выполнение задачи" : "возврат задачи в работу");
-      task.done = Boolean(done);
+      pendingTaskToggleIds.add(task.id);
+      task.done = nextDone;
       task.completedAt = task.done ? new Date().toISOString() : "";
       cycle.tasks = tasks;
-      savePlan();
+      taskStatus.className = "status";
+      taskStatus.textContent = task.done ? "Задача выполнена" : "Задача возвращена в работу";
+      refreshTaskViews();
+      const saved = await savePlan();
+      pendingTaskToggleIds.delete(task.id);
+      if (!saved) {
+        const currentCycle = cycles.find((item) => item.id === cycle.id) || cycle;
+        const currentTask = tasksForCycle(currentCycle).find((item) => item.id === task.id) || task;
+        currentTask.done = previousDone;
+        currentTask.completedAt = previousCompletedAt;
+        currentCycle.tasks = tasksForCycle(currentCycle);
+        taskStatus.className = "status error";
+        taskStatus.textContent = "Не удалось сохранить статус задачи. Изменение отменено.";
+        refreshTaskViews();
+        return;
+      }
       logAction("cycle_task_updated", "task", task.id, cycle.product, {
         task: task.title,
         status: task.done ? "Выполнено" : "В работе"
       });
-      taskStatus.className = "status";
-      taskStatus.textContent = task.done ? "Задача выполнена" : "Задача возвращена в работу";
       refreshTaskViews();
     }
 
@@ -10999,9 +11041,10 @@
         .sort((a, b) => Number(a.done) - Number(b.done) || (a.dueDate || "9999-99-99").localeCompare(b.dueDate || "9999-99-99"))
         .map((task) => {
           const manageable = canManageTask(task);
+          const toggleSaving = pendingTaskToggleIds.has(task.id);
           return `
           <article class="cycle-task-item" data-task-id="${escapeHtml(task.id)}" data-done="${task.done ? "true" : "false"}" data-assigned-me="${isTaskAssignedToCurrentUser(task) ? "true" : "false"}">
-            <input type="checkbox" data-task-done="${escapeHtml(task.id)}" ${task.done ? "checked" : ""} ${manageable ? "" : "disabled"} aria-label="Отметить выполнение задачи" title="${manageable ? "Изменить статус задачи" : "Можно менять только свои задачи"}">
+            <input type="checkbox" data-task-done="${escapeHtml(task.id)}" ${task.done ? "checked" : ""} ${manageable && !toggleSaving ? "" : "disabled"} aria-label="Отметить выполнение задачи" title="${toggleSaving ? "Сохраняем статус задачи" : manageable ? "Изменить статус задачи" : "Можно менять только свои задачи"}">
             <div class="cycle-task-body">
               ${taskStatusBadgeHtml(task)}
               <b>${escapeHtml(task.title)}</b>
@@ -16241,10 +16284,10 @@
         taskFileInput.value = "";
         if (taskId) await attachFilesToTask(taskId, files);
       });
-      cycleTaskList.addEventListener("change", (event) => {
+      cycleTaskList.addEventListener("change", async (event) => {
         const doneInput = event.target.closest("[data-task-done]");
         if (!doneInput) return;
-        toggleCycleTask(doneInput.dataset.taskDone, doneInput.checked);
+        await toggleCycleTask(doneInput.dataset.taskDone, doneInput.checked);
       });
       cycleTaskList.addEventListener("click", (event) => {
         const editButton = event.target.closest("[data-task-edit]");

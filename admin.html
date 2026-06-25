@@ -829,7 +829,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.25.21-saas</span>
+        <span>v2026.06.25.23-saas</span>
       </div>
     </aside>
 
@@ -1158,7 +1158,23 @@
       user_password_reset: "Отправлена ссылка пароля",
       user_blocked: "Сотрудник заблокирован",
       user_unblocked: "Сотрудник разблокирован",
-      user_removed: "Сотрудник удален"
+      user_removed: "Сотрудник удален",
+      support_access_changed: "Изменен доступ поддержки"
+    };
+    const organizationLogValueLabels = {
+      org_admin: "Администратор организации",
+      admin: "Администратор организации",
+      editor: "Редактор",
+      manager: "Редактор",
+      reader: "Читатель",
+      trial: "Тест",
+      active: "Активна",
+      past_due: "Просрочка",
+      blocked: "Заблокирована",
+      manual: "Ручной",
+      basic: "Basic",
+      pro: "Pro",
+      enterprise: "Enterprise"
     };
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
 
@@ -1547,7 +1563,7 @@
               <div class="user-meta-grid">
                 <span class="small">${escapeHtml(user.email)}${user.mustChangePassword ? " · ждет смены пароля" : ""}${user.isBlocked ? " · отключен" : ""}</span>
                 <span class="presence-badge" data-online="${user.isOnline ? "true" : "false"}">${user.isOnline ? "online" : "offline"}</span>
-                <span class="small">Последний вход: ${escapeHtml(user.lastLoginAt ? formatDateTime(user.lastLoginAt) : "не было")}</span>
+                <span class="small">Последняя активность: ${escapeHtml(user.lastSeen ? formatDateTime(user.lastSeen) : user.lastLoginAt ? formatDateTime(user.lastLoginAt) : "не было")}</span>
               </div>
             </div>
             <div class="user-role-actions">
@@ -1720,16 +1736,38 @@
       });
     }
 
-    function logDetailsText(details = {}) {
-      if (!details || typeof details !== "object" || Array.isArray(details)) return "";
-      return Object.entries(details)
-        .filter(([, value]) => value !== undefined && value !== null && value !== "")
-        .map(([key, value]) => `${key}: ${typeof value === "object" ? JSON.stringify(value) : String(value)}`)
-        .join(" · ");
-    }
-
     function organizationLogActionLabel(action) {
       return organizationLogActionLabels[action] || action || "Действие";
+    }
+
+    function organizationLogFieldLabel(field, label) {
+      return label || featureLabels[field] || field || "Поле";
+    }
+
+    function organizationLogValueText(value) {
+      if (value === undefined || value === null || value === "") return "пусто";
+      if (value === true) return "включено";
+      if (value === false) return "выключено";
+      if (serviceLevelLabels[value]) return serviceLevelLabels[value];
+      if (organizationLogValueLabels[value]) return organizationLogValueLabels[value];
+      if (typeof value === "object") return JSON.stringify(value);
+      return String(value);
+    }
+
+    function logDetailsText(details = {}) {
+      if (!details || typeof details !== "object" || Array.isArray(details)) return "";
+      const changeTexts = Array.isArray(details.changes)
+        ? details.changes
+          .filter((change) => change && typeof change === "object")
+          .map((change) => {
+            const label = organizationLogFieldLabel(change.field, change.label);
+            return `${label}: ${organizationLogValueText(change.from)} → ${organizationLogValueText(change.to)}`;
+          })
+        : [];
+      const legacyTexts = Object.entries(details)
+        .filter(([key, value]) => key !== "changes" && value !== undefined && value !== null && value !== "")
+        .map(([key, value]) => `${organizationLogFieldLabel(key)}: ${organizationLogValueText(value)}`);
+      return changeTexts.concat(legacyTexts).join(" · ");
     }
 
     function renderOrganizationLogs() {
