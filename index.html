@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.25.97-saas";
+      content: "v2026.06.25.101-saas";
     }
 
     .toolbar {
@@ -1390,7 +1390,7 @@
       display: flex;
       flex-direction: column;
       width: min(1040px, calc(100vw - 32px));
-      height: min(780px, calc(100vh - 40px));
+      height: min(660px, calc(100vh - 40px));
       overflow: hidden;
       transform: translate(-50%, -50%);
       border: 1px solid var(--line-strong);
@@ -5243,9 +5243,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.97-saas</span>
+      <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.25.101-saas</span>
     </form>
-    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.97-saas</span>
+    <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.25.101-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6523,7 +6523,7 @@
     ];
 
     const palette = ["#FF8B00", "#b45309", "#2563eb", "#15803d", "#be123c", "#7c3aed", "#475569"];
-    const appVersion = "v2026.06.25.97-saas";
+    const appVersion = "v2026.06.25.101-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6630,15 +6630,13 @@
       supportNew: [
         {
           title: "Новое обращение",
-          text: "В заявке укажите тему, описание, телефон и при необходимости приложите скриншоты.",
-          target: "#supportForm"
+          text: "В заявке укажите тему, описание, телефон и при необходимости приложите скриншоты."
         }
       ],
       supportTickets: [
         {
           title: "Мои обращения",
-          text: "Обращения раскрываются по одному: внутри видна переписка, статус и дедлайн приема в работу.",
-          target: "#supportTicketList"
+          text: "Обращения раскрываются по одному: внутри видна переписка, статус и дедлайн приема в работу."
         }
       ]
     };
@@ -6996,10 +6994,11 @@
 
     function onboardingContext() {
       if (helpModal?.classList.contains("open")) return "";
+      if (commentModal?.classList.contains("open")) return "";
       if (supportModal?.classList.contains("open")) {
         return state.supportTab === "tickets" ? "supportTickets" : "supportNew";
       }
-      if (!tanks.length && state.panelMode === "hidden") return "emptyPlanner";
+      if (!tanks.length) return "emptyPlanner";
       if (state.panelMode === "cycle") {
         if (!partialBottlingFields?.hidden) return "partialBottling";
         if (state.cycleTab === "process") return "cycleProcess";
@@ -7058,7 +7057,11 @@
             : selector === "firstEmptySlot"
               ? Array.from(document.querySelectorAll(".slot[data-empty='true']")).find(isVisibleOnboardingTarget)
               : selector === "emptyPlannerAddTarget"
-                ? (addMenu.classList.contains("open") && isVisibleOnboardingTarget(addTankButton) ? addTankButton : addMenuButton)
+                ? (state.panelMode === "tank" && isVisibleOnboardingTarget(tankForm)
+                  ? tankForm
+                  : addMenu.classList.contains("open") && isVisibleOnboardingTarget(addTankButton)
+                    ? addTankButton
+                    : addMenuButton)
                 : document.querySelector(selector);
           if (isVisibleOnboardingTarget(element)) return element;
         } catch {
@@ -13859,6 +13862,7 @@
       deleteCommentButton.style.display = "none";
       render();
       commentModal.classList.add("open");
+      clearOnboardingHighlight();
       commentInput.focus();
     }
 
@@ -13878,6 +13882,7 @@
       deleteCommentButton.style.display = "inline-flex";
       renderPickedCell();
       commentModal.classList.add("open");
+      clearOnboardingHighlight();
       commentInput.focus();
     }
 
