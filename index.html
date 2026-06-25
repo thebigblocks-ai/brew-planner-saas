@@ -191,7 +191,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.26.121-saas";
+      content: "v2026.06.26.122-saas";
     }
 
     .toolbar {
@@ -5371,9 +5371,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-    <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.26.121-saas</span>
+    <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.26.122-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.26.121-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.26.122-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6692,7 +6692,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.06.26.121-saas";
+    const appVersion = "v2026.06.26.122-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -15394,6 +15394,11 @@
 
     function renderPickedCell() {
       let cell = grid.querySelector(":scope > .picked-cell");
+      if (state.addMode) {
+        if (cell) removeDynamicGridElement(cell);
+        syncPickedSlotState();
+        return;
+      }
       if (!state.pickedTankId || !state.pickedDate) {
         if (cell) removeDynamicGridElement(cell);
         return;
@@ -15415,6 +15420,18 @@
       cell.style.top = `calc(var(--header-total) + ${tankIndex} * var(--tank-row))`;
       cell.style.width = "var(--day-col)";
       cell.style.height = "var(--tank-row)";
+    }
+
+    function syncPickedSlotState() {
+      grid.querySelectorAll(":scope > .slot[data-picked='true']").forEach((slot) => {
+        const stillPicked = slot.dataset.tankId === String(state.pickedTankId || "")
+          && slot.dataset.date === String(state.pickedDate || "");
+        if (!stillPicked) slot.dataset.picked = "false";
+      });
+      if (!state.pickedTankId || !state.pickedDate) return;
+      const pickedSlot = Array.from(grid.querySelectorAll(":scope > .slot"))
+        .find((slot) => slot.dataset.tankId === String(state.pickedTankId) && slot.dataset.date === String(state.pickedDate));
+      if (pickedSlot) pickedSlot.dataset.picked = "true";
     }
 
     function cycleElementFor(cycleId) {
