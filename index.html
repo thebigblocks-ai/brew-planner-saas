@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Планировщик ЦКТ</title>
+  <title>BrewPlanner - SaaS</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <script>
     (() => {
       try {
@@ -103,6 +104,19 @@
       font: inherit;
     }
 
+    input[type="date"] {
+      color-scheme: light;
+    }
+
+    :root[data-theme="dark"] input[type="date"] {
+      color-scheme: dark;
+    }
+
+    :root[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1) brightness(1.45);
+      opacity: .86;
+    }
+
     button {
       border: 0;
       cursor: pointer;
@@ -131,8 +145,10 @@
     .brand {
       display: flex;
       align-items: center;
+      align-self: start;
+      justify-self: start;
       min-width: 220px;
-      min-height: 60px;
+      min-height: 68px;
     }
 
     .topbar-left {
@@ -145,9 +161,11 @@
     .brand-logo {
       display: block;
       width: auto;
-      height: 60px;
+      height: 68px;
       max-width: none;
-      max-height: 60px;
+      max-height: 68px;
+      margin-top: 14px;
+      align-self: flex-start;
       object-fit: contain;
     }
 
@@ -191,12 +209,12 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.26.135-saas";
+      content: "v2026.06.27.171-saas";
     }
 
     .toolbar {
       display: grid;
-      grid-template-columns: minmax(320px, 388px) 38px minmax(420px, 460px);
+      grid-template-columns: minmax(320px, 388px) 38px minmax(350px, 390px);
       align-items: end;
       justify-content: flex-end;
       gap: 10px;
@@ -656,7 +674,7 @@
     .action-stack {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 6px;
+      column-gap: 5px;
       row-gap: 24px;
       padding-top: 18px;
       width: 100%;
@@ -667,12 +685,12 @@
     .action-stack .top-action {
       position: relative;
       width: 100%;
-      padding: 0 36px;
+      padding: 0 24px 0 30px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      font-size: 13px;
+      gap: 5px;
+      font-size: 12px;
       line-height: 1.1;
       text-align: center;
       white-space: nowrap;
@@ -680,12 +698,12 @@
 
     .action-stack .top-action svg {
       position: absolute;
-      left: 14px;
+      left: 9px;
       top: 50%;
       transform: translateY(-50%);
-      width: 16px;
-      height: 16px;
-      flex: 0 0 16px;
+      width: 15px;
+      height: 15px;
+      flex: 0 0 15px;
     }
 
     .quick-actions {
@@ -1323,6 +1341,10 @@
     }
 
     .workspace[data-panel="templates"] {
+      grid-template-columns: minmax(0, 1fr) 336px;
+    }
+
+    .workspace[data-panel="templates"][data-template-tasks="true"] {
       grid-template-columns: minmax(0, 1fr) minmax(560px, 620px);
     }
 
@@ -1564,6 +1586,49 @@
       font-size: 11px;
       font-weight: 850;
       text-transform: uppercase;
+    }
+
+    .my-settings-section-title {
+      margin-top: 8px;
+      margin-bottom: -6px;
+    }
+
+    .my-settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    :root[data-density="compact"] .topbar {
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
+
+    :root[data-density="compact"] .toolbar {
+      gap: 8px;
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
+
+    :root[data-density="compact"] .panel-head {
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+
+    :root[data-density="compact"] .form,
+    :root[data-density="compact"] .settings-form {
+      gap: 10px;
+    }
+
+    :root[data-density="compact"] .feature-list,
+    :root[data-density="compact"] .my-task-list {
+      gap: 8px;
+      padding: 10px;
+    }
+
+    :root[data-density="compact"] .feature-row,
+    :root[data-density="compact"] .task-card {
+      padding: 8px 10px;
     }
 
     .settings-template-add {
@@ -2356,10 +2421,81 @@
       min-width: 12px;
     }
 
+    .cycle .stage-badge[data-stage-picker="true"] {
+      cursor: pointer;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, .52);
+    }
+
+    .cycle .stage-badge[data-stage-picker="true"]:hover {
+      filter: brightness(1.08);
+    }
+
+    .stage-quick-menu {
+      position: fixed;
+      z-index: 3000;
+      display: grid;
+      justify-items: stretch;
+      gap: 4px;
+      width: max-content;
+      padding: 6px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: var(--panel);
+      box-shadow: 0 14px 32px rgba(15, 23, 42, .18);
+    }
+
+    .stage-quick-option {
+      width: 126px;
+      min-height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 7px;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 850;
+      line-height: 1.15;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .stage-quick-option[data-current="true"] {
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+    }
+
     .cycle .dates {
       grid-column: 1 / -1;
       justify-self: start;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 3px 4px;
+      min-width: 0;
+      max-width: 100%;
+      opacity: 1;
       white-space: normal;
+    }
+
+    .cycle .dates .cycle-detail-badge {
+      display: inline-flex;
+      align-items: center;
+      min-width: 0;
+      max-width: 100%;
+      padding: 2px 6px;
+      border: 1px solid rgba(255, 255, 255, .68);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .62);
+      color: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.1;
+      opacity: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 1px 2px rgba(15, 23, 42, .42);
+      white-space: nowrap;
     }
 
     .grid[data-view="compact"] .tank-head {
@@ -2652,6 +2788,21 @@
 
     #templatesPanel .panel-head {
       flex: 0 0 auto;
+    }
+
+    #templatesPanel .template-search-row {
+      flex: 0 0 auto;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    #templatesPanel .template-search-field {
+      gap: 5px;
+    }
+
+    #templatesPanel .template-search-field input {
+      min-height: 38px;
     }
 
     #templatesPanel .template-list {
@@ -3703,7 +3854,8 @@
 
     .onboarding-tip {
       position: fixed;
-      right: 18px;
+      left: 18px;
+      right: auto;
       bottom: 18px;
       z-index: 72;
       width: min(360px, calc(100vw - 28px));
@@ -3761,15 +3913,30 @@
       font-size: 12px;
     }
 
+    @media (max-width: 520px) {
+      .onboarding-tip {
+        left: 14px;
+        right: 14px;
+        width: auto;
+      }
+    }
+
     @keyframes onboardingGlowPulse {
       0%, 100% {
-        border-color: rgba(255, 139, 0, .34);
-        box-shadow: 0 0 0 2px rgba(255, 139, 0, .12), 0 0 0 rgba(255, 139, 0, 0);
+        outline-color: rgba(255, 139, 0, .38);
+        box-shadow: 0 0 0 2px rgba(255, 139, 0, .10), 0 0 0 rgba(255, 139, 0, 0);
       }
       48% {
-        border-color: rgba(255, 139, 0, .96);
+        outline-color: rgba(255, 139, 0, .96);
         box-shadow: 0 0 0 5px rgba(255, 139, 0, .22), 0 0 28px rgba(255, 139, 0, .48);
       }
+    }
+
+    .onboarding-target-highlight {
+      outline: 2px solid rgba(255, 139, 0, .82) !important;
+      outline-offset: 4px;
+      border-radius: 7px;
+      animation: onboardingGlowPulse 1.8s ease-in-out infinite;
     }
 
     .onboarding-highlight {
@@ -3907,6 +4074,15 @@
     .user-list {
       display: grid;
       gap: 8px;
+    }
+
+    .user-create-toggle {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .user-create-form {
+      margin-top: 10px;
     }
 
     .user-row {
@@ -4814,6 +4990,9 @@
       display: grid;
       gap: 1px;
       background: var(--line);
+      align-content: start;
+      align-items: start;
+      grid-auto-rows: max-content;
     }
 
     .template-card {
@@ -4900,6 +5079,7 @@
     .template-customer-group {
       display: grid;
       gap: 7px;
+      align-self: start;
     }
 
     .template-customer-group + .template-customer-group {
@@ -5272,7 +5452,7 @@
       }
 
       .toolbar {
-        grid-template-columns: minmax(320px, 388px) 38px minmax(420px, 460px);
+        grid-template-columns: minmax(320px, 388px) 38px minmax(350px, 390px);
         justify-content: end;
         width: 100%;
       }
@@ -5409,9 +5589,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-    <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.26.135-saas</span>
+  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.27.171-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.26.135-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.27.171-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5477,6 +5657,11 @@
                 <span>Мои задачи</span>
                 <b id="myTasksCount">0</b>
               </button>
+              <button class="top-action" id="supportButton" type="button">
+                <svg viewBox="0 0 24 24"><path d="M20.5 11.5a7.5 7.5 0 0 1-7.5 7.5H8l-4.5 2 1.4-4.2A7.5 7.5 0 1 1 20.5 11.5Z"/><path d="M10 9.2a2.2 2.2 0 0 1 4.1 1.1c0 1.45-1.7 1.7-2.05 2.65"/><path d="M12 16h.01"/></svg>
+                <span>Поддержка</span>
+                <b id="supportCount" hidden>0</b>
+              </button>
               <button class="top-action" id="mySettingsButton" type="button">
                 <svg viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z"/><path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.8 1.8 0 0 0 15 19.4a1.8 1.8 0 0 0-1 .6V20a2 2 0 1 1-4 0v-.1a1.8 1.8 0 0 0-1-.6 1.8 1.8 0 0 0-1.98.36l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.8 1.8 0 0 0 4.6 15a1.8 1.8 0 0 0-.6-1H4a2 2 0 1 1 0-4h.1a1.8 1.8 0 0 0 .6-1 1.8 1.8 0 0 0-.36-1.98l-.06-.06A2 2 0 1 1 7.1 4.14l.06.06A1.8 1.8 0 0 0 9 4.6a1.8 1.8 0 0 0 1-.6V4a2 2 0 1 1 4 0v.1a1.8 1.8 0 0 0 1 .6 1.8 1.8 0 0 0 1.98-.36l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.8 1.8 0 0 0 19.4 9c.2.36.4.7.6 1H20a2 2 0 1 1 0 4h-.1a1.8 1.8 0 0 0-.5 1Z"/></svg>
                 Настройки
@@ -5484,11 +5669,6 @@
               <button class="top-action" id="helpButton" type="button">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 0 1 4.5 1.2c0 1.6-1.8 1.9-2.2 3"/><path d="M12 17h.01"/></svg>
                 Справка
-              </button>
-              <button class="top-action" id="supportButton" type="button">
-                <svg viewBox="0 0 24 24"><path d="M20.5 11.5a7.5 7.5 0 0 1-7.5 7.5H8l-4.5 2 1.4-4.2A7.5 7.5 0 1 1 20.5 11.5Z"/><path d="M10 9.2a2.2 2.2 0 0 1 4.1 1.1c0 1.45-1.7 1.7-2.05 2.65"/><path d="M12 16h.01"/></svg>
-                <span>Поддержка</span>
-                <b id="supportCount" hidden>0</b>
               </button>
               <button class="top-action" id="logoutButton" type="button">
                 <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M21 3v18"/></svg>
@@ -5586,7 +5766,7 @@
           <div class="add-menu-wrap">
             <button class="top-action" id="addMenuButton" type="button">
               <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-              Добавить ...
+              Добавить
             </button>
             <div class="add-menu" id="addMenu">
               <button id="addBrewButton" type="button">
@@ -5613,7 +5793,7 @@
           </button>
           <button class="top-action" id="warehouseButton" type="button">
             <svg viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/></svg>
-            Календарь розливов
+            Календарь
           </button>
           <button class="top-action" id="templatesButton" type="button">
             <svg viewBox="0 0 24 24"><path d="M20 10v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg>
@@ -6009,6 +6189,12 @@
               </button>
             </div>
           </div>
+          <div class="template-search-row">
+            <label class="field template-search-field">
+              <span>Поиск</span>
+              <input id="templateSearchInput" type="search" placeholder="Название, ДС или заказчик" autocomplete="off">
+            </label>
+          </div>
           <div class="template-list" id="templateList"></div>
           <form class="form template-inline-form" id="templateForm" hidden>
             <div class="template-form-tabs" role="tablist" aria-label="Разделы шаблона сорта">
@@ -6066,7 +6252,8 @@
             </button>
           </div>
           <div class="user-list" id="userList"></div>
-          <form class="form" id="userForm">
+          <button class="secondary user-create-toggle" id="toggleUserFormButton" type="button" aria-expanded="false">Добавить нового пользователя</button>
+          <form class="form user-create-form" id="userForm" hidden>
             <div class="two">
               <label class="field">
                 <span>Фамилия</span>
@@ -6103,8 +6290,8 @@
               </select>
             </label>
             <button class="top-action" type="submit">Добавить пользователя</button>
-            <div class="status" id="userStatus"></div>
           </form>
+          <div class="status" id="userStatus"></div>
         </section>
 
         <section class="panel" id="featuresPanel">
@@ -6319,18 +6506,76 @@
                 <option value="dark">Темная</option>
               </select>
             </label>
+            <div class="settings-template-title my-settings-section-title">
+              <span>Отображение графика:</span>
+            </div>
+            <div class="my-settings-grid">
+              <label class="field">
+                <span>Показывать с</span>
+                <select id="myTimelineStartOffsetInput">
+                  <option value="7">Сегодня минус 7 дней</option>
+                  <option value="14">Сегодня минус 14 дней</option>
+                  <option value="30">Сегодня минус 30 дней</option>
+                  <option value="60">Сегодня минус 60 дней</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Период по умолчанию</span>
+                <select id="myDefaultRangeInput">
+                  <option value="auto">До конца года</option>
+                  <option value="45">45 дней</option>
+                  <option value="90">90 дней</option>
+                  <option value="180">180 дней</option>
+                  <option value="365">Год</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Вид планировщика</span>
+                <select id="myPlannerViewInput">
+                  <option value="expanded">Полный</option>
+                  <option value="compact">Компактный</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Плотность интерфейса</span>
+                <select id="myDensityInput">
+                  <option value="normal">Обычная</option>
+                  <option value="compact">Компактная</option>
+                </select>
+              </label>
+            </div>
+            <div class="settings-template-title my-settings-section-title">
+              <span>Вид развернутого цикла:</span>
+            </div>
+            <div class="feature-list" id="myExpandedCycleDetailsList">
+              <label class="feature-row"><span><b>Длина цикла</b><small>Показывать общую длительность цикла.</small></span><input type="checkbox" data-expanded-cycle-detail="cycleLength"></label>
+              <label class="feature-row"><span><b>Дней в производстве</b><small>Сколько дней цикл уже находится в производстве.</small></span><input type="checkbox" data-expanded-cycle-detail="daysInProduction"></label>
+              <label class="feature-row"><span><b>Распределение по таре</b><small>Банки и кеги в формате шт / л.</small></span><input type="checkbox" data-expanded-cycle-detail="packaging"></label>
+              <label class="feature-row"><span><b>Остаток ГП</b><small>Остаток готовой продукции по циклу.</small></span><input type="checkbox" data-expanded-cycle-detail="remainingOutput"></label>
+              <label class="feature-row"><span><b>Наименование по ДС</b><small>Название продукции из шаблона сорта.</small></span><input type="checkbox" data-expanded-cycle-detail="dsName"></label>
+              <label class="feature-row"><span><b>Сумма ХС</b><small>Суммарный объем холодного сусла.</small></span><input type="checkbox" data-expanded-cycle-detail="mashingsTotal"></label>
+            </div>
+            <div class="settings-template-title my-settings-section-title">
+              <span>E-mail уведомления:</span>
+            </div>
             <div class="feature-list">
               <label class="feature-row"><span><b>Назначенные мне задачи</b><small>Email-уведомления по новым задачам.</small></span><input id="myNotifyTasksInput" type="checkbox"></label>
               <label class="feature-row"><span><b>Просроченные задачи</b><small>Email-напоминания о просроченных задачах.</small></span><input id="myNotifyOverdueInput" type="checkbox"></label>
               <label class="feature-row"><span><b>Ответы поддержки</b><small>Уведомления по обращениям в поддержку.</small></span><input id="myNotifySupportInput" type="checkbox"></label>
             </div>
-            <label class="field">
-              <span>Вид планировщика</span>
-              <select id="myPlannerViewInput">
-                <option value="expanded">Полный</option>
-                <option value="compact">Компактный</option>
-              </select>
-            </label>
+            <div class="settings-template-title my-settings-section-title">
+              <span>Уведомления в интерфейсе:</span>
+            </div>
+            <div class="feature-list">
+              <label class="feature-row"><span><b>Показывать счетчики</b><small>Счетчики задач и новых сообщений поддержки в меню пользователя.</small></span><input id="myInAppNotificationsInput" type="checkbox"></label>
+            </div>
+            <div class="settings-template-title my-settings-section-title">
+              <span>Подсказки:</span>
+            </div>
+            <div class="feature-list">
+              <label class="feature-row"><span><b>Показывать обучающие подсказки</b><small>Контекстные подсказки и подсветка элементов в интерфейсе.</small></span><input id="myOnboardingTipsInput" type="checkbox"></label>
+            </div>
+            <button class="secondary" id="myResetOnboardingButton" type="button">Сбросить обучение</button>
             <button class="primary" type="submit">Сохранить мои настройки</button>
             <div class="status" id="mySettingsStatus"></div>
           </form>
@@ -6738,7 +6983,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.06.26.135-saas";
+    const appVersion = "v2026.06.27.171-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6746,7 +6991,7 @@
       emptyPlanner: [
         {
           title: "Добро пожаловать в Brew Planner",
-          text: "В организации пока нет ЦКТ, поэтому самое время создать первые емкости. Нажмите «Добавить ...» → «Емкость», укажите название, объем и площадку, а затем сохраните. Если нужно завести сразу несколько ЦКТ и в аккаунте включено первичное заполнение, в карточке емкости выберите «Несколько емкостей», задайте префикс, первый номер, количество и общий объем. После сохранения на графике появятся строки ЦКТ, и можно будет планировать первые варки.",
+          text: "В организации пока нет ЦКТ, поэтому самое время создать первые емкости. Нажмите «Добавить» → «Емкость», укажите название, объем и площадку, а затем сохраните. Если нужно завести сразу несколько ЦКТ и в аккаунте включено первичное заполнение, в карточке емкости выберите «Несколько емкостей», задайте префикс, первый номер, количество и общий объем. После сохранения на графике появятся строки ЦКТ, и можно будет планировать первые варки.",
           target: "emptyPlannerAddTarget"
         }
       ],
@@ -6880,6 +7125,21 @@
       manager: "Редактор",
       reader: "Читатель"
     };
+    const expandedCycleDetailOptions = [
+      "cycleLength",
+      "daysInProduction",
+      "packaging",
+      "remainingOutput",
+      "dsName",
+      "mashingsTotal"
+    ];
+    const defaultExpandedCycleDetails = [
+      "cycleLength",
+      "daysInProduction",
+      "packaging",
+      "remainingOutput"
+    ];
+    const maxExpandedCycleDetails = 5;
     const stageColors = {
       "План": "#64748b",
       "В производстве": "#8b5a2b",
@@ -6970,9 +7230,11 @@
     let skippedRemoteRefreshCount = 0;
     let baseGridRenderKey = "";
     let dynamicGridElements = new Set();
+    let rowLayout = { heights: [], offsets: [], bottomSpacerRows: 1, baseHeight: 82 };
     let pickedSlotElement = null;
     let brewPickRenderToken = 0;
     let onboardingTargetElement = null;
+    let stageQuickMenu = null;
     let lastTabActiveAt = Date.now();
     let resumeRefreshInProgress = false;
     const inactiveResumeThresholdMs = 5 * 60 * 1000;
@@ -7322,7 +7584,7 @@
 
     function renderUserMenuNotificationBadge() {
       if (!userNotificationBadge || !userMenuButton) return;
-      const total = userTaskNotificationCount() + supportUnreadCount;
+      const total = inAppNotificationsEnabled() ? userTaskNotificationCount() + supportUnreadCount : 0;
       const visible = Boolean(currentUser && total > 0);
       userNotificationBadge.hidden = !visible;
       userNotificationBadge.textContent = total > 99 ? "99+" : String(total);
@@ -7332,7 +7594,7 @@
 
     function renderSupportMenuBadge() {
       if (!supportButton || !supportCount) return;
-      const visible = Boolean(currentUser && featureEnabled("supportTickets") && supportUnreadCount > 0);
+      const visible = Boolean(currentUser && inAppNotificationsEnabled() && featureEnabled("supportTickets") && supportUnreadCount > 0);
       supportCount.hidden = !visible;
       supportCount.textContent = supportUnreadCount > 99 ? "99+" : String(supportUnreadCount);
       supportButton.dataset.hasUnread = visible ? "true" : "false";
@@ -7382,6 +7644,9 @@
     }
 
     function clearOnboardingHighlight() {
+      if (onboardingTargetElement) {
+        onboardingTargetElement.classList.remove("onboarding-target-highlight");
+      }
       onboardingTargetElement = null;
       if (onboardingHighlight) onboardingHighlight.hidden = true;
     }
@@ -7419,16 +7684,15 @@
 
     function positionOnboardingHighlight(element) {
       if (!onboardingHighlight || !isVisibleOnboardingTarget(element)) {
+        if (onboardingTargetElement) onboardingTargetElement.classList.remove("onboarding-target-highlight");
         if (onboardingHighlight) onboardingHighlight.hidden = true;
         return;
       }
-      const rect = element.getBoundingClientRect();
-      const offset = 4;
-      onboardingHighlight.style.left = `${Math.max(0, rect.left - offset)}px`;
-      onboardingHighlight.style.top = `${Math.max(0, rect.top - offset)}px`;
-      onboardingHighlight.style.width = `${Math.max(0, rect.width + offset * 2)}px`;
-      onboardingHighlight.style.height = `${Math.max(0, rect.height + offset * 2)}px`;
-      onboardingHighlight.hidden = false;
+      if (onboardingTargetElement && onboardingTargetElement !== element) {
+        onboardingTargetElement.classList.remove("onboarding-target-highlight");
+      }
+      element.classList.add("onboarding-target-highlight");
+      onboardingHighlight.hidden = true;
     }
 
     function highlightOnboardingTarget(tip) {
@@ -7437,8 +7701,8 @@
         clearOnboardingHighlight();
         return;
       }
-      onboardingTargetElement = element;
       positionOnboardingHighlight(element);
+      onboardingTargetElement = element;
     }
 
     function refreshOnboardingHighlight() {
@@ -7461,7 +7725,7 @@
 
     function renderOnboardingTip() {
       if (!onboardingTip) return;
-      if (!currentUser) {
+      if (!currentUser || !onboardingTipsEnabled()) {
         clearOnboardingHighlight();
         onboardingTip.hidden = true;
         return;
@@ -7520,6 +7784,29 @@
       writeOnboardingState({ dismissed: false, index: 0 }, onboardingContext() || "planner");
       renderOnboardingTip();
       closeHelpModal();
+    }
+
+    function resetMyOnboardingTips() {
+      if (!currentUser) return;
+      const settings = normalizeMySettings({
+        notifyTasks: document.querySelector("#myNotifyTasksInput")?.checked,
+        notifyOverdue: document.querySelector("#myNotifyOverdueInput")?.checked,
+        notifySupport: document.querySelector("#myNotifySupportInput")?.checked,
+        inAppNotifications: document.querySelector("#myInAppNotificationsInput")?.checked,
+        plannerView: document.querySelector("#myPlannerViewInput")?.value,
+        density: document.querySelector("#myDensityInput")?.value,
+        timelineStartOffsetDays: Number(document.querySelector("#myTimelineStartOffsetInput")?.value || 30),
+        defaultRangeMode: document.querySelector("#myDefaultRangeInput")?.value,
+        expandedCycleDetails: selectedExpandedCycleDetailsFromForm()
+      });
+      settings.showOnboardingTips = true;
+      saveMySettingsLocal(settings);
+      const input = document.querySelector("#myOnboardingTipsInput");
+      if (input) input.checked = true;
+      mySettingsFormDirty = false;
+      resetOnboardingTips();
+      mySettingsStatus.className = "status";
+      mySettingsStatus.textContent = "Подсказки сброшены";
     }
 
     function updateSupportNotification(tickets = [], { markSeen = false } = {}) {
@@ -7778,6 +8065,7 @@
     function normalizeFeatures(features = {}) {
       return {
         cycleTasks: Boolean(features?.cycleTasks),
+        templateTasks: features?.templateTasks === undefined ? Boolean(features?.cycleTasks) : Boolean(features.templateTasks),
         cycleProcess: features?.cycleProcess === undefined ? true : Boolean(features.cycleProcess),
         initialSetup: Boolean(features?.initialSetup),
         contractBrews: Boolean(features?.contractBrews),
@@ -8133,7 +8421,7 @@
         firstName: row.first_name || "",
         middleName: row.middle_name || "",
         department: row.department || "",
-        phone: row.phone || "",
+        phone: optionalRussianPhone(row.phone),
         comment: row.comment || "",
         role: row.role || "reader",
         isBlocked: Boolean(row.is_blocked)
@@ -8282,7 +8570,7 @@
           login: user.login || user.email,
           displayName: user.displayName || "",
           department: user.department || "",
-          phone: user.phone || "",
+          phone: optionalRussianPhone(user.phone),
           comment: user.comment || "",
           role: user.role || "reader",
           serviceRole: user.serviceRole || "user",
@@ -8302,7 +8590,7 @@
         : { displayName: String(profile || "").trim() };
       const data = await yandexRequest("/users", {
         method: "POST",
-        body: { email, ...payload, role, phone }
+        body: { email, ...payload, role, phone: optionalRussianPhone(phone) }
       });
       return data;
     }
@@ -8350,7 +8638,7 @@
     async function createAuthUser(email, password) {
       if (isYandexBackend) {
         const profile = userNameProfileFromParts(newUserLastNameInput.value, newUserFirstNameInput.value, newUserMiddleNameInput.value);
-        const data = await createYandexUser(email, profile, newUserRoleInput.value, newUserPhoneInput.value.trim());
+        const data = await createYandexUser(email, profile, newUserRoleInput.value, optionalRussianPhone(newUserPhoneInput.value));
         return data.user;
       }
       throw new Error("Создание пользователей доступно только через Yandex API");
@@ -8954,6 +9242,7 @@
       selectedSiteId: null,
       selectedTemplateId: null,
       showArchivedTemplates: false,
+      templateSearch: "",
       templateTab: "info",
       selectedGpProduct: "",
       collapsedTemplateCustomers: {},
@@ -9099,6 +9388,7 @@
     const myTasksList = document.querySelector("#myTasksList");
     const closeTemplatesButton = document.querySelector("#closeTemplatesButton");
     const templateArchiveToggle = document.querySelector("#templateArchiveToggle");
+    const templateSearchInput = document.querySelector("#templateSearchInput");
     const productTemplatesList = document.querySelector("#productTemplatesList");
     const templateList = document.querySelector("#templateList");
     const templateForm = document.querySelector("#templateForm");
@@ -9254,6 +9544,7 @@
     const helpModal = document.querySelector("#helpModal");
     const closeHelpButton = document.querySelector("#closeHelpButton");
     const resetOnboardingButton = document.querySelector("#resetOnboardingButton");
+    const myResetOnboardingButton = document.querySelector("#myResetOnboardingButton");
     const onboardingTip = document.querySelector("#onboardingTip");
     const onboardingTitle = document.querySelector("#onboardingTitle");
     const onboardingText = document.querySelector("#onboardingText");
@@ -9307,6 +9598,7 @@
     const actionLogList = document.querySelector("#actionLogList");
     const userList = document.querySelector("#userList");
     const userForm = document.querySelector("#userForm");
+    const toggleUserFormButton = document.querySelector("#toggleUserFormButton");
     const newUserFirstNameInput = document.querySelector("#newUserFirstNameInput");
     const newUserLastNameInput = document.querySelector("#newUserLastNameInput");
     const newUserMiddleNameInput = document.querySelector("#newUserMiddleNameInput");
@@ -9673,14 +9965,86 @@
       }
     }
 
+    function normalizeMySettings(settings = {}) {
+      const timelineStartOffsetDays = Number(settings.timelineStartOffsetDays || 30);
+      const defaultRangeMode = String(settings.defaultRangeMode || "auto");
+      const rawExpandedCycleDetails = Array.isArray(settings.expandedCycleDetails)
+        ? settings.expandedCycleDetails
+        : defaultExpandedCycleDetails;
+      const expandedCycleDetails = Array.from(new Set(rawExpandedCycleDetails))
+        .filter((key) => expandedCycleDetailOptions.includes(key))
+        .slice(0, maxExpandedCycleDetails);
+      return {
+        notifyTasks: settings.notifyTasks !== false,
+        notifyOverdue: settings.notifyOverdue !== false,
+        notifySupport: settings.notifySupport !== false,
+        inAppNotifications: settings.inAppNotifications !== false,
+        showOnboardingTips: settings.showOnboardingTips !== false,
+        plannerView: settings.plannerView === "expanded" ? "expanded" : "compact",
+        density: settings.density === "compact" ? "compact" : "normal",
+        timelineStartOffsetDays: [7, 14, 30, 60].includes(timelineStartOffsetDays) ? timelineStartOffsetDays : 30,
+        defaultRangeMode: ["auto", "45", "90", "180", "365"].includes(defaultRangeMode) ? defaultRangeMode : "auto",
+        expandedCycleDetails
+      };
+    }
+
+    function selectedExpandedCycleDetailsFromForm() {
+      return Array.from(document.querySelectorAll("[data-expanded-cycle-detail]:checked"))
+        .map((input) => input.dataset.expandedCycleDetail)
+        .filter((key) => expandedCycleDetailOptions.includes(key));
+    }
+
+    function updateExpandedCycleDetailsLimit(changedInput = null) {
+      const checked = Array.from(document.querySelectorAll("[data-expanded-cycle-detail]:checked"));
+      if (checked.length <= maxExpandedCycleDetails) return true;
+      if (changedInput) changedInput.checked = false;
+      mySettingsStatus.className = "status error";
+      mySettingsStatus.textContent = `Можно выбрать не больше ${maxExpandedCycleDetails} показателей`;
+      return false;
+    }
+
+    function timelineStartFromMySettings(settings) {
+      return toISO(addDays(appToday(), -normalizeMySettings(settings).timelineStartOffsetDays));
+    }
+
+    function applyInterfaceDensity(density) {
+      document.documentElement.dataset.density = density === "compact" ? "compact" : "normal";
+    }
+
+    function applyTimelineSettings(settings) {
+      const normalized = normalizeMySettings(settings);
+      state.start = timelineStartFromMySettings(normalized);
+      state.rangeMode = normalized.defaultRangeMode;
+      state.range = normalized.defaultRangeMode === "auto" ? autoRangeFromStart(state.start) : Number(normalized.defaultRangeMode);
+      if (startInput) startInput.value = state.start;
+      if (rangeSelect) rangeSelect.value = state.rangeMode;
+      syncEndDate();
+    }
+
+    function inAppNotificationsEnabled() {
+      return normalizeMySettings(loadMySettings()).inAppNotifications;
+    }
+
+    function onboardingTipsEnabled() {
+      return normalizeMySettings(loadMySettings()).showOnboardingTips;
+    }
+
     function renderMySettingsForm(options = {}) {
       if (!options.force && mySettingsFormDirty) return;
-      const settings = loadMySettings();
+      const settings = normalizeMySettings(loadMySettings());
       document.querySelector("#myThemeInput").value = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
-      document.querySelector("#myNotifyTasksInput").checked = settings.notifyTasks !== false;
-      document.querySelector("#myNotifyOverdueInput").checked = settings.notifyOverdue !== false;
-      document.querySelector("#myNotifySupportInput").checked = settings.notifySupport !== false;
-      document.querySelector("#myPlannerViewInput").value = settings.plannerView === "expanded" ? "expanded" : "compact";
+      document.querySelector("#myTimelineStartOffsetInput").value = String(settings.timelineStartOffsetDays);
+      document.querySelector("#myDefaultRangeInput").value = settings.defaultRangeMode;
+      document.querySelector("#myPlannerViewInput").value = settings.plannerView;
+      document.querySelector("#myDensityInput").value = settings.density;
+      document.querySelectorAll("[data-expanded-cycle-detail]").forEach((input) => {
+        input.checked = settings.expandedCycleDetails.includes(input.dataset.expandedCycleDetail);
+      });
+      document.querySelector("#myNotifyTasksInput").checked = settings.notifyTasks;
+      document.querySelector("#myNotifyOverdueInput").checked = settings.notifyOverdue;
+      document.querySelector("#myNotifySupportInput").checked = settings.notifySupport;
+      document.querySelector("#myInAppNotificationsInput").checked = settings.inAppNotifications;
+      document.querySelector("#myOnboardingTipsInput").checked = settings.showOnboardingTips;
       mySettingsFormDirty = false;
     }
 
@@ -9688,18 +10052,27 @@
       if (!currentUser) return;
       mySettingsStatus.className = "status loading";
       mySettingsStatus.textContent = "Сохраняем мои настройки...";
-      const settings = {
+      const settings = normalizeMySettings({
         notifyTasks: document.querySelector("#myNotifyTasksInput").checked,
         notifyOverdue: document.querySelector("#myNotifyOverdueInput").checked,
         notifySupport: document.querySelector("#myNotifySupportInput").checked,
-        plannerView: document.querySelector("#myPlannerViewInput").value
-      };
-      applyTheme(document.querySelector("#myThemeInput").value === "dark" ? "dark" : "light");
-      state.view = settings.plannerView === "expanded" ? "expanded" : "compact";
-      viewButtons.querySelectorAll("button").forEach((button) => {
-        button.classList.toggle("active", button.dataset.view === state.view);
+        inAppNotifications: document.querySelector("#myInAppNotificationsInput").checked,
+        showOnboardingTips: document.querySelector("#myOnboardingTipsInput").checked,
+        plannerView: document.querySelector("#myPlannerViewInput").value,
+        density: document.querySelector("#myDensityInput").value,
+        timelineStartOffsetDays: Number(document.querySelector("#myTimelineStartOffsetInput").value || 30),
+        defaultRangeMode: document.querySelector("#myDefaultRangeInput").value,
+        expandedCycleDetails: selectedExpandedCycleDetailsFromForm()
       });
+      applyTheme(document.querySelector("#myThemeInput").value === "dark" ? "dark" : "light");
+      applyInterfaceDensity(settings.density);
+      applyTimelineSettings(settings);
+      state.view = settings.plannerView;
+      applyDisplayControls();
       saveMySettingsLocal(settings);
+      saveUserUiPreferences();
+      renderUserMenuNotificationBadge();
+      renderOnboardingTip();
       mySettingsStatus.className = "status";
       mySettingsStatus.textContent = "Мои настройки сохранены";
       mySettingsFormDirty = false;
@@ -10205,8 +10578,19 @@
       input.value = `+7${tail}`;
     }
 
+    function optionalRussianPhone(value) {
+      const digits = String(value || "").replace(/\D/g, "");
+      if (!digits || digits === "7" || digits === "8") return "";
+      const tail = digits.startsWith("7") || digits.startsWith("8") ? digits.slice(1) : digits;
+      return `+7${tail}`;
+    }
+
     function featureEnabled(key) {
       return Boolean(appFeatures?.[key]);
+    }
+
+    function templateTasksEnabled() {
+      return featureEnabled("cycleTasks") && featureEnabled("templateTasks");
     }
 
     function contractBreweryEnabled() {
@@ -10963,6 +11347,13 @@
         </label>
         <label class="feature-row">
           <span>
+            <b>Задачи по шаблонам</b>
+            <small>Чек-лист в шаблонах сортов и создание задач из чек-листа при создании цикла.</small>
+          </span>
+              <input id="featureTemplateTasksInput" type="checkbox" ${featureEnabled("templateTasks") ? "checked" : ""}>
+        </label>
+        <label class="feature-row">
+          <span>
             <b>Процесс производства</b>
             <small>Вкладка процесса в карточке цикла: варка, затирания, брожение, температура и плотность.</small>
           </span>
@@ -10999,6 +11390,7 @@
     function featureKeyForInput(input) {
       return ({
         featureCycleTasksInput: "cycleTasks",
+        featureTemplateTasksInput: "templateTasks",
         featureCycleProcessInput: "cycleProcess",
         featureInitialSetupInput: "initialSetup",
         featureContractBrewsInput: "contractBrews",
@@ -11013,6 +11405,10 @@
       if (!featureEnabled("cycleTasks")) {
         state.cycleTab = "production";
         if (state.panelMode === "myTasks") state.panelMode = "hidden";
+      }
+      if (!templateTasksEnabled()) {
+        if (state.templateTab === "checklist") state.templateTab = "info";
+        if (createTasksFromChecklistInput) createTasksFromChecklistInput.checked = false;
       }
       if (!featureEnabled("cycleProcess") && state.cycleTab === "process") {
         state.cycleTab = "production";
@@ -11030,6 +11426,7 @@
       savePlan();
       const featureName = ({
         cycleTasks: "Задачи по производственным циклам",
+        templateTasks: "Задачи по шаблонам",
         cycleProcess: "Процесс производства",
         initialSetup: "Первичное заполнение",
         contractBrews: "Варки по контракту",
@@ -11614,10 +12011,15 @@
         logAction("user_temporary_password_reset", "user", user.id, userDisplayName(user), {
           email: user.login
         });
+        const passwordStatusText = data.emailSent
+          ? "Ссылка установки пароля отправлена пользователю на email"
+          : data.passwordDelivery === "email_disabled"
+            ? "Ссылка установки пароля создана, но отправка писем отключена или не настроена"
+            : "Пароль обновлен";
         userStatus.className = "status";
-        userStatus.textContent = data.emailSent ? "Ссылка установки пароля отправлена пользователю на email" : "Пароль обновлен";
+        userStatus.textContent = passwordStatusText;
         userPasswordStatus.className = "status";
-        userPasswordStatus.textContent = data.emailSent ? "Ссылка установки пароля отправлена пользователю на email" : "Пароль обновлен";
+        userPasswordStatus.textContent = passwordStatusText;
         await loadProfiles();
         renderUsers();
       } catch (error) {
@@ -11893,7 +12295,7 @@
       userProfileFirstNameInput.value = nameParts.firstName;
       userProfileMiddleNameInput.value = nameParts.middleName;
       userProfileDepartmentInput.value = user.department || "";
-      userProfilePhoneInput.value = user.phone || "";
+      userProfilePhoneInput.value = optionalRussianPhone(user.phone);
       userProfileCommentInput.value = user.comment || "";
       userProfileModal.classList.add("open");
       requestAnimationFrame(() => userProfileFirstNameInput.focus());
@@ -11910,7 +12312,7 @@
       const profile = {
         ...userNameProfileFromParts(userProfileLastNameInput.value, userProfileFirstNameInput.value, userProfileMiddleNameInput.value),
         department: userProfileDepartmentInput.value.trim(),
-        phone: userProfilePhoneInput.value.trim(),
+        phone: optionalRussianPhone(userProfilePhoneInput.value),
         comment: userProfileCommentInput.value.trim()
       };
       userProfileStatus.className = "status loading";
@@ -11936,6 +12338,14 @@
         userProfileStatus.className = "status error";
         userProfileStatus.textContent = `Не удалось сохранить профиль: ${error.message}`;
       }
+    }
+
+    function setUserCreateFormOpen(open) {
+      if (!userForm || !toggleUserFormButton) return;
+      userForm.hidden = !open;
+      toggleUserFormButton.setAttribute("aria-expanded", open ? "true" : "false");
+      toggleUserFormButton.textContent = open ? "Скрыть форму" : "Добавить нового пользователя";
+      if (open) requestAnimationFrame(() => newUserLastNameInput?.focus());
     }
 
     function renderUsers() {
@@ -12649,16 +13059,44 @@
       return "циклов";
     }
 
-    function cycleDetailsLine(cycle) {
+    function cycleDetailParts(cycle, details = normalizeMySettings(loadMySettings()).expandedCycleDetails) {
       const parts = [];
       const duration = cycleLengthDays(cycle.start, cycle.end);
       const today = toISO(appToday());
       const daysInProduction = today < cycle.start
         ? 0
         : Math.min(duration, Math.max(0, diffDays(cycle.start, today) + 1));
-      parts.push(`${formatNumber(duration)} ${dayWord(duration)}`);
-      parts.push(`${formatNumber(daysInProduction)} ${dayWord(daysInProduction)} в производстве`);
-      return parts.join(" | ");
+      details.forEach((detail) => {
+        if (detail === "cycleLength") parts.push(`Цикл: ${formatNumber(duration)} ${dayWord(duration)}`);
+        if (detail === "daysInProduction") parts.push(`В производстве: ${formatNumber(daysInProduction)} ${dayWord(daysInProduction)}`);
+        if (detail === "packaging") parts.push(cyclePackagingDetailText(cycle));
+        if (detail === "remainingOutput") parts.push(`Остаток ГП: ${formatLiters(productionOutputForCycle(cycle))} л`);
+        if (detail === "dsName") parts.push(`ДС: ${templateByName(cycle.product, { includeArchived: true })?.dsName || "-"}`);
+        if (detail === "mashingsTotal") parts.push(cycleMashingsTotalDetailText(cycle));
+      });
+      return parts;
+    }
+
+    function cycleDetailsLine(cycle, details = normalizeMySettings(loadMySettings()).expandedCycleDetails) {
+      const parts = cycleDetailParts(cycle, details);
+      return parts
+        .map((part) => `<span class="cycle-detail-badge">${escapeHtml(part)}</span>`)
+        .join("");
+    }
+
+    function packagingUnitText(quantity, liters) {
+      const hasValue = Number(quantity || 0) > 0 || Number(liters || 0) > 0;
+      return hasValue ? `${formatNumber(quantity)} шт / ${formatLiters(liters)} л` : "- шт / - л";
+    }
+
+    function cyclePackagingDetailText(cycle) {
+      const packaging = packagingForCycle(cycle);
+      return `План: банки ${formatNumber(packaging.can045.quantity || 0)} шт; кеги ${formatLiters(packaging.keg20.liters || 0)} л`;
+    }
+
+    function cycleMashingsTotalDetailText(cycle) {
+      const total = processMashingsTotal(cycleProcess(cycle));
+      return total > 0 ? `ХС: ${formatLiters(total)} л` : "ХС: - л";
     }
 
     function setPackagingFields(packaging) {
@@ -13079,6 +13517,83 @@
       return stageColors[stage] || "#475569";
     }
 
+    function closeStageQuickMenu() {
+      if (!stageQuickMenu) return;
+      stageQuickMenu.remove();
+      stageQuickMenu = null;
+    }
+
+    function positionStageQuickMenu(anchor) {
+      if (!stageQuickMenu || !anchor) return;
+      const rect = anchor.getBoundingClientRect();
+      const width = stageQuickMenu.offsetWidth || 172;
+      const height = stageQuickMenu.offsetHeight || 180;
+      const left = clamp(rect.left, 8, Math.max(8, window.innerWidth - width - 8));
+      let top = rect.bottom + 6;
+      if (top + height + 8 > window.innerHeight) {
+        top = Math.max(8, rect.top - height - 6);
+      }
+      stageQuickMenu.style.left = `${left}px`;
+      stageQuickMenu.style.top = `${top}px`;
+    }
+
+    async function applyQuickCycleStage(cycleId, nextStage) {
+      if (!requireEdit()) return;
+      const cycle = cycles.find((item) => String(item.id) === String(cycleId));
+      if (!cycle) return;
+      const normalizedStage = normalizeStage(nextStage);
+      const previousStage = normalizeStage(cycle.stage);
+      closeStageQuickMenu();
+      if (previousStage === normalizedStage) return;
+      const beforeSaveSnapshot = clonePlanData();
+      pushUndoSnapshot("быстрая смена стадии");
+      cycle.stage = normalizedStage;
+      if (state.selectedCycleId === cycle.id) {
+        stageInput.value = normalizedStage;
+      }
+      render();
+      const saved = await savePlan();
+      if (!saved) {
+        restorePlanDataSnapshot(beforeSaveSnapshot);
+        render();
+        return;
+      }
+      logAction("cycle_updated", "cycle", cycle.id, cycle.product, {
+        stage: {
+          from: previousStage,
+          to: normalizedStage
+        }
+      });
+    }
+
+    function openStageQuickMenu(cycle, anchor) {
+      if (!cycle || !anchor) return;
+      if (!requireEdit()) return;
+      closeStageQuickMenu();
+      const currentStage = normalizeStage(cycle.stage);
+      stageQuickMenu = document.createElement("div");
+      stageQuickMenu.className = "stage-quick-menu";
+      stageQuickMenu.setAttribute("role", "menu");
+      stageQuickMenu.innerHTML = Object.keys(stageColors).map((stage) => {
+        const color = colorForStage(stage);
+        return `
+          <button class="stage-quick-option" type="button" role="menuitem" data-stage="${escapeHtml(stage)}" data-current="${stage === currentStage ? "true" : "false"}" style="background:${color};color:${contrastTextColor(color)}">
+            ${escapeHtml(stage)}
+          </button>
+        `;
+      }).join("");
+      stageQuickMenu.addEventListener("pointerdown", (event) => event.stopPropagation());
+      stageQuickMenu.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const button = event.target.closest("[data-stage]");
+        if (!button) return;
+        applyQuickCycleStage(cycle.id, button.dataset.stage);
+      });
+      document.body.append(stageQuickMenu);
+      positionStageQuickMenu(anchor);
+    }
+
     function hexToRgb(color) {
       if (typeof color !== "string") return null;
       const normalized = color.trim().replace("#", "");
@@ -13218,7 +13733,7 @@
     }
 
     function tasksFromTemplateChecklist(template, cycle) {
-      if (!featureEnabled("cycleTasks") || !template || !cycle) return [];
+      if (!templateTasksEnabled() || !template || !cycle) return [];
       const createdAt = new Date().toISOString();
       return normalizeTemplateChecklist(template.checklist)
         .map((item) => ({
@@ -13241,7 +13756,7 @@
       const isNewCycle = state.panelMode === "cycle" && !state.selectedCycleId;
       const template = templateByName(productInput.value);
       const checklistCount = normalizeTemplateChecklist(template?.checklist || []).length;
-      const visible = Boolean(featureEnabled("cycleTasks") && isNewCycle && checklistCount);
+      const visible = Boolean(templateTasksEnabled() && isNewCycle && checklistCount);
       const templateKey = visible ? String(template.id || template.name || "") : "";
 
       createTasksFromChecklistField.hidden = !visible;
@@ -13260,12 +13775,13 @@
     }
 
     function setTemplateFormTab(tab) {
-      const nextTab = tab === "checklist" ? "checklist" : "info";
+      const nextTab = tab === "checklist" && templateTasksEnabled() ? "checklist" : "info";
       state.templateTab = nextTab;
       templateInfoTab.dataset.active = nextTab === "info" ? "true" : "false";
       templateChecklistTab.dataset.active = nextTab === "checklist" ? "true" : "false";
+      templateChecklistTab.hidden = !templateTasksEnabled();
       templateInfoPane.hidden = nextTab !== "info";
-      templateChecklistPane.hidden = nextTab !== "checklist";
+      templateChecklistPane.hidden = !templateTasksEnabled() || nextTab !== "checklist";
     }
 
     function normalizeProductTemplates(templates) {
@@ -13403,18 +13919,44 @@
       if (filterCustomerInput.value !== currentCustomer) state.filters.customer = "";
     }
 
-    function visibleProductTemplates() {
-      return productTemplates.filter((template) => Boolean(template.archived) === Boolean(state.showArchivedTemplates));
+    function templateMatchesSearch(template, query) {
+      if (!query) return true;
+      return [
+        template.name,
+        template.dsName,
+        template.customer
+      ].some((value) => normalizeName(String(value || "")).includes(query));
+    }
+
+    function visibleProductTemplates({ ignoreSearch = false } = {}) {
+      const searchQuery = ignoreSearch ? "" : normalizeName(String(state.templateSearch || ""));
+      return productTemplates
+        .filter((template) => Boolean(template.archived) === Boolean(state.showArchivedTemplates))
+        .filter((template) => templateMatchesSearch(template, searchQuery));
     }
 
     function renderTemplateList() {
       const templates = visibleProductTemplates();
+      const allTemplatesInMode = visibleProductTemplates({ ignoreSearch: true });
+      const hasSearch = normalizeName(String(state.templateSearch || "")).length > 0;
+      if (!templateTasksEnabled() && state.templateTab === "checklist") setTemplateFormTab("info");
+      templateChecklistTab.hidden = !templateTasksEnabled();
+      templateChecklistPane.hidden = !templateTasksEnabled() || state.templateTab !== "checklist";
+      if (templateSearchInput && templateSearchInput.value !== state.templateSearch) {
+        templateSearchInput.value = state.templateSearch || "";
+      }
       templateCustomerField.hidden = !featureEnabled("contractBrews");
       templateList.dataset.archive = state.showArchivedTemplates ? "true" : "false";
       templateList.dataset.grouped = featureEnabled("contractBrews") ? "true" : "false";
       templateArchiveToggle.classList.toggle("active", state.showArchivedTemplates);
       if (!templates.length) {
-        templateList.innerHTML = `<div class="empty-state">${state.showArchivedTemplates ? "Архив шаблонов пуст" : "Активных шаблонов сортов пока нет"}</div>`;
+        templateList.innerHTML = `<div class="empty-state">${
+          hasSearch && allTemplatesInMode.length
+            ? "По этому запросу шаблоны не найдены"
+            : state.showArchivedTemplates
+              ? "Архив шаблонов пуст"
+              : "Активных шаблонов сортов пока нет"
+        }</div>`;
         return;
       }
       const templateRowHtml = (template) => {
@@ -13422,7 +13964,7 @@
         const meta = [
           featureEnabled("contractBrews") && template.customer ? template.customer : "",
           `${formatNumber(template.duration || 1)} дн.`,
-          checklistCount ? `чек-лист ${formatNumber(checklistCount)}` : "чек-лист пуст"
+          templateTasksEnabled() ? (checklistCount ? `чек-лист ${formatNumber(checklistCount)}` : "чек-лист пуст") : ""
         ].filter(Boolean).join(" · ");
         return `
           <div class="template-row-item">
@@ -13550,6 +14092,7 @@
     }
 
     function templateFormSnapshot() {
+      const selectedTemplate = productTemplates.find((template) => template.id === state.selectedTemplateId);
       return {
         name: templateNameInput.value.trim(),
         dsName: templateDsNameInput.value.trim(),
@@ -13557,7 +14100,7 @@
         duration: Math.max(1, Number(templateDurationInput.value) || 1),
         plannedOutput: Math.max(0, Number(templateOutputInput.value) || 0),
         color: templateColorInput.value || defaultTemplateColor(),
-        checklist: templateChecklistFromForm()
+        checklist: templateTasksEnabled() ? templateChecklistFromForm() : normalizeTemplateChecklist(selectedTemplate?.checklist || [])
       };
     }
 
@@ -13599,7 +14142,7 @@
       templateDurationInput.value = template.duration || 1;
       templateOutputInput.value = rounded(template.plannedOutput || 0);
       templateColorInput.value = template.color || defaultTemplateColor();
-      renderTemplateChecklistEditor(normalizeTemplateChecklist(template.checklist, { withDefaults: true }));
+      renderTemplateChecklistEditor(templateTasksEnabled() ? normalizeTemplateChecklist(template.checklist, { withDefaults: true }) : []);
       setTemplateFormTab("info");
       templateStatus.className = "status";
       templateStatus.textContent = "Шаблон выбран";
@@ -13693,20 +14236,74 @@
       return contractBreweryEnabled() ? ordered : ordered.slice(0, 1);
     }
 
+    function validDateInput(value) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value || ""))) return "";
+      const date = parseDate(value);
+      return Number.isNaN(date.getTime()) ? "" : value;
+    }
+
+    function validRangeMode(value, fallback = "auto") {
+      const normalized = String(value || fallback);
+      return ["auto", "45", "90", "180", "365"].includes(normalized) ? normalized : fallback;
+    }
+
+    function validZoomMode(value, fallback = "day") {
+      return value === "week" || value === "day" ? value : fallback;
+    }
+
+    function validPlannerView(value, fallback = "compact") {
+      return value === "expanded" || value === "compact" ? value : fallback;
+    }
+
+    function applyDisplayControls() {
+      startInput.value = state.start;
+      rangeSelect.value = state.rangeMode;
+      zoomButtons.querySelectorAll("button").forEach((button) => {
+        button.classList.toggle("active", button.dataset.zoom === state.zoom);
+      });
+      viewButtons.querySelectorAll("button").forEach((button) => {
+        button.classList.toggle("active", button.dataset.view === state.view);
+      });
+    }
+
+    function currentDisplayPreferences() {
+      return {
+        start: state.start,
+        rangeMode: state.rangeMode,
+        range: state.range,
+        zoom: state.zoom,
+        zoomStep: state.zoomStep,
+        view: state.view
+      };
+    }
+
     function loadUserUiPreferences() {
+      let saved = {};
       try {
-        const saved = JSON.parse(localStorage.getItem(currentUserUiStorageKey()));
+        saved = JSON.parse(localStorage.getItem(currentUserUiStorageKey())) || {};
         state.siteOrder = normalizedSiteOrder(saved?.siteOrder || []);
       } catch {
         state.siteOrder = normalizedSiteOrder([]);
       }
-      const personalSettings = loadMySettings();
-      if (personalSettings.plannerView === "expanded" || personalSettings.plannerView === "compact") {
+      const personalSettings = normalizeMySettings(loadMySettings());
+      applyInterfaceDensity(personalSettings.density);
+      const display = saved?.display || {};
+      const hasSavedDisplay = Boolean(display.start || display.rangeMode || display.zoom || display.view);
+      if (hasSavedDisplay) {
+        state.start = validDateInput(display.start) || timelineStartFromMySettings(personalSettings);
+        state.rangeMode = validRangeMode(display.rangeMode, personalSettings.defaultRangeMode);
+        state.range = state.rangeMode === "auto" ? autoRangeFromStart(state.start) : Number(state.rangeMode);
+        state.zoom = validZoomMode(display.zoom);
+        state.zoomStep = clamp(Number(display.zoomStep || 0), -3, 6);
+        state.view = validPlannerView(display.view, personalSettings.plannerView);
+        syncEndDate();
+      } else {
+        applyTimelineSettings(personalSettings);
+        state.zoom = "day";
+        state.zoomStep = 0;
         state.view = personalSettings.plannerView;
-        viewButtons.querySelectorAll("button").forEach((button) => {
-          button.classList.toggle("active", button.dataset.view === state.view);
-        });
       }
+      applyDisplayControls();
     }
 
     function saveUserUiPreferences() {
@@ -13714,7 +14311,8 @@
         const saved = JSON.parse(localStorage.getItem(currentUserUiStorageKey())) || {};
         localStorage.setItem(currentUserUiStorageKey(), JSON.stringify({
           ...saved,
-          siteOrder: normalizedSiteOrder()
+          siteOrder: normalizedSiteOrder(),
+          display: currentDisplayPreferences()
         }));
       } catch {
         // Персональная настройка порядка площадок не должна мешать работе планировщика.
@@ -13945,7 +14543,85 @@
       dynamicGridElements.clear();
     }
 
-    function baseGridKeyFor(dates, rows) {
+    function baseTankRowHeight() {
+      return numberFromVar("--tank-row") || (state.view === "compact" ? 34 : 82);
+    }
+
+    function estimateCycleDetailBadgeRows(cycle, details, visibleWidth) {
+      if (state.view === "compact" || !details.length) return 1;
+      const parts = cycleDetailParts(cycle, details);
+      if (!parts.length) return 1;
+      const availableWidth = Math.max(44, visibleWidth - 22);
+      let rows = 1;
+      let lineWidth = 0;
+      parts.forEach((part) => {
+        const textWidth = Math.max(46, String(part || "").length * 5.8 + 16);
+        const badgeWidth = Math.min(availableWidth, textWidth);
+        const gap = lineWidth > 0 ? 4 : 0;
+        if (lineWidth > 0 && lineWidth + gap + badgeWidth > availableWidth) {
+          rows += 1;
+          lineWidth = badgeWidth;
+        } else {
+          lineWidth += gap + badgeWidth;
+        }
+      });
+      return rows;
+    }
+
+    function buildRowLayout(rows) {
+      const baseHeight = baseTankRowHeight();
+      const dayWidth = numberFromVar("--day-col") || 34;
+      const startDate = parseDate(state.start);
+      const visibleEnd = addDays(startDate, state.range - 1);
+      const detailSettings = normalizeMySettings(loadMySettings()).expandedCycleDetails;
+      const cyclesByTank = visibleCycles().reduce((result, cycle) => {
+        if (!result.has(cycle.tankId)) result.set(cycle.tankId, []);
+        result.get(cycle.tankId).push(cycle);
+        return result;
+      }, new Map());
+      const heights = rows.map((row) => {
+        if (row.type !== "tank" || state.view === "compact") return baseHeight;
+        const maxDetailRows = (cyclesByTank.get(row.tank.id) || []).reduce((result, cycle) => {
+          const cycleStart = parseDate(cycle.start) < startDate ? startDate : parseDate(cycle.start);
+          const cycleEnd = parseDate(cycle.end) > visibleEnd ? visibleEnd : parseDate(cycle.end);
+          const duration = Math.max(1, Math.round((cycleEnd - cycleStart) / 86400000) + 1);
+          const visibleWidth = duration * dayWidth - 8;
+          return Math.max(result, estimateCycleDetailBadgeRows(cycle, detailSettings, visibleWidth));
+        }, 1);
+        return baseHeight + Math.min(42, Math.max(0, maxDetailRows - 1) * 18);
+      });
+      const offsets = [];
+      heights.reduce((sum, height) => {
+        offsets.push(sum);
+        return sum + height;
+      }, 0);
+      return { heights, offsets, bottomSpacerRows: 1, baseHeight };
+    }
+
+    function rowTopPx(rowIndex) {
+      return rowLayout.offsets[rowIndex] ?? rowIndex * rowLayout.baseHeight;
+    }
+
+    function rowHeightPx(rowIndex) {
+      return rowLayout.heights[rowIndex] ?? rowLayout.baseHeight;
+    }
+
+    function cycleTopForRow(rowIndex) {
+      return `calc(var(--header-total) + ${rowTopPx(rowIndex)}px)`;
+    }
+
+    function rowGridTemplate(layout) {
+      const bodyRows = layout.heights.concat(Array.from({ length: layout.bottomSpacerRows }, () => layout.baseHeight));
+      return [
+        "var(--header-year)",
+        "var(--header-month)",
+        "var(--header-week)",
+        "var(--header-day)",
+        ...bodyRows.map((height) => `${height}px`)
+      ].join(" ");
+    }
+
+    function baseGridKeyFor(dates, rows, layout) {
       return JSON.stringify({
         start: state.start,
         range: state.range,
@@ -13956,6 +14632,7 @@
         canEdit: canEdit(),
         dates: [toISO(dates[0]), toISO(dates[dates.length - 1]), dates.length],
         collapsedSites: state.collapsedSites,
+        rowHeights: layout.heights,
         rows: rows.map((row) => row.type === "tank"
           ? ["tank", row.tank.id, row.tank.name, row.tank.volume, row.tank.siteId]
           : [row.type, row.site?.id || "", row.site?.name || "", row.count || 0])
@@ -13964,22 +14641,24 @@
 
     function renderBaseGrid(dates) {
       const rows = visibleRows();
+      rowLayout = buildRowLayout(rows);
       clearDynamicGridElements();
       grid.dataset.addMode = state.addMode ? "true" : "false";
       grid.dataset.commentMode = state.commentMode ? "true" : "false";
       grid.dataset.scale = state.zoom;
       grid.dataset.view = state.view;
-      const nextGridKey = baseGridKeyFor(dates, rows);
+      const nextGridKey = baseGridKeyFor(dates, rows, rowLayout);
+      grid.style.gridTemplateRows = rowGridTemplate(rowLayout);
       if (baseGridRenderKey === nextGridKey) return;
       baseGridRenderKey = nextGridKey;
       grid.innerHTML = "";
-      const bottomSpacerRows = 1;
+      const bottomSpacerRows = rowLayout.bottomSpacerRows;
       grid.style.setProperty("--tank-count", rows.length + bottomSpacerRows);
       grid.style.setProperty("--day-count", dates.length);
 
       const corner = document.createElement("div");
       corner.className = "corner";
-      corner.textContent = "ЦКТ / дата";
+      corner.textContent = "";
       corner.style.gridColumn = "1";
       corner.style.gridRow = "1 / 5";
       grid.append(corner);
@@ -14017,7 +14696,7 @@
       groupedRanges(
         dates,
         (date) => `${date.getFullYear()}-${weekNumber(date)}`,
-        (date) => `W${weekNumber(date)}`
+        (date) => String(weekNumber(date))
       ).forEach((group) => {
         const cell = document.createElement("div");
         cell.className = "time-cell week";
@@ -14318,6 +14997,7 @@
       const visibleEnd = addDays(startDate, state.range - 1);
       const visible = visibleCycles();
       const relatedCycleIds = relatedCycleIdsForSelection();
+      const expandedCycleDetails = normalizeMySettings(loadMySettings()).expandedCycleDetails;
 
       visible.forEach((cycle) => {
         const tankIndex = tankRowIndex(cycle.tankId);
@@ -14338,9 +15018,9 @@
         item.dataset.related = relatedCycleIds.has(cycle.id) ? "true" : "false";
         item.dataset.filteredOut = cycleMatchesFilters(cycle) ? "false" : "true";
         item.style.left = `calc(var(--tank-label) + ${offset} * var(--day-col))`;
-        item.style.top = `calc(var(--header-total) + ${tankIndex} * var(--tank-row))`;
+        item.style.top = cycleTopForRow(tankIndex);
         item.style.width = `calc(${duration} * var(--day-col) - 8px)`;
-        item.style.height = state.view === "compact" ? "calc(var(--tank-row) - 10px)" : "calc(var(--tank-row) - 14px)";
+        item.style.height = `${Math.max(16, rowHeightPx(tankIndex) - (state.view === "compact" ? 10 : 14))}px`;
         const cycleColor = cycle.color || palette[cycle.id % palette.length];
         item.style.background = cycleColor;
         item.style.color = contrastTextColor(cycleColor);
@@ -14353,7 +15033,7 @@
         const hasPartialBottlings = partialBottlingsForCycle(cycle).length > 0;
         const plannedOutputText = `${formatLiters(cycle.plannedOutput || 0)} л`;
         const derivedOutput = derivedOutputForCycle(cycle.id);
-        const remainingOutputText = hasPartialBottlings || derivedOutput > 0
+        const remainingOutputText = state.view === "compact" && (hasPartialBottlings || derivedOutput > 0)
           ? `<span class="cycle-output">Остаток: ${formatLiters(productionOutputForCycle(cycle))} л</span>`
           : "";
         const sourceText = cycle.sourceCycleId ? `<span class="cycle-output">Производный</span>` : "";
@@ -14361,9 +15041,24 @@
         const batchLine = packagingAlert || batchText ? `<span class="cycle-batch">${packagingAlert}${batchText}</span>` : "";
         const stageColor = colorForStage(stage);
         const stageBadge = shouldUseStageDot(duration)
-          ? `<small class="stage-badge stage-dot" style="background:${stageColor}" data-tooltip="${escapeHtml(stage)}" aria-label="${escapeHtml(stage)}"></small>`
-          : `<small class="stage-badge" style="background:${stageColor}">${stage}</small>`;
-        item.innerHTML = `<span class="resize-handle left" data-resize="left"></span>${stageBadge}<span class="cycle-title"><b>${escapeHtml(cycle.product)}</b><span class="cycle-output">${plannedOutputText}</span>${sourceText}${remainingOutputText}</span>${batchLine}<span class="dates">${cycleDetailsLine(cycle)}</span><span class="resize-handle right" data-resize="right"></span>`;
+          ? `<small class="stage-badge stage-dot" style="background:${stageColor}" data-stage-picker="true" data-tooltip="${escapeHtml(stage)}" aria-label="${escapeHtml(stage)}"></small>`
+          : `<small class="stage-badge" style="background:${stageColor}" data-stage-picker="true">${stage}</small>`;
+        item.innerHTML = `<span class="resize-handle left" data-resize="left"></span>${stageBadge}<span class="cycle-title"><b>${escapeHtml(cycle.product)}</b><span class="cycle-output">${plannedOutputText}</span>${sourceText}${remainingOutputText}</span>${batchLine}<span class="dates">${cycleDetailsLine(cycle, expandedCycleDetails)}</span><span class="resize-handle right" data-resize="right"></span>`;
+        const stageBadgeElement = item.querySelector("[data-stage-picker]");
+        if (stageBadgeElement) {
+          stageBadgeElement.addEventListener("pointerdown", (event) => {
+            event.stopPropagation();
+          });
+          stageBadgeElement.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            openStageQuickMenu(cycle, stageBadgeElement);
+          });
+          stageBadgeElement.addEventListener("dblclick", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          });
+        }
         item.querySelectorAll("[data-alert]").forEach((alert) => {
           alert.addEventListener("mouseenter", (event) => showCommentTooltip(alert.dataset.alert, event));
           alert.addEventListener("mousemove", moveCommentTooltip);
@@ -14741,14 +15436,12 @@
     function moveCycleInteraction(event) {
       if (!dragState) return;
       const dayWidth = numberFromVar("--day-col");
-      const tankHeight = numberFromVar("--tank-row");
       const rows = visibleRows();
       const pointerDeltaX = event.clientX - dragState.pointerX;
       const pointerDeltaY = event.clientY - dragState.pointerY;
       if (!dragState.moved && Math.abs(pointerDeltaX) + Math.abs(pointerDeltaY) < 4) return;
       dragState.moved = true;
       const dayDelta = Math.round(pointerDeltaX / dayWidth);
-      const tankDelta = Math.round(pointerDeltaY / tankHeight);
       let start = dragState.originalStart;
       let end = dragState.originalEnd;
       let tankIndex = dragState.originalTankIndex;
@@ -14757,9 +15450,13 @@
         start = toISO(addDays(parseDate(dragState.originalStart), dayDelta));
         end = toISO(addDays(parseDate(dragState.originalEnd), dayDelta));
         const tankPositions = rows.map((row, index) => row.type === "tank" ? index : null).filter((index) => index !== null);
-        const currentTankPosition = tankPositions.indexOf(dragState.originalTankIndex);
-        const nextTankPosition = clamp(currentTankPosition + tankDelta, 0, tankPositions.length - 1);
-        const targetTankIndex = tankPositions[nextTankPosition] ?? dragState.originalTankIndex;
+        const originalCenter = rowTopPx(dragState.originalTankIndex) + rowHeightPx(dragState.originalTankIndex) / 2;
+        const targetCenter = originalCenter + pointerDeltaY;
+        const targetTankIndex = tankPositions.reduce((closest, index) => {
+          const distance = Math.abs(rowTopPx(index) + rowHeightPx(index) / 2 - targetCenter);
+          const closestDistance = Math.abs(rowTopPx(closest) + rowHeightPx(closest) / 2 - targetCenter);
+          return distance < closestDistance ? index : closest;
+        }, dragState.originalTankIndex);
         tankIndex = targetTankIndex;
       }
 
@@ -14780,8 +15477,9 @@
       const duration = Math.max(1, diffDays(start, end) + 1);
       dragState.latest = { start, end, tankId: tank.id, valid, blockedReason: "" };
       dragState.element.style.left = `calc(var(--tank-label) + ${offset} * var(--day-col))`;
-      dragState.element.style.top = `calc(var(--header-total) + ${tankIndex} * var(--tank-row))`;
+      dragState.element.style.top = cycleTopForRow(tankIndex);
       dragState.element.style.width = `calc(${duration} * var(--day-col) - 8px)`;
+      dragState.element.style.height = `${Math.max(16, rowHeightPx(tankIndex) - (state.view === "compact" ? 10 : 14))}px`;
       dragState.element.classList.toggle("invalid", !valid);
       suppressCycleClick = true;
     }
@@ -15485,6 +16183,7 @@
     function render() {
       const renderStartedAt = perfNow();
       try {
+        closeStageQuickMenu();
         applyAutomaticStages({ save: true });
         setZoom();
         renderSummaryVisibility();
@@ -15499,6 +16198,7 @@
         }
         updateUndoButton();
         workspace.dataset.panel = state.panelMode;
+        workspace.dataset.templateTasks = templateTasksEnabled() ? "true" : "false";
         organizationSettingsPanel.classList.toggle("open", state.panelMode === "orgSettings");
         userMenuButton.setAttribute("aria-expanded", userBox.classList.contains("open") ? "true" : "false");
         addMenuButton.classList.toggle("active", addMenu.classList.contains("open"));
@@ -15577,9 +16277,9 @@
         trackDynamicGridElement(cell);
       }
       cell.style.left = `calc(var(--tank-label) + ${dayOffset} * var(--day-col))`;
-      cell.style.top = `calc(var(--header-total) + ${tankIndex} * var(--tank-row))`;
+      cell.style.top = cycleTopForRow(tankIndex);
       cell.style.width = "var(--day-col)";
-      cell.style.height = "var(--tank-row)";
+      cell.style.height = `${rowHeightPx(tankIndex)}px`;
     }
 
     function syncPickedSlotState() {
@@ -16112,7 +16812,7 @@
         process: normalizeCycleProcess(),
         color: productTemplate?.color || palette[cycles.length % palette.length]
       };
-      newCycle.tasks = createTasksFromChecklistInput?.checked
+      newCycle.tasks = templateTasksEnabled() && createTasksFromChecklistInput?.checked
         ? tasksFromTemplateChecklist(productTemplate, newCycle)
         : [];
       cycles = cycles.concat(newCycle);
@@ -16651,12 +17351,14 @@
       rangeSelect.addEventListener("change", () => {
         state.rangeMode = rangeSelect.value;
         state.range = rangeSelect.value === "auto" ? autoRangeFromStart(state.start) : Number(rangeSelect.value);
+        saveUserUiPreferences();
         render();
       });
 
       startInput.addEventListener("change", () => {
         state.start = startInput.value;
         syncAutoRange();
+        saveUserUiPreferences();
         render();
       });
 
@@ -16666,16 +17368,19 @@
         state.zoom = button.dataset.zoom;
         state.zoomStep = 0;
         zoomButtons.querySelectorAll("button").forEach((item) => item.classList.toggle("active", item === button));
+        saveUserUiPreferences();
         render();
       });
 
       zoomOutButton.addEventListener("click", () => {
         state.zoomStep = clamp(state.zoomStep - 1, -3, 6);
+        saveUserUiPreferences();
         render();
       });
 
       zoomInButton.addEventListener("click", () => {
         state.zoomStep = clamp(state.zoomStep + 1, -3, 6);
+        saveUserUiPreferences();
         render();
       });
 
@@ -16684,6 +17389,7 @@
         if (!button) return;
         state.view = button.dataset.view;
         viewButtons.querySelectorAll("button").forEach((item) => item.classList.toggle("active", item === button));
+        saveUserUiPreferences();
         render();
       });
 
@@ -16877,10 +17583,16 @@
         render();
       });
 
+      templateSearchInput.addEventListener("input", () => {
+        state.templateSearch = templateSearchInput.value;
+        renderTemplateList();
+      });
+
       usersButton.addEventListener("click", () => {
         if (!requireAdmin()) return;
         const isOpen = state.panelMode === "users";
         state.panelMode = isOpen ? "hidden" : "users";
+        setUserCreateFormOpen(false);
         state.addMode = false;
         state.commentMode = false;
         state.selectedCycleId = null;
@@ -16918,6 +17630,7 @@
       });
 
       closeUsersButton.addEventListener("click", () => {
+        setUserCreateFormOpen(false);
         state.panelMode = "hidden";
         render();
       });
@@ -17015,6 +17728,7 @@
       window.addEventListener("resize", refreshOnboardingHighlight);
       window.addEventListener("scroll", refreshOnboardingHighlight, { passive: true, capture: true });
       resetOnboardingButton.addEventListener("click", resetOnboardingTips);
+      myResetOnboardingButton.addEventListener("click", resetMyOnboardingTips);
       onboardingHelpButton.addEventListener("click", openHelpModal);
       dismissOnboardingButton.addEventListener("click", dismissOnboardingTips);
       nextOnboardingButton.addEventListener("click", showNextOnboardingTip);
@@ -17073,11 +17787,21 @@
         mySettingsFormDirty = true;
       });
 
-      mySettingsForm.addEventListener("change", () => {
+      mySettingsForm.addEventListener("change", (event) => {
+        if (event.target.matches("[data-expanded-cycle-detail]")) {
+          updateExpandedCycleDetailsLimit(event.target);
+        }
         mySettingsFormDirty = true;
       });
 
       document.addEventListener("click", (event) => {
+        if (
+          stageQuickMenu
+          && !event.target.closest(".stage-quick-menu")
+          && !event.target.closest("[data-stage-picker]")
+        ) {
+          closeStageQuickMenu();
+        }
         if (
           state.panelMode === "orgSettings"
           && !event.target.closest("#organizationSettingsPanel")
@@ -17108,6 +17832,9 @@
       document.addEventListener("click", handleCycleEditorOutsideClick);
       document.addEventListener("click", handlePanelOutsideClick);
       document.addEventListener("click", handleSelectedDateOutsideClick);
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeStageQuickMenu();
+      });
 
       document.querySelector("#resetButton").addEventListener("click", resetForm);
       deriveCycleButton.addEventListener("click", prepareDerivedCycle);
@@ -17474,18 +18201,21 @@
       });
 
       window.addEventListener("resize", () => {
+        closeStageQuickMenu();
         if (gpModal.classList.contains("open")) positionGpPopover();
         if (periodModal.classList.contains("open")) positionPeriodPopover();
         if (attentionModal.classList.contains("open")) positionAttentionPopover();
       });
 
       window.addEventListener("scroll", () => {
+        closeStageQuickMenu();
         if (gpModal.classList.contains("open")) positionGpPopover();
         if (periodModal.classList.contains("open")) positionPeriodPopover();
         if (attentionModal.classList.contains("open")) positionAttentionPopover();
       });
 
       planner.addEventListener("scroll", () => {
+        closeStageQuickMenu();
         if (gpModal.classList.contains("open")) positionGpPopover();
         if (periodModal.classList.contains("open")) positionPeriodPopover();
         if (attentionModal.classList.contains("open")) positionAttentionPopover();
@@ -17874,6 +18604,7 @@
       templateInfoTab.addEventListener("click", () => setTemplateFormTab("info"));
       templateChecklistTab.addEventListener("click", () => setTemplateFormTab("checklist"));
       templateChecklistAddButton.addEventListener("click", () => {
+        if (!templateTasksEnabled()) return;
         const next = templateChecklistFromForm().concat(createTemplateChecklistItem({
           title: "",
           timing: "condition",
@@ -17883,10 +18614,12 @@
         setTemplateFormTab("checklist");
       });
       templateChecklistDefaultButton.addEventListener("click", () => {
+        if (!templateTasksEnabled()) return;
         renderTemplateChecklistEditor(defaultTemplateChecklist());
         setTemplateFormTab("checklist");
       });
       templateChecklistList.addEventListener("click", (event) => {
+        if (!templateTasksEnabled()) return;
         const button = event.target.closest("[data-remove-checklist-item]");
         if (!button) return;
         const removedId = button.dataset.removeChecklistItem;
@@ -17904,6 +18637,7 @@
           templateStatus.textContent = "Шаблон с таким названием уже есть";
           return;
         }
+        const existing = productTemplates.find((template) => template.id === state.selectedTemplateId);
         const payload = {
           name,
           dsName: templateDsNameInput.value.trim(),
@@ -17911,9 +18645,8 @@
           duration: Math.max(1, Number(templateDurationInput.value) || 1),
           plannedOutput: Math.max(0, Number(templateOutputInput.value) || 0),
           color: templateColorInput.value || defaultTemplateColor(),
-          checklist: templateChecklistFromForm()
+          checklist: templateTasksEnabled() ? templateChecklistFromForm() : normalizeTemplateChecklist(existing?.checklist || [])
         };
-        const existing = productTemplates.find((template) => template.id === state.selectedTemplateId);
         if (existing) {
           pushUndoSnapshot("сохранение шаблона");
           const previousName = existing.name;
@@ -17952,7 +18685,7 @@
         if (!requireAdmin()) return;
         const email = newUserLoginInput.value.trim();
         ensureRussianPhonePrefix(newUserPhoneInput);
-        const phone = newUserPhoneInput.value.trim();
+        const phone = optionalRussianPhone(newUserPhoneInput.value);
         const profile = userNameProfileFromParts(newUserLastNameInput.value, newUserFirstNameInput.value, newUserMiddleNameInput.value);
         const displayName = profile.displayName;
         if (!email.includes("@")) {
@@ -17968,10 +18701,12 @@
         try {
           let authUser;
           let emailSent = false;
+          let passwordDelivery = "none";
           if (isYandexBackend) {
             const data = await createYandexUser(email, profile, newUserRoleInput.value, phone);
             authUser = data.user;
             emailSent = Boolean(data.emailSent);
+            passwordDelivery = data.passwordDelivery || "none";
           } else {
             const password = "temporary-password";
             authUser = await createAuthUser(email, password);
@@ -17992,13 +18727,22 @@
           userForm.reset();
           newUserPhoneInput.value = "+7";
           newUserRoleInput.value = "manager";
+          setUserCreateFormOpen(false);
           userStatus.className = "status";
-          userStatus.textContent = emailSent ? "Пользователь добавлен. Ссылка установки пароля отправлена на email" : "Пользователь добавлен";
+          userStatus.textContent = emailSent
+            ? "Пользователь добавлен. Ссылка установки пароля отправлена на email"
+            : passwordDelivery === "email_disabled"
+              ? "Пользователь добавлен, но отправка письма отключена или не настроена"
+              : "Пользователь добавлен";
           renderUsers();
         } catch (error) {
           userStatus.className = "status error";
           userStatus.textContent = `Не удалось добавить пользователя: ${error.message}`;
         }
+      });
+
+      toggleUserFormButton.addEventListener("click", () => {
+        setUserCreateFormOpen(userForm.hidden);
       });
 
       newUserPhoneInput.addEventListener("focus", () => ensureRussianPhonePrefix(newUserPhoneInput));

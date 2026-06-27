@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Brew Planner | Супер-админ</title>
+  <title>BrewPlanner - SaaS</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <style>
     :root {
       --bg: #f4f7fb;
@@ -169,8 +170,8 @@
     .brand-mark {
       width: 34px;
       height: 34px;
-      border-radius: 8px;
-      background: var(--accent);
+      display: block;
+      flex: 0 0 auto;
     }
 
     .nav {
@@ -394,6 +395,32 @@
 
     .feature-row input {
       width: auto;
+    }
+
+    .service-settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .service-settings-note {
+      margin: 0 0 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .service-settings-pane[hidden] {
+      display: none;
+    }
+
+    .readonly-field input {
+      background: var(--surface-soft);
+      color: var(--muted);
     }
 
     .feature-section {
@@ -917,6 +944,7 @@
       .modal-form { grid-template-columns: 1fr; }
       .profile-name-row { grid-template-columns: 1fr; }
       .ticket-filters { grid-template-columns: 1fr; }
+      .service-settings-grid { grid-template-columns: 1fr; }
       .user-row,
       .ticket-row { grid-template-columns: 1fr; }
     }
@@ -942,7 +970,7 @@
 
   <main class="app">
     <aside class="sidebar">
-      <div class="brand"><span class="brand-mark"></span><span>Brew Planner Admin</span></div>
+      <div class="brand"><img class="brand-mark" src="assets/brewplanner-mark.svg" alt="" aria-hidden="true"><span>BrewPlanner Admin</span></div>
       <nav class="nav">
         <button class="active" type="button" data-view="organizations">Организации</button>
         <button type="button" data-view="tickets"><span>Обращения</span><span class="nav-counter" id="ticketNavCounter" hidden>0</span></button>
@@ -951,7 +979,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.06.25.29-saas</span>
+        <span>v2026.06.27.35-saas</span>
       </div>
     </aside>
 
@@ -999,6 +1027,14 @@
                       <option value="basic">Basic</option>
                       <option value="pro">Pro</option>
                       <option value="enterprise">Enterprise</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Уровень сервиса</span>
+                    <select id="organizationServiceLevelInput">
+                      <option value="2">2 часа</option>
+                      <option value="8">8 часов</option>
+                      <option value="24">24 часа</option>
                     </select>
                   </label>
                 </div>
@@ -1199,10 +1235,133 @@
 
       <section id="settingsView" class="hidden">
         <div class="card">
-          <div class="card-head"><h2>Настройки сервиса</h2></div>
-          <div class="card-body">
-            <p class="small">Здесь позже появятся тарифы, SMTP/email-уведомления, резервные копии и системная диагностика.</p>
+          <div class="card-head">
+            <h2>Настройки сервиса</h2>
+            <span class="badge" id="serviceSettingsBadge">-</span>
           </div>
+          <div class="tabs">
+            <button class="active" type="button" data-service-tab="newOrganizations">Новые организации</button>
+            <button type="button" data-service-tab="mail">Почта</button>
+            <button type="button" data-service-tab="helpdesk">Helpdesk</button>
+            <button type="button" data-service-tab="security">Безопасность</button>
+          </div>
+          <form id="serviceSettingsForm" class="card-body">
+            <div class="service-settings-pane" id="serviceSettingsNewOrganizationsPane">
+              <p class="service-settings-note">Эти значения подставляются по умолчанию при создании новой организации. В форме создания их можно переопределить вручную.</p>
+              <div class="service-settings-grid">
+                <label class="field">
+                  <span>Статус по умолчанию</span>
+                  <select id="serviceDefaultOrgStatusInput">
+                    <option value="trial">Тест</option>
+                    <option value="active">Активна</option>
+                    <option value="blocked">Заблокирована</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Тариф по умолчанию</span>
+                  <select id="serviceDefaultOrgTariffInput">
+                    <option value="manual">Ручной</option>
+                    <option value="basic">Basic</option>
+                    <option value="pro">Pro</option>
+                    <option value="enterprise">Enterprise</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Уровень сервиса по умолчанию</span>
+                  <select id="serviceDefaultOrgServiceLevelInput">
+                    <option value="2">2 часа</option>
+                    <option value="8">8 часов</option>
+                    <option value="24">24 часа</option>
+                  </select>
+                </label>
+              </div>
+              <div class="feature-section">
+                <p class="feature-section-title">Функции по умолчанию</p>
+                <div class="feature-grid" id="serviceDefaultFeatures"></div>
+              </div>
+            </div>
+
+            <div class="service-settings-pane" id="serviceSettingsMailPane" hidden>
+              <p class="service-settings-note" id="serviceMailRuntimeInfo">Почтовая конфигурация проверяется по переменным функции.</p>
+              <div class="service-settings-grid">
+                <label class="field">
+                  <span>Email техподдержки</span>
+                  <input id="serviceSupportEmailInput" type="email" placeholder="support@example.ru">
+                </label>
+                <label class="feature-row">
+                  <input id="serviceMailEnabledInput" type="checkbox">
+                  <span>Включить исходящие письма</span>
+                </label>
+              </div>
+              <div class="feature-section">
+                <p class="feature-section-title">Какие письма отправлять</p>
+                <div class="feature-grid">
+                  <label class="feature-row"><input id="serviceMailPasswordInput" type="checkbox"><span>Ссылки установки пароля</span></label>
+                  <label class="feature-row"><input id="serviceMailNewTicketInput" type="checkbox"><span>Новые обращения в поддержку</span></label>
+                  <label class="feature-row"><input id="serviceMailCustomerReplyInput" type="checkbox"><span>Ответы клиента в поддержку</span></label>
+                  <label class="feature-row"><input id="serviceMailSupportReplyInput" type="checkbox"><span>Ответы поддержки клиенту</span></label>
+                  <label class="feature-row"><input id="serviceMailStatusInput" type="checkbox"><span>Изменение статуса обращения</span></label>
+                </div>
+              </div>
+            </div>
+
+            <div class="service-settings-pane" id="serviceSettingsHelpdeskPane" hidden>
+              <p class="service-settings-note">Настройки поведения Helpdesk в админке и новые значения по умолчанию для обращений.</p>
+              <div class="service-settings-grid">
+                <label class="field">
+                  <span>Автообновление обращений, секунд</span>
+                  <select id="serviceHelpdeskRefreshInput">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="30">30</option>
+                    <option value="60">60</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Категория по умолчанию</span>
+                  <select id="serviceHelpdeskCategoryInput">
+                    <option value="bug">Ошибка</option>
+                    <option value="question">Вопрос по работе</option>
+                    <option value="feature">Предложение функции</option>
+                    <option value="access">Проблема с доступом</option>
+                    <option value="billing">Оплата / тариф</option>
+                    <option value="other">Другое</option>
+                  </select>
+                </label>
+                <label class="feature-row"><input id="serviceHelpdeskInternalInput" type="checkbox"><span>Разрешить внутренние сообщения поддержки</span></label>
+                <label class="feature-row"><input id="serviceHelpdeskDeadlinesInput" type="checkbox"><span>Показывать плановые дедлайны реакции</span></label>
+              </div>
+            </div>
+
+            <div class="service-settings-pane" id="serviceSettingsSecurityPane" hidden>
+              <p class="service-settings-note">Критичные секреты и TTL токенов задаются переменными функции. Здесь отображаются текущие значения, чтобы их было видно из админки.</p>
+              <div class="service-settings-grid">
+                <label class="field readonly-field">
+                  <span>Минимальная длина пароля</span>
+                  <input id="serviceSecurityPasswordMinInput" disabled>
+                </label>
+                <label class="field readonly-field">
+                  <span>Срок действия ссылки установки пароля</span>
+                  <input id="serviceSecuritySetupTtlInput" disabled>
+                </label>
+                <label class="field readonly-field">
+                  <span>Срок сессии</span>
+                  <input id="serviceSecurityTokenTtlInput" disabled>
+                </label>
+                <label class="feature-row fixed">
+                  <span>Обязательная смена временного пароля</span>
+                  <b id="serviceSecurityTemporaryPasswordValue">Да</b>
+                </label>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="primary" type="submit">Сохранить настройки</button>
+              <button id="reloadServiceSettingsButton" type="button">Обновить настройки</button>
+            </div>
+            <div class="status" id="serviceSettingsStatus"></div>
+          </form>
         </div>
       </section>
     </section>
@@ -1250,7 +1409,9 @@
     window.BREW_PLANNER_YANDEX_API_BASE_URL = window.BREW_PLANNER_YANDEX_API_BASE_URL || "https://d5dn5no723gof5n2nu74.628pfjdx.apigw.yandexcloud.net";
 
     const storageKey = "production-planner-v1";
-    const tokenKey = `${storageKey}-yandex-token`;
+    const legacyTokenKey = `${storageKey}-yandex-token`;
+    const tokenKey = `${storageKey}-admin-yandex-token`;
+    const tokenMigratedKey = `${storageKey}-admin-token-migrated`;
     const apiBase = window.BREW_PLANNER_YANDEX_API_BASE_URL;
     const defaultFeatures = {
       partialBottlings: true,
@@ -1265,6 +1426,7 @@
       onlineUsers: true,
       supportTickets: true,
       cycleTasks: false,
+      templateTasks: false,
       cycleProcess: true,
       initialSetup: false,
       contractBrews: false,
@@ -1283,6 +1445,7 @@
       onlineUsers: "Онлайн-пользователи",
       supportTickets: "Helpdesk",
       cycleTasks: "Задачи по циклам",
+      templateTasks: "Задачи по шаблонам",
       cycleProcess: "Процесс производства",
       initialSetup: "Первичное заполнение",
       contractBrews: "Контрактные варки",
@@ -1290,12 +1453,14 @@
     };
     const managedFeatureKeys = [
       "cycleTasks",
+      "templateTasks",
       "cycleProcess",
       "initialSetup",
       "contractBrews",
       "contractBrewery"
     ];
     const defaultFeatureKeys = Object.keys(featureLabels).filter((key) => !managedFeatureKeys.includes(key));
+    const serviceFeatureKeys = managedFeatureKeys;
     const ticketStatusLabels = {
       new: "Новое",
       in_progress: "В работе",
@@ -1315,6 +1480,41 @@
       2: "2 часа",
       8: "8 часов",
       24: "24 часа"
+    };
+    const serviceDefaultSettings = {
+      newOrganizations: {
+        defaultStatus: "trial",
+        defaultTariff: "manual",
+        defaultServiceLevelHours: 24,
+        defaultFeatures
+      },
+      mail: {
+        enabled: true,
+        supportEmail: "",
+        sendPasswordSetup: true,
+        notifySupportOnNewTicket: true,
+        notifySupportOnCustomerReply: true,
+        notifyClientOnSupportReply: true,
+        notifyClientOnStatusChange: true
+      },
+      helpdesk: {
+        autoRefreshSeconds: 10,
+        defaultCategory: "other",
+        allowInternalMessages: true,
+        showResponseDeadlines: true
+      },
+      security: {
+        passwordMinLength: 8,
+        passwordSetupLinkTtlHours: 24,
+        tokenTtlDays: 14,
+        requireTemporaryPasswordChange: true
+      },
+      runtime: {
+        mailConfigured: false,
+        mailFrom: "",
+        mailFromName: "",
+        appBaseUrl: ""
+      }
     };
     const organizationLogActionLabels = {
       backup_created: "Создана резервная копия",
@@ -1365,6 +1565,8 @@
     let adminDiagnostics = [];
     let activeView = "organizations";
     let activeOrgTab = "users";
+    let activeServiceTab = "newOrganizations";
+    let serviceSettings = null;
     let pendingOrganizationLogo = null;
     let editingUserId = "";
 
@@ -1397,6 +1599,12 @@
       if (digits.startsWith("8")) return `+7 ${digits.slice(1)}`.trim();
       if (digits.startsWith("7")) return `+${digits}`;
       return `+7 ${digits}`.trim();
+    }
+
+    function optionalRussianPhone(value) {
+      const digits = String(value || "").replace(/\D/g, "");
+      if (!digits || digits === "7" || digits === "8") return "";
+      return normalizedRussianPhone(value);
     }
 
     function ensureRussianPhonePrefix(input) {
@@ -1440,9 +1648,18 @@
       return localStorage.getItem(tokenKey) || "";
     }
 
+    function migrateLegacyAdminToken() {
+      if (localStorage.getItem(tokenMigratedKey)) return;
+      localStorage.setItem(tokenMigratedKey, "1");
+      if (localStorage.getItem(tokenKey)) return;
+      const legacyToken = localStorage.getItem(legacyTokenKey);
+      if (legacyToken) localStorage.setItem(tokenKey, legacyToken);
+    }
+
     function setToken(value) {
       if (value) localStorage.setItem(tokenKey, value);
       else localStorage.removeItem(tokenKey);
+      localStorage.setItem(tokenMigratedKey, "1");
     }
 
     async function request(path, options = {}) {
@@ -1456,8 +1673,32 @@
       });
       const text = await response.text();
       const data = text ? JSON.parse(text) : {};
-      if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`);
+      if (!response.ok) {
+        const error = new Error(data.message || `HTTP ${response.status}`);
+        error.status = response.status;
+        error.data = data;
+        error.path = path;
+        error.method = options.method || "GET";
+        throw error;
+      }
       return data;
+    }
+
+    async function saveServiceSettingsRequest(nextSettings) {
+      const methods = ["PUT", "PATCH", "POST"];
+      const errors = [];
+      for (const method of methods) {
+        try {
+          return await request("/service-settings", {
+            method,
+            body: { settings: nextSettings }
+          });
+        } catch (error) {
+          errors.push(`${method}: ${error.message}`);
+          if (![404, 405].includes(Number(error.status))) throw error;
+        }
+      }
+      throw new Error(`Не удалось сохранить настройки сервиса (${errors.join("; ")})`);
     }
 
     function selectedOrganization() {
@@ -1467,6 +1708,131 @@
     function setStatus(element, message, type = "") {
       element.className = `status ${type}`.trim();
       element.textContent = message || "";
+    }
+
+    function normalizeAdminServiceSettings(settings = {}) {
+      const mergedFeatures = {
+        ...defaultFeatures,
+        ...(settings?.newOrganizations?.defaultFeatures || {})
+      };
+      return {
+        newOrganizations: {
+          defaultStatus: ["trial", "active", "blocked"].includes(settings?.newOrganizations?.defaultStatus) ? settings.newOrganizations.defaultStatus : serviceDefaultSettings.newOrganizations.defaultStatus,
+          defaultTariff: ["manual", "basic", "pro", "enterprise"].includes(settings?.newOrganizations?.defaultTariff) ? settings.newOrganizations.defaultTariff : serviceDefaultSettings.newOrganizations.defaultTariff,
+          defaultServiceLevelHours: serviceLevelLabels[Number(settings?.newOrganizations?.defaultServiceLevelHours)] ? Number(settings.newOrganizations.defaultServiceLevelHours) : serviceDefaultSettings.newOrganizations.defaultServiceLevelHours,
+          defaultFeatures: mergedFeatures
+        },
+        mail: {
+          ...serviceDefaultSettings.mail,
+          ...(settings.mail || {})
+        },
+        helpdesk: {
+          ...serviceDefaultSettings.helpdesk,
+          ...(settings.helpdesk || {})
+        },
+        security: {
+          ...serviceDefaultSettings.security,
+          ...(settings.security || {})
+        },
+        runtime: {
+          ...serviceDefaultSettings.runtime,
+          ...(settings.runtime || {})
+        }
+      };
+    }
+
+    function renderServiceDefaultFeatures() {
+      const container = $("#serviceDefaultFeatures");
+      if (!container) return;
+      const features = serviceSettings?.newOrganizations?.defaultFeatures || defaultFeatures;
+      container.innerHTML = serviceFeatureKeys.map((key) => `
+        <label class="feature-row">
+          <input type="checkbox" data-service-feature="${escapeHtml(key)}" ${features[key] ? "checked" : ""}>
+          <span>${escapeHtml(featureLabels[key] || key)}</span>
+        </label>
+      `).join("");
+    }
+
+    function applyOrganizationCreateDefaults() {
+      if (!serviceSettings) return;
+      $("#organizationStatusInput").value = serviceSettings.newOrganizations.defaultStatus;
+      $("#organizationTariffInput").value = serviceSettings.newOrganizations.defaultTariff;
+      $("#organizationServiceLevelInput").value = String(serviceSettings.newOrganizations.defaultServiceLevelHours);
+    }
+
+    function renderServiceSettings() {
+      serviceSettings = normalizeAdminServiceSettings(serviceSettings || {});
+      $$("[data-service-tab]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.serviceTab === activeServiceTab);
+      });
+      $("#serviceSettingsNewOrganizationsPane").hidden = activeServiceTab !== "newOrganizations";
+      $("#serviceSettingsMailPane").hidden = activeServiceTab !== "mail";
+      $("#serviceSettingsHelpdeskPane").hidden = activeServiceTab !== "helpdesk";
+      $("#serviceSettingsSecurityPane").hidden = activeServiceTab !== "security";
+      $("#serviceSettingsBadge").textContent = !serviceSettings.runtime.mailConfigured
+        ? "Почта не настроена"
+        : serviceSettings.mail.enabled
+          ? "Почта готова"
+          : "Почта отключена";
+
+      $("#serviceDefaultOrgStatusInput").value = serviceSettings.newOrganizations.defaultStatus;
+      $("#serviceDefaultOrgTariffInput").value = serviceSettings.newOrganizations.defaultTariff;
+      $("#serviceDefaultOrgServiceLevelInput").value = String(serviceSettings.newOrganizations.defaultServiceLevelHours);
+      renderServiceDefaultFeatures();
+
+      $("#serviceMailEnabledInput").checked = Boolean(serviceSettings.mail.enabled);
+      $("#serviceSupportEmailInput").value = serviceSettings.mail.supportEmail || "";
+      $("#serviceMailPasswordInput").checked = Boolean(serviceSettings.mail.sendPasswordSetup);
+      $("#serviceMailNewTicketInput").checked = Boolean(serviceSettings.mail.notifySupportOnNewTicket);
+      $("#serviceMailCustomerReplyInput").checked = Boolean(serviceSettings.mail.notifySupportOnCustomerReply);
+      $("#serviceMailSupportReplyInput").checked = Boolean(serviceSettings.mail.notifyClientOnSupportReply);
+      $("#serviceMailStatusInput").checked = Boolean(serviceSettings.mail.notifyClientOnStatusChange);
+      $("#serviceMailRuntimeInfo").textContent = serviceSettings.runtime.mailConfigured
+        ? `SMTP настроен. Отправитель: ${serviceSettings.runtime.mailFromName || "Brew Planner"} <${serviceSettings.runtime.mailFrom || "-"}>.`
+        : "SMTP не настроен в переменных функции. Переключатели сохранятся, но письма не будут уходить до настройки почты.";
+
+      $("#serviceHelpdeskRefreshInput").value = String(serviceSettings.helpdesk.autoRefreshSeconds);
+      $("#serviceHelpdeskCategoryInput").value = serviceSettings.helpdesk.defaultCategory;
+      $("#serviceHelpdeskInternalInput").checked = Boolean(serviceSettings.helpdesk.allowInternalMessages);
+      $("#serviceHelpdeskDeadlinesInput").checked = Boolean(serviceSettings.helpdesk.showResponseDeadlines);
+
+      $("#serviceSecurityPasswordMinInput").value = `${serviceSettings.security.passwordMinLength} символов`;
+      $("#serviceSecuritySetupTtlInput").value = `${serviceSettings.security.passwordSetupLinkTtlHours} часов`;
+      $("#serviceSecurityTokenTtlInput").value = `${serviceSettings.security.tokenTtlDays} дней`;
+      $("#serviceSecurityTemporaryPasswordValue").textContent = serviceSettings.security.requireTemporaryPasswordChange ? "Да" : "Нет";
+      applyOrganizationCreateDefaults();
+    }
+
+    function serviceSettingsFromForm() {
+      const defaultFeaturesNext = { ...(serviceSettings?.newOrganizations?.defaultFeatures || defaultFeatures) };
+      $$("[data-service-feature]").forEach((input) => {
+        defaultFeaturesNext[input.dataset.serviceFeature] = input.checked;
+      });
+      return normalizeAdminServiceSettings({
+        ...serviceSettings,
+        newOrganizations: {
+          defaultStatus: $("#serviceDefaultOrgStatusInput").value,
+          defaultTariff: $("#serviceDefaultOrgTariffInput").value,
+          defaultServiceLevelHours: Number($("#serviceDefaultOrgServiceLevelInput").value),
+          defaultFeatures: defaultFeaturesNext
+        },
+        mail: {
+          enabled: $("#serviceMailEnabledInput").checked,
+          supportEmail: $("#serviceSupportEmailInput").value.trim(),
+          sendPasswordSetup: $("#serviceMailPasswordInput").checked,
+          notifySupportOnNewTicket: $("#serviceMailNewTicketInput").checked,
+          notifySupportOnCustomerReply: $("#serviceMailCustomerReplyInput").checked,
+          notifyClientOnSupportReply: $("#serviceMailSupportReplyInput").checked,
+          notifyClientOnStatusChange: $("#serviceMailStatusInput").checked
+        },
+        helpdesk: {
+          autoRefreshSeconds: Number($("#serviceHelpdeskRefreshInput").value),
+          defaultCategory: $("#serviceHelpdeskCategoryInput").value,
+          allowInternalMessages: $("#serviceHelpdeskInternalInput").checked,
+          showResponseDeadlines: $("#serviceHelpdeskDeadlinesInput").checked
+        },
+        security: serviceSettings?.security || serviceDefaultSettings.security
+      });
     }
 
     function adminPerfNow() {
@@ -1658,7 +2024,10 @@
         }
         const usersData = await request(`/organizations/${encodeURIComponent(organization.id)}/users`);
         if (organizationId !== selectedOrganizationId) return;
-        selectedOrgUsers = usersData.users || [];
+        selectedOrgUsers = (usersData.users || []).map((user) => ({
+          ...user,
+          phone: optionalRussianPhone(user.phone)
+        }));
         renderOrganizationUsers();
         if (!silent) setStatus($("#usersStatus"), "");
         if (includeDetails) {
@@ -1705,9 +2074,35 @@
       recordAdminMetric("load-tickets", startedAt, { tickets: tickets.length, silent: Boolean(options.silent) });
     }
 
+    async function loadServiceSettings() {
+      const startedAt = adminPerfNow();
+      const data = await request("/service-settings");
+      serviceSettings = normalizeAdminServiceSettings(data.settings || {});
+      renderServiceSettings();
+      recordAdminMetric("load-service-settings", startedAt, {
+        mailEnabled: Boolean(serviceSettings.mail.enabled),
+        helpdeskAutoRefreshSeconds: serviceSettings.helpdesk.autoRefreshSeconds
+      });
+    }
+
     async function loadAll() {
-      await loadTickets();
-      await loadOrganizations();
+      await Promise.all([
+        loadServiceSettings(),
+        loadTickets(),
+        loadOrganizations()
+      ]);
+    }
+
+    async function loadAllSafely() {
+      try {
+        await loadAll();
+      } catch (error) {
+        console.warn("Admin data load failed", error);
+        setStatus($("#loginStatus"), "", "");
+        if (activeView === "settings") {
+          setStatus($("#serviceSettingsStatus"), `Не удалось загрузить часть данных: ${error.message}`, "error");
+        }
+      }
     }
 
     function renderViews() {
@@ -1718,10 +2113,11 @@
       const titles = {
         organizations: ["Организации", "Единый центр управления клиентами сервиса"],
         tickets: ["Обращения", "Helpdesk по всем организациям"],
-        settings: ["Настройки сервиса", "Тарифы, почта, резервные копии и диагностика"]
+        settings: ["Настройки сервиса", "Новые организации, почта, Helpdesk и безопасность"]
       };
       $("#pageTitle").textContent = titles[activeView][0];
       $("#pageSubtitle").textContent = titles[activeView][1];
+      if (activeView === "settings") renderServiceSettings();
     }
 
     function renderOrganizations() {
@@ -1785,10 +2181,17 @@
       $("#orgLogsTab").classList.toggle("hidden", activeOrgTab !== "logs");
     }
 
+    function organizationFeatureValue(features = {}, key) {
+      if (key === "templateTasks" && features.templateTasks === undefined && features.cycleTasks !== undefined) {
+        return Boolean(features.cycleTasks);
+      }
+      return features[key] ?? defaultFeatures[key];
+    }
+
     function renderFeatureList(features) {
       const managedRows = managedFeatureKeys.map((key) => `
           <label class="feature-row">
-            <input type="checkbox" data-feature-key="${escapeHtml(key)}" ${(features[key] ?? defaultFeatures[key]) ? "checked" : ""}>
+            <input type="checkbox" data-feature-key="${escapeHtml(key)}" ${organizationFeatureValue(features, key) ? "checked" : ""}>
             <span>${escapeHtml(featureLabels[key])}</span>
           </label>
         `).join("");
@@ -1818,7 +2221,7 @@
       $("#editUserLastNameInput").value = parts.lastName || "";
       $("#editUserFirstNameInput").value = parts.firstName || "";
       $("#editUserMiddleNameInput").value = parts.middleName || "";
-      $("#editUserPhoneInput").value = normalizedRussianPhone(user.phone || "");
+      $("#editUserPhoneInput").value = optionalRussianPhone(user.phone);
       $("#editUserDepartmentInput").value = user.department || "";
       $("#userEditStatus").textContent = "";
       $("#userEditStatus").className = "status";
@@ -1880,7 +2283,11 @@
           const data = await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users/${encodeURIComponent(row.dataset.userId)}/password`, {
             method: "POST"
           });
-          setStatus($("#usersStatus"), data.emailSent ? "Ссылка установки пароля отправлена пользователю на email" : "Пароль обновлен", "ok");
+          setStatus($("#usersStatus"), data.emailSent
+            ? "Ссылка установки пароля отправлена пользователю на email"
+            : data.passwordDelivery === "email_disabled"
+              ? "Ссылка установки пароля создана, но отправка писем отключена или не настроена"
+              : "Пароль обновлен", "ok");
           await loadSelectedOrganizationUsers();
         });
         row.querySelector("[data-remove]").addEventListener("click", async () => {
@@ -2230,6 +2637,7 @@
     }
 
     async function boot() {
+      migrateLegacyAdminToken();
       try {
         currentUser = await loadMe();
         if (!currentUser) {
@@ -2237,9 +2645,12 @@
           $("#loginStatus").textContent = "";
           return;
         }
+        if (currentUser.serviceRole !== "super_admin") {
+          throw new Error("Учетная запись не является супер-админом");
+        }
         $("#currentUserName").textContent = shortUserName(currentUser);
         document.body.dataset.auth = "open";
-        await loadAll();
+        await loadAllSafely();
         startAdminAutoRefresh();
       } catch (error) {
         setToken("");
@@ -2251,6 +2662,7 @@
     function startAdminAutoRefresh() {
       if (ticketRefreshTimer) clearInterval(ticketRefreshTimer);
       if (organizationRefreshTimer) clearInterval(organizationRefreshTimer);
+      const refreshMs = Math.max(5, Number(serviceSettings?.helpdesk?.autoRefreshSeconds || 10)) * 1000;
       ticketRefreshTimer = setInterval(async () => {
         if (!currentUser || document.body.dataset.auth !== "open") return;
         try {
@@ -2258,7 +2670,7 @@
         } catch {
           // Тихо пропускаем разовый сбой, следующий тик попробует снова.
         }
-      }, 10000);
+      }, refreshMs);
       organizationRefreshTimer = setInterval(async () => {
         if (!currentUser || document.body.dataset.auth !== "open" || !selectedOrganizationId) return;
         try {
@@ -2266,7 +2678,7 @@
         } catch {
           // Статусы сотрудников обновятся на следующем тике.
         }
-      }, 10000);
+      }, refreshMs);
     }
 
     $("#loginForm").addEventListener("submit", async (event) => {
@@ -2286,7 +2698,7 @@
         if (currentUser.serviceRole !== "super_admin") throw new Error("Учетная запись не является супер-админом");
         $("#currentUserName").textContent = shortUserName(currentUser);
         document.body.dataset.auth = "open";
-        await loadAll();
+        await loadAllSafely();
         startAdminAutoRefresh();
       } catch (error) {
         setToken("");
@@ -2318,7 +2730,40 @@
       });
     });
 
+    $$("[data-service-tab]").forEach((button) => {
+      button.addEventListener("click", () => {
+        activeServiceTab = button.dataset.serviceTab;
+        renderServiceSettings();
+      });
+    });
+
     $("#refreshButton").addEventListener("click", loadAll);
+
+    $("#reloadServiceSettingsButton").addEventListener("click", async () => {
+      setStatus($("#serviceSettingsStatus"), "Обновляем настройки...");
+      try {
+        await loadServiceSettings();
+        setStatus($("#serviceSettingsStatus"), "Настройки обновлены", "ok");
+      } catch (error) {
+        setStatus($("#serviceSettingsStatus"), error.message, "error");
+      }
+    });
+
+    $("#serviceSettingsForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      setStatus($("#serviceSettingsStatus"), "Сохраняем настройки...");
+      try {
+        const nextSettings = serviceSettingsFromForm();
+        const data = await saveServiceSettingsRequest(nextSettings);
+        serviceSettings = normalizeAdminServiceSettings(data.settings || nextSettings);
+        renderServiceSettings();
+        startAdminAutoRefresh();
+        setStatus($("#serviceSettingsStatus"), "Настройки сервиса сохранены", "ok");
+      } catch (error) {
+        console.warn("Service settings save failed", error);
+        setStatus($("#serviceSettingsStatus"), error.message, "error");
+      }
+    });
 
     $("#ticketStatusFilter").addEventListener("change", (event) => {
       ticketStatusFilter = event.target.value;
@@ -2352,11 +2797,13 @@
           body: {
             name: $("#organizationNameInput").value.trim(),
             status: $("#organizationStatusInput").value,
-            tariff: $("#organizationTariffInput").value
+            tariff: $("#organizationTariffInput").value,
+            serviceLevelHours: Number($("#organizationServiceLevelInput").value)
           }
         });
         selectedOrganizationId = data.organization.id;
         event.target.reset();
+        applyOrganizationCreateDefaults();
         organizationFormOpen = false;
         $("#organizationForm").classList.add("hidden");
         $("#toggleOrganizationFormButton").textContent = "Новая организация";
@@ -2506,7 +2953,7 @@
       const lastName = $("#editUserLastNameInput").value.trim();
       const firstName = $("#editUserFirstNameInput").value.trim();
       const middleName = $("#editUserMiddleNameInput").value.trim();
-      const phone = normalizedRussianPhone($("#editUserPhoneInput").value);
+      const phone = optionalRussianPhone($("#editUserPhoneInput").value);
       const department = $("#editUserDepartmentInput").value.trim();
       setStatus($("#userEditStatus"), "Сохраняем данные сотрудника...");
       try {
@@ -2542,7 +2989,7 @@
         const lastName = $("#orgUserLastNameInput").value.trim();
         const firstName = $("#orgUserFirstNameInput").value.trim();
         const middleName = $("#orgUserMiddleNameInput").value.trim();
-        const phone = normalizedRussianPhone($("#orgUserPhoneInput").value);
+        const phone = optionalRussianPhone($("#orgUserPhoneInput").value);
         const department = $("#orgUserDepartmentInput").value.trim();
         const data = await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}/users`, {
           method: "POST",
@@ -2559,7 +3006,11 @@
         });
         event.target.reset();
         $("#orgUserPhoneInput").value = "+7";
-        setStatus($("#usersStatus"), data.emailSent ? "Пользователь добавлен. Ссылка установки пароля отправлена на email" : "Пользователь добавлен", "ok");
+        setStatus($("#usersStatus"), data.emailSent
+          ? "Пользователь добавлен. Ссылка установки пароля отправлена на email"
+          : data.passwordDelivery === "email_disabled"
+            ? "Пользователь добавлен, но отправка письма отключена или не настроена"
+            : "Пользователь добавлен", "ok");
         await loadSelectedOrganizationUsers();
       } catch (error) {
         setStatus($("#usersStatus"), error.message, "error");
