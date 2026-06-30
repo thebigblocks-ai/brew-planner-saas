@@ -360,6 +360,19 @@
       gap: 12px;
     }
 
+    .requisites-lookup-field {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 8px;
+    }
+
+    .requisites-lookup-field button {
+      min-height: 40px;
+      margin-bottom: 0;
+      white-space: nowrap;
+    }
+
     .actions {
       display: flex;
       flex-wrap: wrap;
@@ -950,6 +963,7 @@
       .modal-form { grid-template-columns: 1fr; }
       .profile-name-row { grid-template-columns: 1fr; }
       .three { grid-template-columns: 1fr; }
+      .requisites-lookup-field { grid-template-columns: 1fr; }
       .ticket-filters { grid-template-columns: 1fr; }
       .service-settings-grid { grid-template-columns: 1fr; }
       .user-row,
@@ -986,7 +1000,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.07.01.40-saas</span>
+        <span>v2026.07.01.42-saas</span>
       </div>
     </aside>
 
@@ -1184,10 +1198,13 @@
                   </label>
                 </div>
                 <div class="three">
-                  <label class="field">
-                    <span>ИНН</span>
-                    <input id="organizationReqInnInput" inputmode="numeric">
-                  </label>
+                  <div class="requisites-lookup-field">
+                    <label class="field">
+                      <span>ИНН</span>
+                      <input id="organizationReqInnInput" inputmode="numeric">
+                    </label>
+                    <button class="secondary" id="fillRequisitesByInnButton" type="button">Заполнить</button>
+                  </div>
                   <label class="field">
                     <span>КПП</span>
                     <input id="organizationReqKppInput" inputmode="numeric">
@@ -1713,12 +1730,12 @@
       const parts = cleanNamePart(displayName).split(/\s+/).filter(Boolean);
       if (!parts.length) return { lastName: "", firstName: "", middleName: "" };
       if (parts.length === 1) return { lastName: parts[0], firstName: "", middleName: "" };
-      if (parts.length === 2) return { lastName: parts[1], firstName: parts[0], middleName: "" };
+      if (parts.length === 2) return { lastName: parts[0], firstName: parts[1], middleName: "" };
       const lastPart = parts[parts.length - 1];
       const looksLikePatronymic = /(вич|вна|чна|иничн?а|оглы|кызы)$/i.test(lastPart);
       return looksLikePatronymic
         ? { lastName: parts[0], firstName: parts[1], middleName: parts.slice(2).join(" ") }
-        : { lastName: lastPart, firstName: parts[0], middleName: parts.slice(1, -1).join(" ") };
+        : { lastName: parts[0], firstName: parts[1], middleName: parts.slice(2).join(" ") };
     }
 
     function namePartsFromUser(user) {
@@ -2052,6 +2069,26 @@
         contractEmail: $("#organizationReqContractEmailInput").value,
         contractPhone: $("#organizationReqContractPhoneInput").value
       });
+    }
+
+    function mergeAutofilledRequisites(current = {}, incoming = {}) {
+      const next = normalizedOrganizationRequisites(current);
+      const source = normalizedOrganizationRequisites(incoming);
+      [
+        "legalName",
+        "shortName",
+        "inn",
+        "kpp",
+        "ogrn",
+        "legalAddress",
+        "postalAddress",
+        "signatoryName",
+        "signatoryTitle"
+      ].forEach((field) => {
+        if (source[field]) next[field] = source[field];
+      });
+      if (!next.postalAddress && next.legalAddress) next.postalAddress = next.legalAddress;
+      return next;
     }
 
     function ticketStatusBadge(status = "new") {
@@ -3003,6 +3040,31 @@
         setStatus($("#profileStatus"), "Сохранено", "ok");
       } catch (error) {
         setStatus($("#profileStatus"), error.message, "error");
+      }
+    });
+
+    $("#fillRequisitesByInnButton").addEventListener("click", async () => {
+      const button = $("#fillRequisitesByInnButton");
+      const inn = $("#organizationReqInnInput").value.trim();
+      if (!inn) {
+        setStatus($("#requisitesStatus"), "Укажите ИНН для автозаполнения", "error");
+        $("#organizationReqInnInput").focus();
+        return;
+      }
+      setStatus($("#requisitesStatus"), "Запрашиваем реквизиты по ИНН...");
+      button.disabled = true;
+      try {
+        const data = await request("/dadata/party", {
+          method: "POST",
+          body: { inn }
+        });
+        const current = organizationRequisitesFromForm();
+        fillOrganizationRequisitesForm(mergeAutofilledRequisites(current, data.requisites || {}));
+        setStatus($("#requisitesStatus"), "Реквизиты подставлены. Проверьте данные и нажмите «Сохранить реквизиты».", "ok");
+      } catch (error) {
+        setStatus($("#requisitesStatus"), error.message, "error");
+      } finally {
+        button.disabled = false;
       }
     });
 
