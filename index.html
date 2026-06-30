@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BrewPlanner</title>
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20260701179">
   <script>
     (() => {
       try {
@@ -209,7 +209,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.07.01.176-saas";
+      content: "v2026.07.01.179-saas";
     }
 
     .toolbar {
@@ -4111,6 +4111,19 @@
       gap: 8px;
     }
 
+    .user-search-row {
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .user-search-row input {
+      width: 100%;
+      min-width: 0;
+    }
+
     .user-create-toggle {
       width: 100%;
       margin-top: 10px;
@@ -5624,9 +5637,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.176-saas</span>
+  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.179-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.176-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.179-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6285,6 +6298,12 @@
             <button class="icon-btn" id="closeUsersButton" type="button" aria-label="Закрыть пользователей" title="Закрыть">
               <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
+          </div>
+          <div class="user-search-row">
+            <label class="field">
+              <span>Поиск</span>
+              <input id="userSearchInput" type="search" placeholder="ФИО или email" autocomplete="off">
+            </label>
           </div>
           <div class="user-list" id="userList"></div>
           <button class="secondary user-create-toggle" id="toggleUserFormButton" type="button" aria-expanded="false">Добавить нового пользователя</button>
@@ -7018,7 +7037,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.07.01.176-saas";
+    const appVersion = "v2026.07.01.179-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -9695,6 +9714,7 @@
     const closeActionLogButton = document.querySelector("#closeActionLogButton");
     const actionLogList = document.querySelector("#actionLogList");
     const userList = document.querySelector("#userList");
+    const userSearchInput = document.querySelector("#userSearchInput");
     const userForm = document.querySelector("#userForm");
     const toggleUserFormButton = document.querySelector("#toggleUserFormButton");
     const newUserFirstNameInput = document.querySelector("#newUserFirstNameInput");
@@ -10639,6 +10659,10 @@
 
     function fullNameFromParts(lastName, firstName, middleName = "") {
       return [lastName, firstName, middleName].map(cleanNamePart).filter(Boolean).join(" ");
+    }
+
+    function normalizeSearchText(value) {
+      return cleanNamePart(value).toLocaleLowerCase("ru-RU").replaceAll("ё", "е");
     }
 
     function nameInitial(value) {
@@ -12461,7 +12485,26 @@
         userList.innerHTML = "";
         return;
       }
-      userList.innerHTML = users.map((user) => `
+      const query = normalizeSearchText(userSearchInput?.value || "");
+      const visibleUsers = query
+        ? users.filter((user) => {
+          const parts = namePartsFromUser(user);
+          const haystack = normalizeSearchText([
+            userDisplayName(user),
+            fullNameFromParts(parts.lastName, parts.firstName, parts.middleName),
+            fullNameFromParts(parts.firstName, parts.lastName, parts.middleName),
+            user.displayName,
+            user.login,
+            user.email
+          ].filter(Boolean).join(" "));
+          return haystack.includes(query);
+        })
+        : users;
+      if (!visibleUsers.length) {
+        userList.innerHTML = `<div class="empty-state">${query ? "Пользователи не найдены" : "Пользователей пока нет"}</div>`;
+        return;
+      }
+      userList.innerHTML = visibleUsers.map((user) => `
         <div class="user-row" data-login="${user.login}">
           <div>
             <b>${escapeHtml(userDisplayName(user))}</b>
@@ -18852,6 +18895,8 @@
       toggleUserFormButton.addEventListener("click", () => {
         setUserCreateFormOpen(userForm.hidden);
       });
+
+      userSearchInput?.addEventListener("input", renderUsers);
 
       newUserPhoneInput.addEventListener("focus", () => ensureRussianPhonePrefix(newUserPhoneInput));
       newUserPhoneInput.addEventListener("input", () => ensureRussianPhonePrefix(newUserPhoneInput));
