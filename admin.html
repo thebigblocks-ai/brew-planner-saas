@@ -50,7 +50,23 @@
     button.primary {
       background: var(--accent);
       border-color: var(--accent);
-      color: #111827;
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: color-mix(in srgb, var(--accent) 88%, #fff);
+      border-color: color-mix(in srgb, var(--accent) 88%, #fff);
+      color: #fff;
+    }
+
+    button.secondary {
+      background: var(--surface);
+      border-color: var(--line);
+      color: var(--text);
+    }
+
+    button.secondary:hover {
+      background: var(--surface-soft);
     }
 
     button.danger {
@@ -725,6 +741,7 @@
     }
 
     .modal-card {
+      position: relative;
       width: min(680px, 100%);
       max-height: min(86vh, 720px);
       display: grid;
@@ -741,13 +758,45 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 14px 16px;
+      padding: 14px 60px 14px 16px;
       border-bottom: 1px solid var(--line);
     }
 
     .modal-head h2 {
       margin: 0;
       font-size: 18px;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 2;
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      min-height: 36px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      background: var(--surface-soft);
+    }
+
+    .modal-close svg {
+      width: 19px;
+      height: 19px;
+      stroke: currentColor;
+      stroke-width: 2.4;
+      fill: none;
+      stroke-linecap: round;
     }
 
     .modal-body {
@@ -1000,7 +1049,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.07.01.42-saas</span>
+        <span>v2026.07.01.43-saas</span>
       </div>
     </aside>
 
@@ -1480,7 +1529,9 @@
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="userEditTitle">
       <div class="modal-head">
         <h2 id="userEditTitle">Редактирование сотрудника</h2>
-        <button id="closeUserEditButton" type="button">Закрыть</button>
+        <button class="modal-close" id="closeUserEditButton" type="button" aria-label="Закрыть" title="Закрыть">
+          <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
       </div>
       <div class="modal-body">
         <form id="userEditForm" class="modal-form">
@@ -1506,7 +1557,7 @@
           </label>
           <div class="actions">
             <button class="primary" type="submit">Сохранить</button>
-            <button id="cancelUserEditButton" type="button">Отмена</button>
+            <button class="secondary" id="cancelUserEditButton" type="button">Отмена</button>
           </div>
           <div class="status" id="userEditStatus"></div>
         </form>

@@ -214,7 +214,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.07.01.185-saas";
+      content: "v2026.07.01.187-saas";
     }
 
     .toolbar {
@@ -3936,19 +3936,81 @@
 
     .onboarding-tip {
       position: fixed;
-      left: 18px;
+      left: var(--onboarding-left, 18px);
+      top: var(--onboarding-top, 18px);
       right: auto;
-      bottom: 18px;
-      z-index: 72;
+      bottom: auto;
+      z-index: 86;
       width: min(360px, calc(100vw - 28px));
       display: grid;
       gap: 10px;
       padding: 14px;
-      border: 1px solid var(--line-strong);
+      border: 1px solid color-mix(in srgb, var(--brand) 58%, var(--line-strong));
       border-radius: 8px;
-      background: var(--panel);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 7%, var(--panel)) 0%, var(--panel) 42%);
       color: var(--ink);
-      box-shadow: var(--shadow);
+      box-shadow: 0 18px 44px rgba(15, 23, 42, .18);
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity .14s ease, transform .14s ease;
+    }
+
+    .onboarding-tip:not([hidden]) {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .onboarding-tip::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 12px;
+      right: 12px;
+      height: 3px;
+      border-radius: 0 0 999px 999px;
+      background: var(--brand);
+    }
+
+    .onboarding-tip::after {
+      content: "";
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border: 1px solid color-mix(in srgb, var(--brand) 58%, var(--line-strong));
+      background: color-mix(in srgb, var(--brand) 7%, var(--panel));
+      transform: rotate(45deg);
+    }
+
+    .onboarding-tip[data-placement="right"]::after {
+      left: -7px;
+      top: var(--onboarding-arrow-top, 24px);
+      border-top: 0;
+      border-right: 0;
+    }
+
+    .onboarding-tip[data-placement="left"]::after {
+      right: -7px;
+      top: var(--onboarding-arrow-top, 24px);
+      border-bottom: 0;
+      border-left: 0;
+    }
+
+    .onboarding-tip[data-placement="bottom"]::after {
+      top: -7px;
+      left: var(--onboarding-arrow-left, 24px);
+      border-right: 0;
+      border-bottom: 0;
+    }
+
+    .onboarding-tip[data-placement="top"]::after {
+      bottom: -7px;
+      left: var(--onboarding-arrow-left, 24px);
+      border-left: 0;
+      border-top: 0;
+    }
+
+    .onboarding-tip[data-placement="floating"]::after {
+      display: none;
     }
 
     .onboarding-tip[hidden] {
@@ -3997,9 +4059,7 @@
 
     @media (max-width: 520px) {
       .onboarding-tip {
-        left: 14px;
-        right: 14px;
-        width: auto;
+        width: calc(100vw - 28px);
       }
     }
 
@@ -5295,13 +5355,13 @@
     }
 
     .warehouse-entry[data-kind="brew"] {
-      border-color: color-mix(in srgb, var(--blue) 32%, var(--line));
-      background: color-mix(in srgb, var(--blue) 11%, var(--panel));
+      border-color: color-mix(in srgb, var(--green) 34%, var(--line));
+      background: color-mix(in srgb, var(--green) 12%, var(--panel));
     }
 
     .warehouse-entry[data-kind="task"] {
-      border-color: color-mix(in srgb, var(--violet) 34%, var(--line));
-      background: color-mix(in srgb, var(--violet) 12%, var(--panel));
+      border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+      background: color-mix(in srgb, var(--danger) 9%, var(--panel));
     }
 
     .warehouse-entry[data-overdue="true"] {
@@ -5976,9 +6036,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.185-saas</span>
+  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.187-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.185-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.187-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -7441,7 +7501,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.07.01.185-saas";
+    const appVersion = "v2026.07.01.187-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -7522,11 +7582,13 @@
         {
           title: "Задачи по циклу",
           text: "Задачи привязаны к конкретной варке и отображаются также в общем списке “Мои задачи”.",
+          target: "#cycleTasksPane",
           readerText: "Во вкладке задач можно посмотреть задачи по выбранному циклу и их текущее состояние."
         },
         {
           title: "Задача из комментария",
           text: "Комментарий с ответственным автоматически создает задачу на дату этого комментария.",
+          target: "#cycleTasksPane",
           editableOnly: true
         }
       ],
@@ -7571,13 +7633,15 @@
       supportNew: [
         {
           title: "Новое обращение",
-          text: "В заявке укажите тему, описание, телефон и при необходимости приложите скриншоты."
+          text: "В заявке укажите тему, описание, телефон и при необходимости приложите скриншоты.",
+          target: "#supportForm"
         }
       ],
       supportTickets: [
         {
           title: "Мои обращения",
-          text: "Обращения раскрываются по одному: внутри видна переписка, статус и дедлайн приема в работу."
+          text: "Обращения раскрываются по одному: внутри видна переписка, статус и дедлайн приема в работу.",
+          target: "#supportTicketList"
         }
       ]
     };
@@ -8224,6 +8288,95 @@
       onboardingHighlight.hidden = true;
     }
 
+    function onboardingTargetInViewport(element) {
+      if (!isVisibleOnboardingTarget(element)) return false;
+      const rect = element.getBoundingClientRect();
+      const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+      const viewportHeight = document.documentElement.clientHeight || window.innerHeight;
+      return rect.bottom > 8 && rect.top < viewportHeight - 8 && rect.right > 8 && rect.left < viewportWidth - 8;
+    }
+
+    function positionOnboardingTip(element) {
+      if (!onboardingTip || onboardingTip.hidden) return;
+      const margin = 14;
+      const gap = 14;
+      const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+      const viewportHeight = document.documentElement.clientHeight || window.innerHeight;
+      const tipRect = onboardingTip.getBoundingClientRect();
+      const tipWidth = Math.min(tipRect.width || 360, viewportWidth - margin * 2);
+      const tipHeight = Math.min(tipRect.height || 160, viewportHeight - margin * 2);
+      const placeFloating = () => {
+        const left = clamp((viewportWidth - tipWidth) / 2, margin, Math.max(margin, viewportWidth - tipWidth - margin));
+        const top = clamp(viewportHeight - tipHeight - 22, margin, Math.max(margin, viewportHeight - tipHeight - margin));
+        onboardingTip.style.setProperty("--onboarding-left", `${left}px`);
+        onboardingTip.style.setProperty("--onboarding-top", `${top}px`);
+        onboardingTip.style.removeProperty("--onboarding-arrow-top");
+        onboardingTip.style.removeProperty("--onboarding-arrow-left");
+        onboardingTip.dataset.placement = "floating";
+      };
+      if (!onboardingTargetInViewport(element)) {
+        placeFloating();
+        return;
+      }
+      const rect = element.getBoundingClientRect();
+      const preferred = rect.left + rect.width / 2 > viewportWidth / 2
+        ? ["left", "bottom", "top", "right"]
+        : ["right", "bottom", "top", "left"];
+      const candidates = {
+        right: {
+          placement: "right",
+          left: rect.right + gap,
+          top: rect.top + rect.height / 2 - tipHeight / 2
+        },
+        left: {
+          placement: "left",
+          left: rect.left - tipWidth - gap,
+          top: rect.top + rect.height / 2 - tipHeight / 2
+        },
+        bottom: {
+          placement: "bottom",
+          left: rect.left + rect.width / 2 - tipWidth / 2,
+          top: rect.bottom + gap
+        },
+        top: {
+          placement: "top",
+          left: rect.left + rect.width / 2 - tipWidth / 2,
+          top: rect.top - tipHeight - gap
+        }
+      };
+      const fits = (candidate) => candidate.left >= margin
+        && candidate.top >= margin
+        && candidate.left + tipWidth <= viewportWidth - margin
+        && candidate.top + tipHeight <= viewportHeight - margin;
+      let next = preferred.map((placement) => candidates[placement]).find(fits);
+      if (!next) {
+        next = preferred
+          .map((placement) => {
+            const candidate = candidates[placement];
+            const left = clamp(candidate.left, margin, Math.max(margin, viewportWidth - tipWidth - margin));
+            const top = clamp(candidate.top, margin, Math.max(margin, viewportHeight - tipHeight - margin));
+            const overlapX = Math.max(0, Math.min(left + tipWidth, rect.right) - Math.max(left, rect.left));
+            const overlapY = Math.max(0, Math.min(top + tipHeight, rect.bottom) - Math.max(top, rect.top));
+            return { ...candidate, left, top, overlap: overlapX * overlapY };
+          })
+          .sort((a, b) => a.overlap - b.overlap)[0];
+      }
+      const left = clamp(next.left, margin, Math.max(margin, viewportWidth - tipWidth - margin));
+      const top = clamp(next.top, margin, Math.max(margin, viewportHeight - tipHeight - margin));
+      onboardingTip.style.setProperty("--onboarding-left", `${left}px`);
+      onboardingTip.style.setProperty("--onboarding-top", `${top}px`);
+      onboardingTip.dataset.placement = next.placement;
+      if (next.placement === "left" || next.placement === "right") {
+        const arrowTop = clamp(rect.top + rect.height / 2 - top - 6, 14, Math.max(14, tipHeight - 22));
+        onboardingTip.style.setProperty("--onboarding-arrow-top", `${arrowTop}px`);
+        onboardingTip.style.removeProperty("--onboarding-arrow-left");
+      } else {
+        const arrowLeft = clamp(rect.left + rect.width / 2 - left - 6, 16, Math.max(16, tipWidth - 28));
+        onboardingTip.style.setProperty("--onboarding-arrow-left", `${arrowLeft}px`);
+        onboardingTip.style.removeProperty("--onboarding-arrow-top");
+      }
+    }
+
     function highlightOnboardingTarget(tip) {
       const element = resolveOnboardingTarget(tip);
       if (!element) {
@@ -8235,8 +8388,9 @@
     }
 
     function refreshOnboardingHighlight() {
-      if (!onboardingTargetElement || onboardingTip?.hidden) return;
-      positionOnboardingHighlight(onboardingTargetElement);
+      if (onboardingTip?.hidden) return;
+      if (onboardingTargetElement) positionOnboardingHighlight(onboardingTargetElement);
+      positionOnboardingTip(onboardingTargetElement);
     }
 
     function scheduleOnboardingHighlightRefresh() {
@@ -8289,6 +8443,8 @@
       nextOnboardingButton.textContent = index >= tips.length - 1 ? "Понятно" : "Далее";
       highlightOnboardingTarget(tip);
       onboardingTip.hidden = false;
+      positionOnboardingTip(onboardingTargetElement);
+      requestAnimationFrame(() => positionOnboardingTip(onboardingTargetElement));
     }
 
     function showNextOnboardingTip() {
@@ -16770,6 +16926,7 @@
         return `
           <button class="warehouse-entry" type="button" data-kind="brew" data-id="${escapeHtml(cycle.id)}" title="${escapeHtml(event.product)}">
             <b>${escapeHtml(event.product)}</b>
+            <span>ГП: ${formatLiters(cycle.plannedOutput || 0)}л</span>
             <span>Варка · ${tank ? escapeHtml(tank.name) : "ЦКТ не указан"}</span>
             <span>Площадка: ${site ? escapeHtml(site.name) : "не указана"}</span>
           </button>
@@ -16931,7 +17088,6 @@
         renderBulkActions();
         renderMyTasksButton();
         renderUserMenuNotificationBadge();
-        renderOnboardingTip();
         renderConfigurableTemplates();
         renderCycleTabs();
         if (featureEnabled("cycleProcess")) renderCycleProcess();
@@ -16956,6 +17112,7 @@
         updateProductTemplateLinkButton();
         updateTankPanelState();
         updateSitePanelState();
+        renderOnboardingTip();
         initializeFastTooltips();
       } finally {
         recordRenderMetric(renderStartedAt);
