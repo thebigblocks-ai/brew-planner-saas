@@ -209,7 +209,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.06.30.172-saas";
+      content: "v2026.07.01.176-saas";
     }
 
     .toolbar {
@@ -459,23 +459,46 @@
     }
 
     .presence-box {
+      position: relative;
       min-height: 38px;
-      max-width: 280px;
+      max-width: 220px;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 0;
-      border: 0;
-      background: transparent;
+      gap: 4px;
+      padding: 4px 7px;
+      margin-top: 0;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--panel);
       color: var(--ink);
       font-size: 13px;
       font-weight: 750;
     }
 
+    .presence-box[hidden],
+    .presence-box[data-empty="true"] {
+      display: none;
+    }
+
+    .presence-box::before {
+      content: "онлайн";
+      position: absolute;
+      top: -8px;
+      left: 9px;
+      padding: 0 5px;
+      background: var(--header-bg);
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 850;
+      line-height: 1;
+      text-transform: lowercase;
+    }
+
     .presence-box span {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
+      flex-wrap: wrap;
     }
 
     .presence-empty {
@@ -490,14 +513,14 @@
     }
 
     .presence-avatar {
-      width: 38px;
-      height: 38px;
+      width: 28px;
+      height: 28px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border-radius: 8px;
+      border-radius: 6px;
       color: #fff;
-      font-size: 16px;
+      font-size: 12px;
       line-height: 1;
       font-weight: 850;
       letter-spacing: 0;
@@ -3924,19 +3947,31 @@
     @keyframes onboardingGlowPulse {
       0%, 100% {
         outline-color: rgba(255, 139, 0, .38);
-        box-shadow: 0 0 0 2px rgba(255, 139, 0, .10), 0 0 0 rgba(255, 139, 0, 0);
+        box-shadow: 0 0 0 2px rgba(255, 139, 0, .10);
       }
       48% {
-        outline-color: rgba(255, 139, 0, .96);
-        box-shadow: 0 0 0 5px rgba(255, 139, 0, .22), 0 0 28px rgba(255, 139, 0, .48);
+        outline-color: rgba(255, 139, 0, .86);
+        box-shadow: 0 0 0 4px rgba(255, 139, 0, .18);
       }
     }
 
     .onboarding-target-highlight {
       outline: 2px solid rgba(255, 139, 0, .82) !important;
-      outline-offset: 4px;
-      border-radius: 7px;
-      animation: onboardingGlowPulse 1.8s ease-in-out infinite;
+      outline-offset: 3px;
+      border-radius: 8px;
+      box-shadow: 0 0 0 3px rgba(255, 139, 0, .14);
+      animation: onboardingGlowPulse 1.6s ease-in-out 2;
+    }
+
+    .onboarding-target-highlight[data-onboarding-heavy="true"] {
+      animation: none;
+      box-shadow: 0 0 0 3px rgba(255, 139, 0, .16);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .onboarding-target-highlight {
+        animation: none;
+      }
     }
 
     .onboarding-highlight {
@@ -5589,9 +5624,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.06.30.172-saas</span>
+  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.176-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.06.30.172-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.176-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -5676,7 +5711,7 @@
               </button>
             </div>
           </div>
-          <div class="presence-box" id="presenceBox" title="Пользователи онлайн"><span id="presenceText"></span></div>
+          <div class="presence-box" id="presenceBox" aria-label="Онлайн-пользователи" data-empty="true"><span id="presenceText"></span></div>
           <button class="icon-btn" id="undoButton" type="button" aria-label="Отменить последнее действие" title="Отменить последнее действие" disabled>
             <svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-4"/></svg>
           </button>
@@ -6983,7 +7018,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.06.30.172-saas";
+    const appVersion = "v2026.07.01.176-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -6992,7 +7027,14 @@
         {
           title: "Добро пожаловать в Brew Planner",
           text: "В организации пока нет ЦКТ, поэтому самое время создать первые емкости. Нажмите «Добавить» → «Емкость», укажите название, объем и площадку, а затем сохраните. Если нужно завести сразу несколько ЦКТ и в аккаунте включено первичное заполнение, в карточке емкости выберите «Несколько емкостей», задайте префикс, первый номер, количество и общий объем. После сохранения на графике появятся строки ЦКТ, и можно будет планировать первые варки.",
-          target: "emptyPlannerAddTarget"
+          target: "emptyPlannerAddTarget",
+          editableOnly: true
+        },
+        {
+          title: "Режим просмотра",
+          text: "В организации пока нет ЦКТ. В вашей роли доступен просмотр данных, а первые емкости может создать администратор или редактор организации.",
+          target: "#planner",
+          readerOnly: true
         }
       ],
       planner: [
@@ -7000,7 +7042,8 @@
           id: "quickBrew",
           title: "Быстрое создание варки",
           text: "Двойной клик по свободной ячейке сразу открывает новую варку с выбранной емкостью и датой.",
-          target: ["firstEmptySlot", "#planner"]
+          target: ["firstEmptySlot", "#planner"],
+          editableOnly: true
         },
         {
           title: "Период и масштаб",
@@ -7020,43 +7063,56 @@
         {
           title: "Быстрый комментарий",
           text: "Двойной клик по циклу позволяет создать быстрый комментарий с использованием шаблонов, а также создать задачу с назначением ответственного на указанную дату.",
-          target: ["firstVisibleCycle", "#planner"]
+          target: ["firstVisibleCycle", "#planner"],
+          editableOnly: true
+        },
+        {
+          title: "Просмотр цикла",
+          text: "Клик по циклу открывает карточку с датами, стадией, плановым выходом, распределением и другой доступной информацией. В режиме чтения изменения недоступны.",
+          target: ["firstVisibleCycle", "#planner"],
+          readerOnly: true
         }
       ],
       cycleProduction: [
         {
           title: "Карточка цикла",
           text: "Здесь задаются сорт, ЦКТ, партия (опционально), дата начала, длительность цикла, дата окончания, стадия и плановый выход. Дата окончания рассчитывается автоматически от даты начала и длительности цикла.",
-          target: "#cyclePanel"
+          target: "#cyclePanel",
+          readerText: "В карточке цикла можно посмотреть сорт, ЦКТ, партию (опционально), даты, стадию, плановый выход и распределение. В режиме чтения поля доступны только для просмотра."
         },
         {
           title: "Распределение розлива",
           text: "Банки и кеги считаются от планового выхода. Если выход изменился, распределение нужно указать заново.",
-          target: "#canQtyInput"
+          target: "#canQtyInput",
+          readerText: "Распределение показывает план по банкам и кегам от планового выхода. Если распределение не указано, розлив будет отмечен знаком внимания."
         }
       ],
       cycleProcess: [
         {
           title: "Процесс производства",
           text: "Во вкладке процесса фиксируются параметры варки и брожения по выбранному циклу. В блоке брожения есть возможность просмотра графика брожения на основании внесенных ежедневных данных.",
-          target: "#cycleProcessOnboardingTarget"
+          target: "#cycleProcessOnboardingTarget",
+          readerText: "Во вкладке процесса можно посмотреть параметры варки и брожения по выбранному циклу. В блоке брожения доступен график на основании внесенных ежедневных данных."
         }
       ],
       cycleTasks: [
         {
           title: "Задачи по циклу",
-          text: "Задачи привязаны к конкретной варке и отображаются также в общем списке “Мои задачи”."
+          text: "Задачи привязаны к конкретной варке и отображаются также в общем списке “Мои задачи”.",
+          readerText: "Во вкладке задач можно посмотреть задачи по выбранному циклу и их текущее состояние."
         },
         {
           title: "Задача из комментария",
-          text: "Комментарий с ответственным автоматически создает задачу на дату этого комментария."
+          text: "Комментарий с ответственным автоматически создает задачу на дату этого комментария.",
+          editableOnly: true
         }
       ],
       partialBottling: [
         {
           title: "Частичный розлив",
           text: "Частичный розлив сохраняется только у уже созданного цикла и не может превышать плановый выход.",
-          target: "#partialBottlingFields"
+          target: "#partialBottlingFields",
+          editableOnly: true
         }
       ],
       bottlings: [
@@ -7077,14 +7133,16 @@
         {
           title: "Шаблоны сортов",
           text: "Справочник хранит типовые параметры сортов и ускоряет создание новых циклов. Справочник автоматически записывает в себя все новые сорта, длительность цикла и плановый выход ГП по ним. Дополнительно здесь можно указать наименование продукции по ДС, выбрать цвет цикла по умолчанию, а также указать заказчика сорта, если у Вас подключена опция контрактных варок.",
-          target: "#templatesPanel"
+          target: "#templatesPanel",
+          readerText: "Справочник показывает типовые параметры сортов: длительность цикла, плановый выход ГП, наименование продукции по ДС, цвет цикла и заказчика, если подключена опция контрактных варок."
         }
       ],
       orgSettings: [
         {
           title: "Настройки организации",
           text: "Здесь администратор организации может загрузить логотип, настроить email-уведомления и добавить шаблонные формулировки для быстрых комментариев и задач.",
-          target: "#organizationSettingsForm"
+          target: "#organizationSettingsForm",
+          adminOnly: true
         }
       ],
       supportNew: [
@@ -7234,6 +7292,7 @@
     let pickedSlotElement = null;
     let brewPickRenderToken = 0;
     let onboardingTargetElement = null;
+    let onboardingRefreshTimer = 0;
     let stageQuickMenu = null;
     let lastTabActiveAt = Date.now();
     let resumeRefreshInProgress = false;
@@ -7621,8 +7680,27 @@
     }
 
     function onboardingTipsFor(context) {
-      const tips = onboardingTipGroups[context] || [];
-      if (context === "planner" && !tanks.length) return tips.filter((tip) => tip.id !== "quickBrew");
+      let tips = onboardingTipGroups[context] || [];
+      const editable = canEdit();
+      const admin = canAdmin();
+      if (context === "planner" && !tanks.length) tips = tips.filter((tip) => tip.id !== "quickBrew");
+      tips = tips.filter((tip) => {
+        if (tip.adminOnly && !admin) return false;
+        if (!editable && tip.editableOnly) return false;
+        if (editable && tip.readerOnly) return false;
+        return true;
+      });
+      if (!editable) {
+        tips = tips.map((tip) => {
+          if (!tip.readerTitle && !tip.readerText && !tip.readerTarget) return tip;
+          return {
+            ...tip,
+            title: tip.readerTitle || tip.title,
+            text: tip.readerText || tip.text,
+            target: tip.readerTarget || tip.target
+          };
+        });
+      }
       return tips;
     }
 
@@ -7644,8 +7722,13 @@
     }
 
     function clearOnboardingHighlight() {
+      if (onboardingRefreshTimer) {
+        clearTimeout(onboardingRefreshTimer);
+        onboardingRefreshTimer = 0;
+      }
       if (onboardingTargetElement) {
         onboardingTargetElement.classList.remove("onboarding-target-highlight");
+        delete onboardingTargetElement.dataset.onboardingHeavy;
       }
       onboardingTargetElement = null;
       if (onboardingHighlight) onboardingHighlight.hidden = true;
@@ -7684,13 +7767,20 @@
 
     function positionOnboardingHighlight(element) {
       if (!onboardingHighlight || !isVisibleOnboardingTarget(element)) {
-        if (onboardingTargetElement) onboardingTargetElement.classList.remove("onboarding-target-highlight");
+        if (onboardingTargetElement) {
+          onboardingTargetElement.classList.remove("onboarding-target-highlight");
+          delete onboardingTargetElement.dataset.onboardingHeavy;
+        }
         if (onboardingHighlight) onboardingHighlight.hidden = true;
         return;
       }
       if (onboardingTargetElement && onboardingTargetElement !== element) {
         onboardingTargetElement.classList.remove("onboarding-target-highlight");
+        delete onboardingTargetElement.dataset.onboardingHeavy;
       }
+      const rect = element.getBoundingClientRect();
+      const heavyTarget = rect.width * rect.height > 120000 || rect.width > 720 || rect.height > 260;
+      element.dataset.onboardingHeavy = heavyTarget ? "true" : "false";
       element.classList.add("onboarding-target-highlight");
       onboardingHighlight.hidden = true;
     }
@@ -7708,6 +7798,14 @@
     function refreshOnboardingHighlight() {
       if (!onboardingTargetElement || onboardingTip?.hidden) return;
       positionOnboardingHighlight(onboardingTargetElement);
+    }
+
+    function scheduleOnboardingHighlightRefresh() {
+      if (onboardingRefreshTimer) clearTimeout(onboardingRefreshTimer);
+      onboardingRefreshTimer = setTimeout(() => {
+        onboardingRefreshTimer = 0;
+        refreshOnboardingHighlight();
+      }, 120);
     }
 
     function openHelpModal() {
@@ -10499,23 +10597,33 @@
     function renderPresence() {
       if (!presenceText) return;
       if (!currentUser) {
-        presenceText.innerHTML = `<span class="presence-empty">Онлайн: -</span>`;
+        presenceBox.dataset.empty = "true";
+        presenceText.innerHTML = "";
         return;
       }
       const others = onlineUsers.filter((user) => user.id !== currentUser.id);
       if (!others.length) {
+        presenceBox.dataset.empty = "true";
         presenceText.innerHTML = "";
         return;
       }
+      presenceBox.dataset.empty = "false";
       const visible = others.slice(0, 6);
       const extra = others.length - visible.length;
       presenceText.innerHTML = `
         ${visible.map((user) => {
           const name = userDisplayName(user);
-          return `<span class="presence-avatar" title="${escapeHtml(name)}" style="background:${presenceColor(user)}">${escapeHtml(userInitials(name))}</span>`;
+          const tooltipName = presenceDisplayName(user);
+          return `<span class="presence-avatar" title="${escapeHtml(tooltipName)}" aria-label="${escapeHtml(tooltipName)}" style="background:${presenceColor(user)}">${escapeHtml(userInitials(name))}</span>`;
         }).join("")}
         ${extra > 0 ? `<span class="presence-avatar" title="Еще ${extra}" style="background:#64748b">+${extra}</span>` : ""}
       `;
+    }
+
+    function presenceDisplayName(user) {
+      const parts = namePartsFromUser(user);
+      const fullName = [parts.firstName, parts.lastName].filter(Boolean).join(" ");
+      return fullName || user?.displayName || user?.login || user?.email || "Пользователь";
     }
 
     function userDisplayName(user) {
@@ -17725,8 +17833,8 @@
       helpModal.addEventListener("click", (event) => {
         if (event.target === helpModal) closeHelpModal();
       });
-      window.addEventListener("resize", refreshOnboardingHighlight);
-      window.addEventListener("scroll", refreshOnboardingHighlight, { passive: true, capture: true });
+      window.addEventListener("resize", scheduleOnboardingHighlightRefresh);
+      window.addEventListener("scroll", scheduleOnboardingHighlightRefresh, { passive: true, capture: true });
       resetOnboardingButton.addEventListener("click", resetOnboardingTips);
       myResetOnboardingButton.addEventListener("click", resetMyOnboardingTips);
       onboardingHelpButton.addEventListener("click", openHelpModal);
