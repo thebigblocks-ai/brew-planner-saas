@@ -23,7 +23,8 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.YC_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ru-central1
       AWS_EC2_METADATA_DISABLED: "true"
-      YC_BUCKET: ${{ secrets.YC_BUCKET }}
+      YC_BUCKET_PRIMARY: ${{ secrets.YC_BUCKET_PRIMARY }}
+      YC_BUCKET_RESERVE: ${{ secrets.YC_BUCKET_RESERVE }}
       YC_ENDPOINT: https://storage.yandexcloud.net
 
     steps:
@@ -42,50 +43,60 @@ jobs:
             exit 1
           fi
 
-          if [ -z "${YC_BUCKET}" ]; then
-            echo "::error::GitHub Secret YC_BUCKET is empty or missing"
+          if [ -z "${YC_BUCKET_PRIMARY}" ]; then
+            echo "::error::GitHub Secret YC_BUCKET_PRIMARY is empty or missing"
             exit 1
           fi
 
-          echo "Deploy target: s3://${YC_BUCKET}"
+          if [ -z "${YC_BUCKET_RESERVE}" ]; then
+            echo "::error::GitHub Secret YC_BUCKET_RESERVE is empty or missing"
+            exit 1
+          fi
+
+          echo "Deploy primary target: s3://${YC_BUCKET_PRIMARY}"
+          echo "Deploy reserve target: s3://${YC_BUCKET_RESERVE}"
           aws --version
 
-      - name: Upload index.html
+      - name: Upload frontend to buckets
         run: |
-          aws s3 cp index.html "s3://${YC_BUCKET}/index.html" \
-            --endpoint-url "${YC_ENDPOINT}" \
-            --content-type "text/html; charset=utf-8" \
-            --cache-control "no-cache, no-store, must-revalidate"
+          deploy_bucket() {
+            local bucket="$1"
+            echo "::group::Deploy to s3://${bucket}"
 
-      - name: Upload admin.html
-        run: |
-          aws s3 cp admin.html "s3://${YC_BUCKET}/admin.html" \
-            --endpoint-url "${YC_ENDPOINT}" \
-            --content-type "text/html; charset=utf-8" \
-            --cache-control "no-cache, no-store, must-revalidate"
-
-      - name: Upload assets
-        run: |
-          if [ -d assets ]; then
-            aws s3 sync assets "s3://${YC_BUCKET}/assets" \
+            aws s3 cp index.html "s3://${bucket}/index.html" \
               --endpoint-url "${YC_ENDPOINT}" \
-              --cache-control "public, max-age=31536000, immutable"
-          else
-            echo "assets directory not found, skipping optional upload"
-          fi
+              --content-type "text/html; charset=utf-8" \
+              --cache-control "no-cache, no-store, must-revalidate"
 
-      - name: Upload documentation
-        run: |
-          aws s3 cp README.md "s3://${YC_BUCKET}/README.md" \
-            --endpoint-url "${YC_ENDPOINT}" \
-            --content-type "text/markdown; charset=utf-8" \
-            --cache-control "no-cache"
-
-          if [ -f readme.txt ]; then
-            aws s3 cp readme.txt "s3://${YC_BUCKET}/readme.txt" \
+            aws s3 cp admin.html "s3://${bucket}/admin.html" \
               --endpoint-url "${YC_ENDPOINT}" \
-              --content-type "text/plain; charset=utf-8" \
+              --content-type "text/html; charset=utf-8" \
+              --cache-control "no-cache, no-store, must-revalidate"
+
+            if [ -d assets ]; then
+              aws s3 sync assets "s3://${bucket}/assets" \
+                --endpoint-url "${YC_ENDPOINT}" \
+                --cache-control "public, max-age=31536000, immutable"
+            else
+              echo "assets directory not found, skipping optional upload"
+            fi
+
+            aws s3 cp README.md "s3://${bucket}/README.md" \
+              --endpoint-url "${YC_ENDPOINT}" \
+              --content-type "text/markdown; charset=utf-8" \
               --cache-control "no-cache"
-          else
-            echo "readme.txt not found, skipping optional upload"
-          fi
+
+            if [ -f readme.txt ]; then
+              aws s3 cp readme.txt "s3://${bucket}/readme.txt" \
+                --endpoint-url "${YC_ENDPOINT}" \
+                --content-type "text/plain; charset=utf-8" \
+                --cache-control "no-cache"
+            else
+              echo "readme.txt not found, skipping optional upload"
+            fi
+
+            echo "::endgroup::"
+          }
+
+          deploy_bucket "${YC_BUCKET_PRIMARY}"
+          deploy_bucket "${YC_BUCKET_RESERVE}"
