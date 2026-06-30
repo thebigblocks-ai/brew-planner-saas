@@ -147,6 +147,7 @@
       align-items: center;
       align-self: start;
       justify-self: start;
+      gap: 12px;
       min-width: 220px;
       min-height: 68px;
     }
@@ -169,7 +170,7 @@
       object-fit: contain;
     }
 
-    [data-theme="dark"] .brand-logo {
+    [data-theme="dark"] .brand-logo[data-invert-dark="true"] {
       filter: brightness(0) invert(1);
     }
 
@@ -209,7 +210,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.07.01.179-saas";
+      content: "v2026.07.01.181-saas";
     }
 
     .toolbar {
@@ -1531,10 +1532,6 @@
       gap: 14px;
     }
 
-    .settings-main-pane .settings-section:first-child {
-      grid-row: span 2;
-    }
-
     .settings-section {
       display: grid;
       gap: 12px;
@@ -1801,17 +1798,17 @@
 
     .settings-logo-row {
       display: grid;
-      grid-template-columns: 150px minmax(0, 1fr);
-      gap: 12px;
-      align-items: center;
+      grid-template-columns: 176px minmax(0, 1fr);
+      gap: 14px;
+      align-items: stretch;
     }
 
     .settings-logo-preview {
       display: grid;
       place-items: center;
-      width: 150px;
-      height: 72px;
-      border: 1px dashed var(--line-strong);
+      width: 176px;
+      min-height: 96px;
+      border: 1px solid var(--line-strong);
       border-radius: 8px;
       background: var(--soft-bg);
       color: var(--muted);
@@ -1824,21 +1821,73 @@
     .settings-logo-preview img {
       display: block;
       width: auto;
-      height: 60px;
+      height: 68px;
       object-fit: contain;
     }
 
     #organizationSettingsLogoInput {
-      height: 38px;
-      padding: 4px 10px;
-      line-height: 28px;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
     }
 
-    #organizationSettingsLogoInput::file-selector-button {
-      height: 28px;
-      margin: 0 10px 0 0;
-      padding: 0 12px;
-      vertical-align: middle;
+    .settings-logo-controls {
+      display: grid;
+      align-content: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .settings-control-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .settings-logo-upload {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 8px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .settings-logo-button {
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 12px;
+      border: 1px solid var(--brand);
+      border-radius: 7px;
+      background: var(--brand);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 850;
+      line-height: 1;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .settings-logo-file {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .settings-logo-clear {
+      min-height: 32px;
+      padding: 6px 10px;
     }
 
     .settings-workday-row {
@@ -1862,12 +1911,18 @@
       .settings-main-pane,
       #organizationSettingsEmailPane .feature-list,
       .settings-email-fields,
-      .settings-workday-row {
+      .settings-workday-row,
+      .settings-logo-row,
+      .settings-logo-upload {
         grid-template-columns: 1fr;
       }
 
       .settings-main-pane .settings-section:first-child {
         grid-row: auto;
+      }
+
+      .settings-logo-preview {
+        width: 100%;
       }
     }
 
@@ -5637,9 +5692,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.179-saas</span>
+  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.181-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.179-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.181-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6333,7 +6388,10 @@
                 <span>Контактный телефон</span>
                 <input id="newUserPhoneInput" type="tel" autocomplete="tel" value="+7" placeholder="+7">
               </label>
-              <span></span>
+              <label class="field">
+                <span>Должность</span>
+                <input id="newUserDepartmentInput" autocomplete="organization-title" placeholder="Технолог">
+              </label>
             </div>
             <label class="field">
               <span>Права</span>
@@ -6425,17 +6483,27 @@
             </div>
             <div class="settings-tab-pane settings-main-pane" id="organizationSettingsMainPane" data-org-settings-pane="main" role="tabpanel">
               <section class="settings-section">
-                <h3>Компания</h3>
+                <h3>Внешний вид</h3>
                 <label class="field">
-                  <span>Название компании</span>
+                  <span>Название в шапке</span>
                   <input id="organizationDisplayNameInput" placeholder="Можно оставить пустым">
                 </label>
                 <div class="settings-logo-row">
                   <div class="settings-logo-preview" id="organizationSettingsLogoPreview">Без логотипа</div>
-                  <label class="field">
-                    <span>Логотип организации</span>
-                    <input id="organizationSettingsLogoInput" type="file" accept="image/*">
-                  </label>
+                  <div class="settings-logo-controls">
+                    <span class="settings-control-label">Логотип организации</span>
+                    <div class="settings-logo-upload">
+                      <input id="organizationSettingsLogoInput" type="file" accept="image/*">
+                      <label class="settings-logo-button" for="organizationSettingsLogoInput">Выбрать файл</label>
+                      <span class="settings-logo-file" id="organizationSettingsLogoFileName">Файл не выбран</span>
+                      <button class="secondary settings-logo-clear" id="clearOrganizationSettingsLogoButton" type="button">Убрать</button>
+                    </div>
+                    <p class="small">Логотип выводится высотой 68 px с пропорциональной шириной.</p>
+                  </div>
+                </div>
+                <div class="feature-list">
+                  <label class="feature-row"><span><b>Показывать название рядом с логотипом</b><small>Полезно, если логотип без текстовой части.</small></span><input id="orgShowNameWithLogoInput" type="checkbox"></label>
+                  <label class="feature-row"><span><b>Инвертировать логотип в темной теме</b><small>Для темных одноцветных логотипов.</small></span><input id="orgInvertLogoDarkInput" type="checkbox"></label>
                 </div>
               </section>
               <section class="settings-section">
@@ -6476,10 +6544,6 @@
                     </select>
                   </label>
                 </div>
-              </section>
-              <section class="settings-section">
-                <h3>Реквизиты</h3>
-                <p class="settings-section-note">Раздел зарезервирован под юридические данные организации.</p>
               </section>
             </div>
             <div class="settings-tab-pane" id="organizationSettingsEmailPane" data-org-settings-pane="email" role="tabpanel" hidden>
@@ -7037,7 +7101,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.07.01.179-saas";
+    const appVersion = "v2026.07.01.181-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -8686,12 +8750,18 @@
           email: user.email || user.login,
           login: user.login || user.email,
           displayName: user.displayName || "",
+          lastName: user.lastName || "",
+          firstName: user.firstName || "",
+          middleName: user.middleName || "",
           department: user.department || "",
           phone: optionalRussianPhone(user.phone),
           comment: user.comment || "",
           role: user.role || "reader",
           serviceRole: user.serviceRole || "user",
-          isBlocked: Boolean(user.isBlocked)
+          isBlocked: Boolean(user.isBlocked),
+          mustChangePassword: Boolean(user.mustChangePassword),
+          lastSeen: user.lastSeen || "",
+          lastLoginAt: user.lastLoginAt || ""
         }));
         return;
       }
@@ -8701,13 +8771,19 @@
       users = (data || []).map(profileFromRow);
     }
 
-    async function createYandexUser(email, profile, role, phone = "") {
+    async function createYandexUser(email, profile, role, phone = "", department = "") {
       const payload = typeof profile === "object" && profile !== null
         ? profile
         : { displayName: String(profile || "").trim() };
       const data = await yandexRequest("/users", {
         method: "POST",
-        body: { email, ...payload, role, phone: optionalRussianPhone(phone) }
+        body: {
+          email,
+          ...payload,
+          role,
+          phone: optionalRussianPhone(phone),
+          department: String(department || payload.department || "").trim()
+        }
       });
       return data;
     }
@@ -8755,7 +8831,13 @@
     async function createAuthUser(email, password) {
       if (isYandexBackend) {
         const profile = userNameProfileFromParts(newUserLastNameInput.value, newUserFirstNameInput.value, newUserMiddleNameInput.value);
-        const data = await createYandexUser(email, profile, newUserRoleInput.value, optionalRussianPhone(newUserPhoneInput.value));
+        const data = await createYandexUser(
+          email,
+          profile,
+          newUserRoleInput.value,
+          optionalRussianPhone(newUserPhoneInput.value),
+          newUserDepartmentInput.value
+        );
         return data.user;
       }
       throw new Error("Создание пользователей доступно только через Yandex API");
@@ -9696,6 +9778,10 @@
     const organizationDisplayNameInput = document.querySelector("#organizationDisplayNameInput");
     const organizationSettingsLogoInput = document.querySelector("#organizationSettingsLogoInput");
     const organizationSettingsLogoPreview = document.querySelector("#organizationSettingsLogoPreview");
+    const organizationSettingsLogoFileName = document.querySelector("#organizationSettingsLogoFileName");
+    const clearOrganizationSettingsLogoButton = document.querySelector("#clearOrganizationSettingsLogoButton");
+    const orgShowNameWithLogoInput = document.querySelector("#orgShowNameWithLogoInput");
+    const orgInvertLogoDarkInput = document.querySelector("#orgInvertLogoDarkInput");
     const orgCommentTemplateNewInput = document.querySelector("#orgCommentTemplateNewInput");
     const orgCommentTemplateAddButton = document.querySelector("#orgCommentTemplateAddButton");
     const orgCommentTemplatesList = document.querySelector("#orgCommentTemplatesList");
@@ -9722,6 +9808,7 @@
     const newUserMiddleNameInput = document.querySelector("#newUserMiddleNameInput");
     const newUserLoginInput = document.querySelector("#newUserLoginInput");
     const newUserPhoneInput = document.querySelector("#newUserPhoneInput");
+    const newUserDepartmentInput = document.querySelector("#newUserDepartmentInput");
     const newUserRoleInput = document.querySelector("#newUserRoleInput");
     const userStatus = document.querySelector("#userStatus");
 
@@ -9818,15 +9905,20 @@
 
     function renderOrganizationBrand() {
       const name = currentUser?.organizationDisplayName || currentUser?.organizationName || "Планировщик производства";
+      const brandSettings = currentUser?.organizationSettings?.brandSettings || {};
+      const showNameWithLogo = Boolean(brandSettings.showNameWithLogo);
+      const invertLogoInDarkTheme = brandSettings.invertLogoInDarkTheme !== false;
       organizationBrandName.textContent = name;
       if (currentUser?.organizationLogoDataUrl) {
         organizationLogo.src = currentUser.organizationLogoDataUrl;
         organizationLogo.alt = name;
+        organizationLogo.dataset.invertDark = invertLogoInDarkTheme ? "true" : "false";
         organizationLogo.hidden = false;
-        organizationBrandName.hidden = true;
+        organizationBrandName.hidden = !showNameWithLogo;
       } else {
         organizationLogo.removeAttribute("src");
         organizationLogo.alt = "";
+        organizationLogo.dataset.invertDark = "false";
         organizationLogo.hidden = true;
         organizationBrandName.hidden = false;
       }
@@ -9935,6 +10027,12 @@
       organizationSettingsLogoPreview.innerHTML = dataUrl
         ? `<img src="${escapeHtml(dataUrl)}" alt="Логотип организации">`
         : "Без логотипа";
+      if (organizationSettingsLogoFileName) {
+        const settings = organizationSettings || currentUser?.organizationSettings || {};
+        organizationSettingsLogoFileName.textContent = pendingOrganizationLogo
+          ? pendingOrganizationLogo.name || "Файл не выбран"
+          : settings.logoName || currentUser?.organizationLogoName || "Файл не выбран";
+      }
     }
 
     function renderOrganizationSettingsTabs() {
@@ -9984,6 +10082,8 @@
       const settings = organizationSettings || currentUser?.organizationSettings || {};
       organizationDisplayNameInput.value = settings.displayName || currentUser?.organizationDisplayName || "";
       renderSettingsLogoPreview(pendingOrganizationLogo?.dataUrl || settings.logoDataUrl || currentUser?.organizationLogoDataUrl || "");
+      orgShowNameWithLogoInput.checked = Boolean(settings.brandSettings?.showNameWithLogo);
+      orgInvertLogoDarkInput.checked = settings.brandSettings?.invertLogoInDarkTheme !== false;
       const notifications = settings.notificationSettings || {};
       document.querySelector("#orgNotifyTaskAssigned").checked = notifications.taskAssigned !== false;
       document.querySelector("#orgNotifyTaskOverdue").checked = notifications.taskOverdue !== false;
@@ -10013,6 +10113,10 @@
       organizationSettingsStatus.textContent = "Сохраняем настройки организации...";
       const payload = {
         displayName: organizationDisplayNameInput.value.trim(),
+        brandSettings: {
+          showNameWithLogo: orgShowNameWithLogoInput.checked,
+          invertLogoInDarkTheme: orgInvertLogoDarkInput.checked
+        },
         notificationSettings: {
           taskAssigned: document.querySelector("#orgNotifyTaskAssigned").checked,
           taskOverdue: document.querySelector("#orgNotifyTaskOverdue").checked,
@@ -10674,12 +10778,12 @@
       const parts = cleanNamePart(displayName).split(/\s+/).filter(Boolean);
       if (!parts.length) return { lastName: "", firstName: "", middleName: "" };
       if (parts.length === 1) return { lastName: parts[0], firstName: "", middleName: "" };
-      if (parts.length === 2) return { lastName: parts[1], firstName: parts[0], middleName: "" };
+      if (parts.length === 2) return { lastName: parts[0], firstName: parts[1], middleName: "" };
       const lastPart = parts[parts.length - 1];
       const looksLikePatronymic = /(вич|вна|чна|иничн?а|оглы|кызы)$/i.test(lastPart);
       return looksLikePatronymic
         ? { lastName: parts[0], firstName: parts[1], middleName: parts.slice(2).join(" ") }
-        : { lastName: lastPart, firstName: parts[0], middleName: parts.slice(1, -1).join(" ") };
+        : { lastName: parts[0], firstName: parts[1], middleName: parts.slice(2).join(" ") };
     }
 
     function namePartsFromUser(user) {
@@ -12508,7 +12612,7 @@
         <div class="user-row" data-login="${user.login}">
           <div>
             <b>${escapeHtml(userDisplayName(user))}</b>
-            <small>${escapeHtml(user.login)}${user.login === currentUser.login ? " · текущий пользователь" : ""}${user.isBlocked ? " · заблокирован" : ""}</small>
+            <small>${escapeHtml(user.login)}${user.login === currentUser.login ? " · текущий пользователь" : ""}${user.mustChangePassword ? " · ждет смены пароля" : ""}${user.isBlocked ? " · заблокирован" : ""}</small>
             ${(user.department || user.phone) ? `<div class="user-meta">${[user.department, user.phone].filter(Boolean).map(escapeHtml).join(" · ")}</div>` : ""}
           </div>
           <div class="user-controls">
@@ -17894,7 +17998,7 @@
         organizationSettingsLogoInput.value = "";
         if (!file) return;
         try {
-          const dataUrl = await resizeLogoFile(file, 60);
+          const dataUrl = await resizeLogoFile(file, 68);
           pendingOrganizationLogo = { dataUrl, name: file.name };
           organizationSettingsFormDirty = true;
           renderSettingsLogoPreview(dataUrl);
@@ -17902,6 +18006,12 @@
           organizationSettingsStatus.className = "status error";
           organizationSettingsStatus.textContent = `Не удалось подготовить логотип: ${error.message}`;
         }
+      });
+
+      clearOrganizationSettingsLogoButton.addEventListener("click", () => {
+        pendingOrganizationLogo = { dataUrl: "", name: "" };
+        organizationSettingsFormDirty = true;
+        renderSettingsLogoPreview("");
       });
 
       organizationSettingsForm.addEventListener("submit", async (event) => {
@@ -18854,7 +18964,7 @@
           let emailSent = false;
           let passwordDelivery = "none";
           if (isYandexBackend) {
-            const data = await createYandexUser(email, profile, newUserRoleInput.value, phone);
+            const data = await createYandexUser(email, profile, newUserRoleInput.value, phone, newUserDepartmentInput.value);
             authUser = data.user;
             emailSent = Boolean(data.emailSent);
             passwordDelivery = data.passwordDelivery || "none";
