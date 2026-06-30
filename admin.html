@@ -354,6 +354,12 @@
       gap: 12px;
     }
 
+    .three {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
     .actions {
       display: flex;
       flex-wrap: wrap;
@@ -943,6 +949,7 @@
       .user-create-form { grid-template-columns: 1fr; }
       .modal-form { grid-template-columns: 1fr; }
       .profile-name-row { grid-template-columns: 1fr; }
+      .three { grid-template-columns: 1fr; }
       .ticket-filters { grid-template-columns: 1fr; }
       .service-settings-grid { grid-template-columns: 1fr; }
       .user-row,
@@ -979,7 +986,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.07.01.39-saas</span>
+        <span>v2026.07.01.40-saas</span>
       </div>
     </aside>
 
@@ -1055,6 +1062,7 @@
               <button class="active" type="button" data-org-tab="users">Сотрудники</button>
               <button type="button" data-org-tab="features">Функции</button>
               <button type="button" data-org-tab="profile">Параметры</button>
+              <button type="button" data-org-tab="requisites">Реквизиты</button>
               <button type="button" data-org-tab="tickets">Обращения</button>
               <button type="button" data-org-tab="backups">Резервные копии</button>
               <button type="button" data-org-tab="logs">Логи</button>
@@ -1161,6 +1169,90 @@
                   <button class="danger" id="deleteOrganizationButton" type="button">Удалить компанию</button>
                 </div>
                 <div class="status" id="profileStatus"></div>
+              </form>
+            </div>
+            <div class="card-body hidden" id="orgRequisitesTab">
+              <form id="organizationRequisitesForm">
+                <div class="two">
+                  <label class="field">
+                    <span>Полное юр. наименование</span>
+                    <input id="organizationReqLegalNameInput" placeholder="ООО «Компания»">
+                  </label>
+                  <label class="field">
+                    <span>Краткое наименование</span>
+                    <input id="organizationReqShortNameInput" placeholder="ООО «Компания»">
+                  </label>
+                </div>
+                <div class="three">
+                  <label class="field">
+                    <span>ИНН</span>
+                    <input id="organizationReqInnInput" inputmode="numeric">
+                  </label>
+                  <label class="field">
+                    <span>КПП</span>
+                    <input id="organizationReqKppInput" inputmode="numeric">
+                  </label>
+                  <label class="field">
+                    <span>ОГРН / ОГРНИП</span>
+                    <input id="organizationReqOgrnInput" inputmode="numeric">
+                  </label>
+                </div>
+                <div class="two">
+                  <label class="field">
+                    <span>Юридический адрес</span>
+                    <textarea id="organizationReqLegalAddressInput" rows="3"></textarea>
+                  </label>
+                  <label class="field">
+                    <span>Почтовый адрес</span>
+                    <textarea id="organizationReqPostalAddressInput" rows="3"></textarea>
+                  </label>
+                </div>
+                <label class="field">
+                  <span>Банк</span>
+                  <input id="organizationReqBankNameInput" placeholder="Наименование банка">
+                </label>
+                <div class="three">
+                  <label class="field">
+                    <span>БИК</span>
+                    <input id="organizationReqBikInput" inputmode="numeric">
+                  </label>
+                  <label class="field">
+                    <span>Расчетный счет</span>
+                    <input id="organizationReqCheckingAccountInput" inputmode="numeric">
+                  </label>
+                  <label class="field">
+                    <span>Корр. счет</span>
+                    <input id="organizationReqCorrespondentAccountInput" inputmode="numeric">
+                  </label>
+                </div>
+                <div class="three">
+                  <label class="field">
+                    <span>Подписант</span>
+                    <input id="organizationReqSignatoryNameInput" placeholder="ФИО">
+                  </label>
+                  <label class="field">
+                    <span>Должность подписанта</span>
+                    <input id="organizationReqSignatoryTitleInput" placeholder="Генеральный директор">
+                  </label>
+                  <label class="field">
+                    <span>Основание</span>
+                    <input id="organizationReqSignatoryBasisInput" placeholder="Устава">
+                  </label>
+                </div>
+                <div class="two">
+                  <label class="field">
+                    <span>Email для договора</span>
+                    <input id="organizationReqContractEmailInput" type="email" placeholder="docs@example.ru">
+                  </label>
+                  <label class="field">
+                    <span>Телефон для договора</span>
+                    <input id="organizationReqContractPhoneInput" type="tel" placeholder="+7">
+                  </label>
+                </div>
+                <div class="actions">
+                  <button class="primary" type="submit">Сохранить реквизиты</button>
+                </div>
+                <div class="status" id="requisitesStatus"></div>
               </form>
             </div>
             <div class="card-body hidden" id="orgTicketsTab">
@@ -1900,6 +1992,68 @@
       }
     }
 
+    function normalizedOrganizationRequisites(requisites = {}) {
+      return {
+        legalName: String(requisites.legalName || "").trim(),
+        shortName: String(requisites.shortName || "").trim(),
+        inn: String(requisites.inn || "").trim(),
+        kpp: String(requisites.kpp || "").trim(),
+        ogrn: String(requisites.ogrn || "").trim(),
+        legalAddress: String(requisites.legalAddress || "").trim(),
+        postalAddress: String(requisites.postalAddress || "").trim(),
+        bankName: String(requisites.bankName || "").trim(),
+        bik: String(requisites.bik || "").trim(),
+        checkingAccount: String(requisites.checkingAccount || "").trim(),
+        correspondentAccount: String(requisites.correspondentAccount || "").trim(),
+        signatoryName: String(requisites.signatoryName || "").trim(),
+        signatoryTitle: String(requisites.signatoryTitle || "").trim(),
+        signatoryBasis: String(requisites.signatoryBasis || "").trim(),
+        contractEmail: String(requisites.contractEmail || "").trim(),
+        contractPhone: String(requisites.contractPhone || "").trim()
+      };
+    }
+
+    function fillOrganizationRequisitesForm(requisites = {}) {
+      const normalized = normalizedOrganizationRequisites(requisites);
+      $("#organizationReqLegalNameInput").value = normalized.legalName;
+      $("#organizationReqShortNameInput").value = normalized.shortName;
+      $("#organizationReqInnInput").value = normalized.inn;
+      $("#organizationReqKppInput").value = normalized.kpp;
+      $("#organizationReqOgrnInput").value = normalized.ogrn;
+      $("#organizationReqLegalAddressInput").value = normalized.legalAddress;
+      $("#organizationReqPostalAddressInput").value = normalized.postalAddress;
+      $("#organizationReqBankNameInput").value = normalized.bankName;
+      $("#organizationReqBikInput").value = normalized.bik;
+      $("#organizationReqCheckingAccountInput").value = normalized.checkingAccount;
+      $("#organizationReqCorrespondentAccountInput").value = normalized.correspondentAccount;
+      $("#organizationReqSignatoryNameInput").value = normalized.signatoryName;
+      $("#organizationReqSignatoryTitleInput").value = normalized.signatoryTitle;
+      $("#organizationReqSignatoryBasisInput").value = normalized.signatoryBasis;
+      $("#organizationReqContractEmailInput").value = normalized.contractEmail;
+      $("#organizationReqContractPhoneInput").value = normalized.contractPhone;
+    }
+
+    function organizationRequisitesFromForm() {
+      return normalizedOrganizationRequisites({
+        legalName: $("#organizationReqLegalNameInput").value,
+        shortName: $("#organizationReqShortNameInput").value,
+        inn: $("#organizationReqInnInput").value,
+        kpp: $("#organizationReqKppInput").value,
+        ogrn: $("#organizationReqOgrnInput").value,
+        legalAddress: $("#organizationReqLegalAddressInput").value,
+        postalAddress: $("#organizationReqPostalAddressInput").value,
+        bankName: $("#organizationReqBankNameInput").value,
+        bik: $("#organizationReqBikInput").value,
+        checkingAccount: $("#organizationReqCheckingAccountInput").value,
+        correspondentAccount: $("#organizationReqCorrespondentAccountInput").value,
+        signatoryName: $("#organizationReqSignatoryNameInput").value,
+        signatoryTitle: $("#organizationReqSignatoryTitleInput").value,
+        signatoryBasis: $("#organizationReqSignatoryBasisInput").value,
+        contractEmail: $("#organizationReqContractEmailInput").value,
+        contractPhone: $("#organizationReqContractPhoneInput").value
+      });
+    }
+
     function ticketStatusBadge(status = "new") {
       return `<span class="ticket-status-badge" data-status="${escapeHtml(status)}">${escapeHtml(ticketStatusLabels[status] || status)}</span>`;
     }
@@ -2158,6 +2312,7 @@
       pendingOrganizationLogo = null;
       $("#organizationLogoInput").value = "";
       renderLogoPreview(organization?.logoDataUrl || "");
+      fillOrganizationRequisitesForm(organization?.requisites || {});
       renderFeatureList(organization?.features || {});
       renderOrganizationUsers();
       renderOrganizationTickets();
@@ -2171,12 +2326,14 @@
       $("[data-org-tab='users']").classList.toggle("active", activeOrgTab === "users");
       $("[data-org-tab='tickets']").classList.toggle("active", activeOrgTab === "tickets");
       $("[data-org-tab='profile']").classList.toggle("active", activeOrgTab === "profile");
+      $("[data-org-tab='requisites']").classList.toggle("active", activeOrgTab === "requisites");
       $("[data-org-tab='backups']").classList.toggle("active", activeOrgTab === "backups");
       $("[data-org-tab='logs']").classList.toggle("active", activeOrgTab === "logs");
       $("#orgFeaturesTab").classList.toggle("hidden", activeOrgTab !== "features");
       $("#orgUsersTab").classList.toggle("hidden", activeOrgTab !== "users");
       $("#orgTicketsTab").classList.toggle("hidden", activeOrgTab !== "tickets");
       $("#orgProfileTab").classList.toggle("hidden", activeOrgTab !== "profile");
+      $("#orgRequisitesTab").classList.toggle("hidden", activeOrgTab !== "requisites");
       $("#orgBackupsTab").classList.toggle("hidden", activeOrgTab !== "backups");
       $("#orgLogsTab").classList.toggle("hidden", activeOrgTab !== "logs");
     }
@@ -2846,6 +3003,30 @@
         setStatus($("#profileStatus"), "Сохранено", "ok");
       } catch (error) {
         setStatus($("#profileStatus"), error.message, "error");
+      }
+    });
+
+    $("#organizationRequisitesForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!selectedOrganizationId) return;
+      setStatus($("#requisitesStatus"), "Сохраняем...");
+      try {
+        const requisites = organizationRequisitesFromForm();
+        const data = await request(`/organizations/${encodeURIComponent(selectedOrganizationId)}`, {
+          method: "PATCH",
+          body: { requisites }
+        });
+        const current = selectedOrganization() || {};
+        const saved = {
+          ...current,
+          ...(data.organization || {}),
+          requisites
+        };
+        organizations = organizations.map((organization) => organization.id === selectedOrganizationId ? saved : organization);
+        renderOrganizationDetails();
+        setStatus($("#requisitesStatus"), "Реквизиты сохранены", "ok");
+      } catch (error) {
+        setStatus($("#requisitesStatus"), error.message, "error");
       }
     });
 
