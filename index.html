@@ -80,6 +80,10 @@
 
     * { box-sizing: border-box; }
 
+    [hidden] {
+      display: none !important;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -210,7 +214,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.07.01.181-saas";
+      content: "v2026.07.01.185-saas";
     }
 
     .toolbar {
@@ -4352,6 +4356,7 @@
     }
 
     .modal {
+      position: relative;
       width: min(420px, 100%);
       border: 1px solid var(--line-strong);
       border-radius: 8px;
@@ -4360,13 +4365,89 @@
       overflow: hidden;
     }
 
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 5;
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      min-height: 36px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      background: var(--soft-bg);
+    }
+
+    .modal-close svg {
+      width: 19px;
+      height: 19px;
+      stroke: currentColor;
+      stroke-width: 2.4;
+      fill: none;
+      stroke-linecap: round;
+    }
+
+    .modal > h2,
+    .modal > p {
+      padding-right: 58px;
+    }
+
     #supportModal .modal {
-      width: min(760px, calc(100vw - 32px));
+      width: min(860px, calc(100vw - 32px));
+      height: min(720px, calc(100vh - 32px));
       max-height: calc(100vh - 32px);
-      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .support-modal-head {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(240px, .48fr);
+      gap: 14px;
+      align-items: start;
+      padding: 18px 18px 0;
+    }
+
+    #supportModal[data-access-visible="false"] .support-modal-head {
+      grid-template-columns: 1fr;
+    }
+
+    .support-modal-head h2 {
+      margin: 0;
+      padding: 0;
+      font-size: 20px;
+      line-height: 1.15;
+    }
+
+    .support-modal-head p {
+      margin: 7px 0 0;
+      padding: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .support-access-card {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+      justify-self: stretch;
     }
 
     #supportModal .support-pane {
+      flex: 1 1 auto;
       min-height: 0;
     }
 
@@ -4375,7 +4456,7 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 6px;
-      padding: 14px 16px 0;
+      padding: 14px 18px 0;
     }
 
     .support-tabs button {
@@ -4395,29 +4476,79 @@
     }
 
     .support-pane[hidden] {
-      display: none;
+      display: none !important;
     }
 
     #supportAccessStatus {
-      margin: 8px 0 0;
-      padding: 0 16px;
+      margin: 0;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--soft-bg) 62%, var(--panel));
       min-height: 0;
       color: var(--muted);
-      font-size: 14px;
-      line-height: 1.45;
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1.35;
+    }
+
+    #supportAccessActions {
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    #supportAccessActions[hidden] {
+      display: none !important;
+    }
+
+    #supportAccessActions button {
+      min-width: 0;
+      min-height: 32px;
+      padding: 6px 8px;
+      font-size: 12px;
+      line-height: 1.15;
+      white-space: normal;
+    }
+
+    .support-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px 18px 18px;
+      overflow-y: auto;
+      scrollbar-gutter: stable;
+    }
+
+    .support-form-grid {
+      display: grid;
+      grid-template-columns: minmax(0, .78fr) minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .support-form-grid .wide {
+      grid-column: 1 / -1;
+    }
+
+    #supportDescriptionInput {
+      min-height: 150px;
+      resize: vertical;
     }
 
     .support-file-button {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
-      width: fit-content;
-      min-height: 36px;
+      width: 100%;
+      min-height: 38px;
       border: 1px solid var(--brand);
       padding: 0 14px;
       border-radius: 7px;
       background: var(--brand);
-      color: #111827;
+      color: #fff;
       font-weight: 850;
       cursor: pointer;
       box-shadow: 0 6px 14px rgba(255, 139, 0, .14);
@@ -4435,11 +4566,35 @@
       height: 1px;
     }
 
-    .support-ticket-list {
+    .support-file-row {
       display: grid;
-      align-content: start;
+      grid-template-columns: minmax(140px, 190px) minmax(0, 1fr);
+      align-items: center;
       gap: 10px;
-      padding: 14px 16px 16px;
+      min-height: 52px;
+      padding: 7px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .support-file-name {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .support-ticket-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px 18px 18px;
+      overflow-y: auto;
+      scrollbar-gutter: stable;
     }
 
     .support-ticket-card {
@@ -4456,8 +4611,8 @@
 
     .support-ticket-card summary {
       display: grid;
-      gap: 9px;
-      padding: 12px;
+      gap: 10px;
+      padding: 13px 14px;
       cursor: pointer;
       list-style: none;
       background: color-mix(in srgb, var(--soft-bg) 58%, var(--panel));
@@ -4480,7 +4635,7 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr) max-content;
       gap: 12px;
-      align-items: flex-start;
+      align-items: center;
     }
 
     .support-ticket-card b,
@@ -4548,10 +4703,17 @@
       line-height: 1.25;
     }
 
+    .support-ticket-body {
+      display: grid;
+      gap: 12px;
+      padding: 12px 0 0;
+      background: var(--panel);
+    }
+
     .support-ticket-thread {
       display: grid;
       gap: 10px;
-      padding: 0 10px;
+      padding: 0 14px;
     }
 
     .support-ticket-message {
@@ -4602,12 +4764,27 @@
     .support-ticket-reply {
       display: grid;
       gap: 8px;
-      margin-top: 12px;
-      padding: 0 10px 10px;
+      margin-top: 2px;
+      padding: 12px 14px 14px;
+      border-top: 1px solid var(--line);
+      background: color-mix(in srgb, var(--soft-bg) 42%, var(--panel));
     }
 
     .support-ticket-reply textarea {
       min-height: 72px;
+    }
+
+    .support-empty-state {
+      display: grid;
+      place-items: center;
+      min-height: 260px;
+      border: 1px dashed var(--line-strong);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--soft-bg) 52%, var(--panel));
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
     }
 
     .modal h2 {
@@ -4622,6 +4799,37 @@
       color: var(--muted);
       font-size: 14px;
       line-height: 1.45;
+    }
+
+    #supportModal .support-modal-head h2 {
+      margin: 0;
+      padding: 0;
+      font-size: 20px;
+      line-height: 1.15;
+    }
+
+    #supportModal .support-modal-head p {
+      margin: 7px 0 0;
+      padding: 0;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 720px) {
+      .support-modal-head,
+      .support-form-grid,
+      .support-file-row {
+        grid-template-columns: 1fr;
+      }
+
+      #supportAccessActions {
+        grid-template-columns: 1fr;
+      }
+
+      .support-ticket-message[data-own="true"],
+      .support-ticket-message[data-side="customer"] {
+        width: min(100%, 520px);
+      }
     }
 
     .gp-list {
@@ -4952,6 +5160,31 @@
       overscroll-behavior: contain;
     }
 
+    .warehouse-filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .warehouse-filter {
+      min-height: 38px;
+      padding: 0 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 850;
+      line-height: 1.15;
+    }
+
+    .warehouse-filter[data-active="true"] {
+      border-color: color-mix(in srgb, var(--brand) 68%, var(--line-strong));
+      background: color-mix(in srgb, var(--brand) 16%, var(--panel));
+      color: var(--ink);
+    }
+
     .warehouse-summary,
     .warehouse-month {
       margin-bottom: 14px;
@@ -5059,6 +5292,21 @@
       color: var(--ink);
       background: color-mix(in srgb, var(--brand) 10%, var(--panel));
       text-align: left;
+    }
+
+    .warehouse-entry[data-kind="brew"] {
+      border-color: color-mix(in srgb, var(--blue) 32%, var(--line));
+      background: color-mix(in srgb, var(--blue) 11%, var(--panel));
+    }
+
+    .warehouse-entry[data-kind="task"] {
+      border-color: color-mix(in srgb, var(--violet) 34%, var(--line));
+      background: color-mix(in srgb, var(--violet) 12%, var(--panel));
+    }
+
+    .warehouse-entry[data-overdue="true"] {
+      border-color: color-mix(in srgb, var(--danger) 42%, var(--line));
+      background: color-mix(in srgb, var(--danger) 10%, var(--panel));
     }
 
     .warehouse-entry b,
@@ -5484,6 +5732,42 @@
       box-shadow: none;
     }
 
+    .primary {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+      box-shadow: none;
+    }
+
+    .primary:hover {
+      background: color-mix(in srgb, var(--brand) 88%, #fff);
+      border-color: color-mix(in srgb, var(--brand) 88%, #fff);
+      color: #fff;
+    }
+
+    .secondary {
+      background: var(--panel);
+      border-color: var(--line-strong);
+      color: var(--ink);
+      box-shadow: none;
+    }
+
+    .secondary:hover {
+      background: var(--soft-bg);
+    }
+
+    .delete-confirm {
+      border-color: var(--danger);
+      background: var(--danger);
+      color: #fff;
+      box-shadow: none;
+    }
+
+    .delete-confirm:hover {
+      background: color-mix(in srgb, var(--danger) 88%, #000);
+      border-color: color-mix(in srgb, var(--danger) 88%, #000);
+    }
+
     .panel-head,
     .selected-summary,
     .bottling-period-total,
@@ -5692,13 +5976,16 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.181-saas</span>
+  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.185-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.181-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.185-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
     <div class="modal">
+      <button class="modal-close" type="button" data-modal-close-button="cancelForcePasswordButton" aria-label="Закрыть" title="Закрыть">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
       <h2 id="forcePasswordModalTitle">Смените временный пароль</h2>
       <p id="forcePasswordModalText">Введите новый постоянный пароль. После сохранения администратор больше не будет его знать.</p>
       <form class="password-modal-form" id="forcePasswordForm">
@@ -5714,8 +6001,8 @@
         <div class="status" id="forcePasswordStatus"></div>
       </form>
       <div class="modal-actions">
-        <button class="secondary" id="cancelForcePasswordButton" type="button">Отменить</button>
         <button class="primary" id="saveForcePasswordButton" type="button">Сменить пароль</button>
+        <button class="secondary" id="cancelForcePasswordButton" type="button">Отменить</button>
       </div>
     </div>
   </div>
@@ -6271,13 +6558,18 @@
 
         <section class="panel" id="warehousePanel">
           <div class="panel-head">
-            <h2>Календарь розливов</h2>
+            <h2>Календарь</h2>
             <div class="panel-actions">
-              <span class="badge" id="warehouseCount">0 поз.</span>
+              <span class="badge" id="warehouseCount">0 соб.</span>
               <button class="icon-btn" id="closeWarehouseButton" type="button" aria-label="Закрыть календарь розливов" title="Закрыть">
                 <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
             </div>
+          </div>
+          <div class="warehouse-filters" id="warehouseFilters" aria-label="Фильтры календаря">
+            <button class="warehouse-filter" type="button" data-warehouse-filter="brews" aria-pressed="true">Плановые варки</button>
+            <button class="warehouse-filter" type="button" data-warehouse-filter="bottlings" aria-pressed="true">Плановые розливы</button>
+            <button class="warehouse-filter" type="button" data-warehouse-filter="tasks" aria-pressed="true">Мои задачи</button>
           </div>
           <div class="warehouse-calendar" id="warehouseCalendar"></div>
         </section>
@@ -6718,31 +7010,40 @@
 
   <div class="modal-backdrop" id="deleteModal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
     <div class="modal">
+      <button class="modal-close" type="button" data-modal-close-button="cancelDeleteButton" aria-label="Закрыть" title="Закрыть">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
       <h2 id="deleteModalTitle">Удалить производственный цикл?</h2>
       <p id="deleteModalText">Это действие уберет выбранную варку из плана.</p>
       <div class="modal-actions">
-        <button class="secondary" id="cancelDeleteButton" type="button">Отмена</button>
         <button class="delete-confirm" id="confirmDeleteButton" type="button">Удалить</button>
+        <button class="secondary" id="cancelDeleteButton" type="button">Отмена</button>
       </div>
     </div>
   </div>
 
   <div class="modal-backdrop" id="userPasswordModal" role="dialog" aria-modal="true" aria-labelledby="userPasswordModalTitle">
     <div class="modal">
+      <button class="modal-close" type="button" data-modal-close-button="cancelUserPasswordButton" aria-label="Закрыть" title="Закрыть">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
       <h2 id="userPasswordModalTitle">Установка пароля</h2>
       <p id="userPasswordModalText">Пользователю будет отправлена одноразовая ссылка для установки пароля.</p>
       <form class="password-modal-form" id="userPasswordForm">
         <div class="status" id="userPasswordStatus"></div>
       </form>
       <div class="modal-actions">
-        <button class="secondary" id="cancelUserPasswordButton" type="button">Отмена</button>
         <button class="primary" id="saveUserPasswordButton" type="submit" form="userPasswordForm">Отправить</button>
+        <button class="secondary" id="cancelUserPasswordButton" type="button">Отмена</button>
       </div>
     </div>
   </div>
 
   <div class="modal-backdrop" id="userProfileModal" role="dialog" aria-modal="true" aria-labelledby="userProfileModalTitle">
     <div class="modal">
+      <button class="modal-close" type="button" data-modal-close-button="cancelUserProfileButton" aria-label="Закрыть" title="Закрыть">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
       <h2 id="userProfileModalTitle">Редактировать профиль</h2>
       <p id="userProfileModalText">Данные будут видны в списке пользователей и в онлайн-индикаторе.</p>
       <form class="password-modal-form" id="userProfileForm">
@@ -6780,36 +7081,45 @@
         <div class="status" id="userProfileStatus"></div>
       </form>
       <div class="modal-actions">
-        <button class="secondary" id="cancelUserProfileButton" type="button">Отмена</button>
         <button class="primary" id="saveUserProfileButton" type="submit" form="userProfileForm">Сохранить</button>
+        <button class="secondary" id="cancelUserProfileButton" type="button">Отмена</button>
       </div>
     </div>
   </div>
 
   <div class="modal-backdrop" id="moveModal" role="dialog" aria-modal="true" aria-labelledby="moveModalTitle">
     <div class="modal">
+      <button class="modal-close" type="button" data-modal-close-button="cancelMoveButton" aria-label="Закрыть" title="Закрыть">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
       <h2 id="moveModalTitle">Подтвердить изменение цикла?</h2>
       <p id="moveModalText">Проверьте изменение перед сохранением.</p>
       <div class="modal-actions">
-        <button class="secondary" id="cancelMoveButton" type="button">Отмена</button>
         <button class="primary" id="confirmMoveButton" type="button">Подтвердить</button>
+        <button class="secondary" id="cancelMoveButton" type="button">Отмена</button>
       </div>
     </div>
   </div>
 
   <div class="modal-backdrop" id="unsavedModal" role="dialog" aria-modal="true" aria-labelledby="unsavedModalTitle">
     <div class="modal">
+      <button class="modal-close" type="button" data-modal-close-button="discardCycleChangesButton" aria-label="Закрыть" title="Закрыть">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
       <h2 id="unsavedModalTitle">Есть несохраненные изменения</h2>
       <p>Сохранить изменения в производственном цикле или отменить их?</p>
       <div class="modal-actions">
-        <button class="secondary" id="discardCycleChangesButton" type="button">Отменить изменения</button>
         <button class="primary" id="saveCycleChangesButton" type="button">Сохранить</button>
+        <button class="secondary" id="discardCycleChangesButton" type="button">Отменить изменения</button>
       </div>
     </div>
   </div>
 
   <div class="modal-backdrop" id="gpModal" role="dialog" aria-modal="true" aria-labelledby="gpModalTitle">
     <div class="modal">
+      <button class="modal-close" type="button" data-modal-close-button="closeGpModalButton" aria-label="Закрыть" title="Закрыть">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
       <h2 id="gpModalTitle">ГП в ЦКТ на сегодня</h2>
       <p>Сорта, которые сейчас находятся в производстве, и их плановый выход ГП.</p>
       <div class="gp-list" id="gpList"></div>
@@ -6822,6 +7132,9 @@
 
   <div class="modal-backdrop" id="periodModal" role="dialog" aria-modal="true" aria-labelledby="periodModalTitle">
     <div class="modal">
+      <button class="modal-close" type="button" data-modal-close-button="closePeriodModalButton" aria-label="Закрыть" title="Закрыть">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
       <h2 id="periodModalTitle">Сводка по периоду</h2>
       <div class="period-detail" id="periodDetail"></div>
       <div class="modal-actions">
@@ -6832,6 +7145,9 @@
 
   <div class="modal-backdrop" id="attentionModal" role="dialog" aria-modal="true" aria-labelledby="attentionModalTitle">
     <div class="modal">
+      <button class="modal-close" type="button" data-modal-close-button="closeAttentionModalButton" aria-label="Закрыть" title="Закрыть">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
       <h2 id="attentionModalTitle">Требуют внимания</h2>
       <div class="attention-list" id="attentionList"></div>
       <div class="modal-actions">
@@ -6842,6 +7158,9 @@
 
   <div class="modal-backdrop" id="commentModal" role="dialog" aria-modal="true" aria-labelledby="commentModalTitle">
     <div class="modal">
+      <button class="modal-close" type="button" data-modal-close-button="cancelCommentButton" aria-label="Закрыть" title="Закрыть">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
       <h2 id="commentModalTitle">Добавить комментарий</h2>
       <p id="commentModalText">Комментарий будет привязан к выбранному месту цикла.</p>
       <div class="form">
@@ -6869,14 +7188,17 @@
       </div>
       <div class="modal-actions">
         <button class="delete-confirm" id="deleteCommentButton" type="button" style="display:none">Удалить</button>
-        <button class="secondary" id="cancelCommentButton" type="button">Отмена</button>
         <button class="primary" id="saveCommentButton" type="button">Сохранить</button>
+        <button class="secondary" id="cancelCommentButton" type="button">Отмена</button>
       </div>
     </div>
   </div>
 
   <div class="modal-backdrop" id="fermentationChartModal" role="dialog" aria-modal="true" aria-labelledby="fermentationChartTitle">
     <div class="modal">
+      <button class="modal-close" type="button" data-modal-close-button="closeFermentationChartButton" aria-label="Закрыть" title="Закрыть">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
       <h2 id="fermentationChartTitle">График брожения</h2>
       <p id="fermentationChartText">Плотность по дням цикла.</p>
       <div class="fermentation-chart" id="fermentationChartBody"></div>
@@ -6886,54 +7208,68 @@
     </div>
   </div>
 
-  <div class="modal-backdrop" id="supportModal" role="dialog" aria-modal="true" aria-labelledby="supportModalTitle">
+  <div class="modal-backdrop" id="supportModal" role="dialog" aria-modal="true" aria-labelledby="supportModalTitle" data-access-visible="false">
     <div class="modal">
-      <h2 id="supportModalTitle">Обращение в поддержку</h2>
-      <p>Опишите вопрос или проблему. Обращению будет присвоен уникальный номер.</p>
-      <div class="status" id="supportAccessStatus" hidden></div>
-      <div class="modal-actions" id="supportAccessActions" hidden>
-        <button class="secondary" id="enableSupportAccessButton" type="button">Разрешить доступ на 24 часа</button>
-        <button class="secondary" id="disableSupportAccessButton" type="button">Запретить доступ</button>
+      <button class="modal-close" type="button" data-modal-close-button="cancelSupportButton" aria-label="Закрыть" title="Закрыть">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      <div class="support-modal-head">
+        <div>
+          <h2 id="supportModalTitle">Поддержка</h2>
+          <p>Создайте обращение или продолжите переписку по уже открытой заявке.</p>
+        </div>
+        <div class="support-access-card">
+          <div class="status" id="supportAccessStatus" hidden></div>
+          <div class="modal-actions" id="supportAccessActions" hidden>
+            <button class="secondary" id="enableSupportAccessButton" type="button">Разрешить доступ на 24 часа</button>
+            <button class="secondary" id="disableSupportAccessButton" type="button">Запретить доступ</button>
+          </div>
+        </div>
       </div>
       <div class="support-tabs" role="tablist" aria-label="Поддержка">
         <button class="active" id="supportNewTab" type="button" data-support-tab="new">Новое обращение</button>
         <button id="supportTicketsTab" type="button" data-support-tab="tickets">Мои обращения</button>
       </div>
-      <form class="password-modal-form support-pane" id="supportForm" data-support-pane="new">
-        <label class="field">
-          <span>Категория</span>
-          <select id="supportCategoryInput">
-            <option value="bug">Ошибка</option>
-            <option value="question">Вопрос по работе</option>
-            <option value="feature">Предложение функции</option>
-            <option value="access">Проблема с доступом</option>
-            <option value="billing">Оплата / тариф</option>
-            <option value="other">Другое</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Тема</span>
-          <input id="supportTitleInput" required>
-        </label>
-        <label class="field">
-          <span>Контактный телефон</span>
-          <input id="supportPhoneInput" type="tel" autocomplete="tel" placeholder="+7">
-        </label>
-        <label class="field">
-          <span>Описание</span>
-          <textarea id="supportDescriptionInput" required></textarea>
-        </label>
-        <div class="field">
-          <span>Скриншоты</span>
-          <label class="support-file-button">
-            <span>Выбрать файл</span>
-            <input id="supportAttachmentsInput" type="file" accept="image/*" multiple>
+      <form class="support-form support-pane" id="supportForm" data-support-pane="new">
+        <div class="support-form-grid">
+          <label class="field">
+            <span>Категория</span>
+            <select id="supportCategoryInput">
+              <option value="bug">Ошибка</option>
+              <option value="question">Вопрос по работе</option>
+              <option value="feature">Предложение функции</option>
+              <option value="access">Проблема с доступом</option>
+              <option value="billing">Оплата / тариф</option>
+              <option value="other">Другое</option>
+            </select>
           </label>
+          <label class="field">
+            <span>Контактный телефон</span>
+            <input id="supportPhoneInput" type="tel" autocomplete="tel" placeholder="+7">
+          </label>
+          <label class="field wide">
+            <span>Тема</span>
+            <input id="supportTitleInput" required>
+          </label>
+          <label class="field wide">
+            <span>Описание</span>
+            <textarea id="supportDescriptionInput" required></textarea>
+          </label>
+          <div class="field wide">
+            <span>Скриншоты</span>
+            <div class="support-file-row">
+              <label class="support-file-button">
+                <span>Выбрать файл</span>
+                <input id="supportAttachmentsInput" type="file" accept="image/*" multiple>
+              </label>
+              <span class="support-file-name" id="supportAttachmentsName">Файлы не выбраны</span>
+            </div>
+          </div>
         </div>
         <div class="status" id="supportStatus"></div>
         <div class="modal-actions">
-          <button class="secondary" id="cancelSupportButton" type="button">Отмена</button>
           <button class="primary" type="submit">Отправить</button>
+          <button class="secondary" id="cancelSupportButton" type="button">Отмена</button>
         </div>
       </form>
       <div class="support-ticket-list support-pane" id="supportTicketList" data-support-pane="tickets" hidden></div>
@@ -6942,6 +7278,9 @@
 
   <div class="modal-backdrop" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
     <div class="modal help-modal">
+      <button class="modal-close" type="button" data-modal-close-button="closeHelpButton" aria-label="Закрыть" title="Закрыть">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
       <h2 id="helpModalTitle">Справка по сервису</h2>
       <p>Короткий ориентир по планировщику производства, основным зависимостям и ежедневным действиям.</p>
       <div class="help-doc">
@@ -7013,7 +7352,8 @@
               <ul>
                 <li>Распределение банок и кег считается от планового выхода в карточке цикла.</li>
                 <li>Частичный розлив добавляется только к сохраненному циклу и не может превышать плановый выход.</li>
-                <li>Ближайшие розливы и склад собираются из даты розлива и упаковки циклов.</li>
+                <li>Ближайшие розливы собираются из дат розлива и упаковки циклов.</li>
+                <li>Календарь может показывать плановые варки, плановые розливы и мои задачи. Типы событий включаются и выключаются фильтрами над календарем.</li>
               </ul>
             </section>
             <section class="help-section" id="helpAutomation">
@@ -7053,7 +7393,7 @@
       </div>
       <div class="modal-actions">
         <button class="secondary" id="resetOnboardingButton" type="button">Показать подсказки снова</button>
-        <button class="primary" id="closeHelpButton" type="button">Закрыть</button>
+        <button class="secondary" id="closeHelpButton" type="button">Закрыть</button>
       </div>
     </div>
   </div>
@@ -7101,7 +7441,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.07.01.181-saas";
+    const appVersion = "v2026.07.01.185-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -7207,8 +7547,8 @@
       ],
       warehouse: [
         {
-          title: "Складской календарь",
-          text: "Календарь показывает будущие поступления на склад по датам розлива и распределение по таре.",
+          title: "Календарь",
+          text: "Календарь показывает плановые варки, плановые розливы и мои задачи. Фильтры сверху позволяют оставить на экране только нужные типы событий.",
           target: "#warehousePanel"
         }
       ],
@@ -7637,8 +7977,22 @@
       return Promise.all(files.map(readSupportAttachment));
     }
 
+    function updateSupportAttachmentName() {
+      if (!supportAttachmentsName) return;
+      const files = Array.from(supportAttachmentsInput.files || []);
+      if (!files.length) {
+        supportAttachmentsName.textContent = "Файлы не выбраны";
+        return;
+      }
+      supportAttachmentsName.textContent = files.length === 1
+        ? files[0].name
+        : `Выбрано файлов: ${files.length}`;
+    }
+
     function renderSupportAccessStatus(data = {}) {
       const visible = isYandexBackend && canAdmin();
+      supportModal.dataset.accessVisible = visible ? "true" : "false";
+      supportAccessStatus.parentElement.hidden = !visible;
       supportAccessStatus.hidden = !visible;
       supportAccessActions.hidden = !visible;
       if (!visible) return;
@@ -7668,6 +8022,8 @@
       try {
         renderSupportAccessStatus(await yandexRequest("/support-access"));
       } catch (error) {
+        supportModal.dataset.accessVisible = "true";
+        supportAccessStatus.parentElement.hidden = false;
         supportAccessStatus.hidden = false;
         supportAccessStatus.className = "status error";
         supportAccessStatus.textContent = `Не удалось проверить доступ поддержки: ${error.message}`;
@@ -8031,26 +8387,28 @@
               </div>
               ${deadline ? `<span class="support-ticket-deadline">${escapeHtml(deadline)}</span>` : ""}
             </summary>
-            <div class="support-ticket-thread">
-              <div class="support-ticket-message" data-side="${supportTicketMessageSide(null, ticket)}" data-own="${ticket.createdByUserId === currentUser?.id ? "true" : "false"}">
-                <div class="support-ticket-message-meta">${escapeHtml(ticket.createdByName || ticket.createdByEmail || "")} · ${escapeHtml(formatSupportDate(ticket.createdAt))}</div>
-                <div class="support-ticket-message-body">${escapeHtml(ticket.description || "")}</div>
-              </div>
-              ${messages.map((message) => `
-                <div class="support-ticket-message" data-side="${supportTicketMessageSide(message, ticket)}" data-own="${message.authorUserId === currentUser?.id ? "true" : "false"}">
-                  <div class="support-ticket-message-meta">${escapeHtml(message.authorName || message.authorEmail || "")} · ${escapeHtml(formatSupportDate(message.createdAt))}</div>
-                  <div class="support-ticket-message-body">${escapeHtml(message.text || "")}</div>
+            <div class="support-ticket-body">
+              <div class="support-ticket-thread">
+                <div class="support-ticket-message" data-side="${supportTicketMessageSide(null, ticket)}" data-own="${ticket.createdByUserId === currentUser?.id ? "true" : "false"}">
+                  <div class="support-ticket-message-meta">${escapeHtml(ticket.createdByName || ticket.createdByEmail || "")} · ${escapeHtml(formatSupportDate(ticket.createdAt))}</div>
+                  <div class="support-ticket-message-body">${escapeHtml(ticket.description || "")}</div>
                 </div>
-              `).join("")}
+                ${messages.map((message) => `
+                  <div class="support-ticket-message" data-side="${supportTicketMessageSide(message, ticket)}" data-own="${message.authorUserId === currentUser?.id ? "true" : "false"}">
+                    <div class="support-ticket-message-meta">${escapeHtml(message.authorName || message.authorEmail || "")} · ${escapeHtml(formatSupportDate(message.createdAt))}</div>
+                    <div class="support-ticket-message-body">${escapeHtml(message.text || "")}</div>
+                  </div>
+                `).join("")}
+              </div>
+              <form class="support-ticket-reply" data-ticket-reply>
+                <textarea placeholder="Ответить по обращению"></textarea>
+                <button class="secondary" type="submit">Отправить (${submitShortcutLabel})</button>
+                <div class="status"></div>
+              </form>
             </div>
-            <form class="support-ticket-reply" data-ticket-reply>
-              <textarea placeholder="Ответить по обращению"></textarea>
-              <button class="secondary" type="submit">Отправить (${submitShortcutLabel})</button>
-              <div class="status"></div>
-            </form>
           </details>
         `;
-      }).join("") : `<p class="small">У вас пока нет обращений.</p>`;
+      }).join("") : `<div class="support-empty-state">У вас пока нет обращений</div>`;
       supportTicketList.querySelectorAll(".support-ticket-card").forEach((card) => {
         card.addEventListener("toggle", () => {
           if (card.open) {
@@ -9434,6 +9792,11 @@
       view: "compact",
       summaryExpanded: false,
       bottlingHorizonDays: 14,
+      warehouseFilters: {
+        brews: true,
+        bottlings: true,
+        tasks: true
+      },
       panelMode: "hidden",
       selectedCycleId: null,
       selectedCycleIds: new Set(),
@@ -9576,6 +9939,7 @@
     const bottlingPeriodTotal = document.querySelector("#bottlingPeriodTotal");
     const warehouseButton = document.querySelector("#warehouseButton");
     const closeWarehouseButton = document.querySelector("#closeWarehouseButton");
+    const warehouseFilters = document.querySelector("#warehouseFilters");
     const warehouseCalendar = document.querySelector("#warehouseCalendar");
     const warehouseCount = document.querySelector("#warehouseCount");
     const templatesButton = document.querySelector("#templatesButton");
@@ -9731,6 +10095,7 @@
     const supportPhoneInput = document.querySelector("#supportPhoneInput");
     const supportDescriptionInput = document.querySelector("#supportDescriptionInput");
     const supportAttachmentsInput = document.querySelector("#supportAttachmentsInput");
+    const supportAttachmentsName = document.querySelector("#supportAttachmentsName");
     const supportStatus = document.querySelector("#supportStatus");
     const supportTicketList = document.querySelector("#supportTicketList");
     const supportCount = document.querySelector("#supportCount");
@@ -11787,7 +12152,7 @@
           </div>
           <div class="task-actions">
             <button class="primary" type="button" data-save-task-edit="${escapeHtml(task.id)}">Сохранить</button>
-            <button type="button" data-cancel-task-edit>Отмена</button>
+            <button class="secondary" type="button" data-cancel-task-edit>Отмена</button>
           </div>
         </div>
       `;
@@ -14510,6 +14875,14 @@
       return value === "expanded" || value === "compact" ? value : fallback;
     }
 
+    function normalizeWarehouseFilters(filters = {}) {
+      return {
+        brews: filters.brews === undefined ? true : Boolean(filters.brews),
+        bottlings: filters.bottlings === undefined ? true : Boolean(filters.bottlings),
+        tasks: filters.tasks === undefined ? true : Boolean(filters.tasks)
+      };
+    }
+
     function applyDisplayControls() {
       startInput.value = state.start;
       rangeSelect.value = state.rangeMode;
@@ -14528,7 +14901,8 @@
         range: state.range,
         zoom: state.zoom,
         zoomStep: state.zoomStep,
-        view: state.view
+        view: state.view,
+        warehouseFilters: normalizeWarehouseFilters(state.warehouseFilters)
       };
     }
 
@@ -14551,12 +14925,14 @@
         state.zoom = validZoomMode(display.zoom);
         state.zoomStep = clamp(Number(display.zoomStep || 0), -3, 6);
         state.view = validPlannerView(display.view, personalSettings.plannerView);
+        state.warehouseFilters = normalizeWarehouseFilters(display.warehouseFilters);
         syncEndDate();
       } else {
         applyTimelineSettings(personalSettings);
         state.zoom = "day";
         state.zoomStep = 0;
         state.view = personalSettings.plannerView;
+        state.warehouseFilters = normalizeWarehouseFilters();
       }
       applyDisplayControls();
     }
@@ -16323,9 +16699,100 @@
     function warehouseEvents() {
       const periodStart = state.start;
       const periodEnd = toISO(addDays(parseDate(state.start), state.range - 1));
-      return bottlingEvents()
+      const filters = normalizeWarehouseFilters(state.warehouseFilters);
+      const events = [];
+      if (filters.brews) {
+        cycles.forEach((cycle) => {
+          events.push({
+            id: `${cycle.id}:brew`,
+            kind: "brew",
+            cycleId: cycle.id,
+            date: cycle.start,
+            product: cycle.product
+          });
+        });
+      }
+      if (filters.bottlings) {
+        bottlingEvents().forEach((event) => {
+          events.push({
+            ...event,
+            kind: "bottling"
+          });
+        });
+      }
+      if (filters.tasks && featureEnabled("cycleTasks")) {
+        myTaskItems().forEach(({ task, cycle }) => {
+          if (!task.dueDate) return;
+          events.push({
+            id: `${cycle.id}:task:${task.id}`,
+            kind: "task",
+            cycleId: cycle.id,
+            taskId: task.id,
+            date: task.dueDate,
+            product: cycle.product,
+            title: task.title,
+            done: Boolean(task.done),
+            overdue: taskIsOverdue(task)
+          });
+        });
+      }
+      const kindOrder = { brew: 1, bottling: 2, task: 3 };
+      return events
         .filter((event) => event.date >= periodStart && event.date <= periodEnd)
-        .sort((a, b) => a.date.localeCompare(b.date) || a.product.localeCompare(b.product, "ru"));
+        .sort((a, b) => a.date.localeCompare(b.date)
+          || (kindOrder[a.kind] || 9) - (kindOrder[b.kind] || 9)
+          || (a.product || a.title || "").localeCompare(b.product || b.title || "", "ru"));
+    }
+
+    function renderWarehouseFilters() {
+      const filters = normalizeWarehouseFilters(state.warehouseFilters);
+      state.warehouseFilters = filters;
+      warehouseFilters?.querySelectorAll("[data-warehouse-filter]").forEach((button) => {
+        const key = button.dataset.warehouseFilter;
+        button.hidden = key === "tasks" && !featureEnabled("cycleTasks");
+        const active = Boolean(filters[key]);
+        button.dataset.active = active ? "true" : "false";
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+    }
+
+    function warehouseEventLocation(event) {
+      const cycle = cycles.find((item) => item.id === event.cycleId);
+      const tank = tanks.find((item) => item.id === cycle?.tankId);
+      const site = sites.find((item) => item.id === tank?.siteId);
+      return { cycle, tank, site };
+    }
+
+    function warehouseEventHtml(event) {
+      const { cycle, tank, site } = warehouseEventLocation(event);
+      if (!cycle) return "";
+      if (event.kind === "brew") {
+        return `
+          <button class="warehouse-entry" type="button" data-kind="brew" data-id="${escapeHtml(cycle.id)}" title="${escapeHtml(event.product)}">
+            <b>${escapeHtml(event.product)}</b>
+            <span>Варка · ${tank ? escapeHtml(tank.name) : "ЦКТ не указан"}</span>
+            <span>Площадка: ${site ? escapeHtml(site.name) : "не указана"}</span>
+          </button>
+        `;
+      }
+      if (event.kind === "task") {
+        return `
+          <button class="warehouse-entry" type="button" data-kind="task" data-id="${escapeHtml(cycle.id)}" data-task-id="${escapeHtml(event.taskId || "")}" data-overdue="${event.overdue ? "true" : "false"}" title="${escapeHtml(event.title || "Задача")}">
+            <b>${escapeHtml(event.title || "Задача")}</b>
+            <span>${escapeHtml(cycle.product)}${tank ? ` · ${escapeHtml(tank.name)}` : ""}</span>
+            <span>${event.done ? "Выполнено" : event.overdue ? "Просрочена" : "В работе"}</span>
+          </button>
+        `;
+      }
+      const packaging = event.packaging;
+      return `
+        <button class="warehouse-entry" type="button" data-kind="bottling" data-id="${escapeHtml(cycle.id)}" title="${escapeHtml(event.product)}">
+          <b>${escapeHtml(event.product)}${event.label ? ` · ${event.label}` : ""}</b>
+          <span>Площадка: ${site ? escapeHtml(site.name) : "не указана"}</span>
+          <span>Банки: ${formatNumber(packaging.can045.quantity)} шт</span>
+          <span>Кеги: ${formatLiters(packaging.keg20.liters)} л</span>
+        </button>
+      `;
     }
 
     function monthKey(date) {
@@ -16344,17 +16811,18 @@
     }
 
     function renderWarehouseCalendar() {
+      renderWarehouseFilters();
       const incoming = warehouseEvents();
       const totals = incoming.reduce((sum, event) => {
-        const packaging = event.packaging;
-        sum.cans += Number(packaging.can045.quantity || 0);
-        sum.kegs += Number(packaging.keg20.quantity || 0);
+        if (event.kind === "brew") sum.brews += 1;
+        if (event.kind === "bottling") sum.bottlings += 1;
+        if (event.kind === "task") sum.tasks += 1;
         return sum;
-      }, { cans: 0, kegs: 0 });
-      warehouseCount.textContent = `${formatNumber(incoming.length)} поз.`;
+      }, { brews: 0, bottlings: 0, tasks: 0 });
+      warehouseCount.textContent = `${formatNumber(incoming.length)} соб.`;
 
       if (!incoming.length) {
-        warehouseCalendar.innerHTML = `<div class="empty-state">В выбранном периоде розливов нет</div>`;
+        warehouseCalendar.innerHTML = `<div class="empty-state">В выбранном периоде событий нет</div>`;
         return;
       }
 
@@ -16376,9 +16844,9 @@
 
       const summary = `
         <div class="warehouse-summary">
-          <div><b>${formatNumber(incoming.length)}</b><span>розливов</span></div>
-          <div><b>${formatNumber(totals.cans)}</b><span>банок</span></div>
-          <div><b>${formatNumber(totals.kegs)}</b><span>кег</span></div>
+          <div><b>${formatNumber(totals.brews)}</b><span>варок</span></div>
+          <div><b>${formatNumber(totals.bottlings)}</b><span>розливов</span></div>
+          <div><b>${formatNumber(totals.tasks)}</b><span>задач</span></div>
         </div>
       `;
 
@@ -16398,21 +16866,7 @@
           cells.push(`
             <div class="warehouse-day ${isToday ? "today" : ""}">
               <div class="warehouse-date"><span>${day}</span><span>${weekdayFormatter.format(date)}</span></div>
-              ${entries.map((event) => {
-                const cycle = cycles.find((item) => item.id === event.cycleId);
-                if (!cycle) return "";
-                const packaging = event.packaging;
-                const tank = tanks.find((item) => item.id === cycle.tankId);
-                const site = sites.find((item) => item.id === tank?.siteId);
-                return `
-                  <button class="warehouse-entry" type="button" data-id="${cycle.id}" title="${escapeHtml(event.product)}">
-                    <b>${escapeHtml(event.product)}${event.label ? ` · ${event.label}` : ""}</b>
-                    <span>Площадка: ${site ? escapeHtml(site.name) : "не указана"}</span>
-                    <span>Банки: ${formatNumber(packaging.can045.quantity)} шт</span>
-                    <span>Кеги: ${formatLiters(packaging.keg20.liters)} л</span>
-                  </button>
-                `;
-              }).join("")}
+              ${entries.map(warehouseEventHtml).join("")}
             </div>
           `);
         }
@@ -16430,7 +16884,8 @@
       warehouseCalendar.querySelectorAll(".warehouse-entry").forEach((button) => {
         button.addEventListener("click", () => {
           const cycle = cycles.find((item) => String(item.id) === button.dataset.id);
-          if (cycle) fillForm(cycle);
+          if (!cycle) return;
+          fillForm(cycle, button.dataset.kind === "task" ? "tasks" : "production");
         });
       });
     }
@@ -17753,6 +18208,16 @@
         if (!isOpen) requestAnimationFrame(() => requestAnimationFrame(scrollWarehouseToCurrentMonth));
       });
 
+      warehouseFilters?.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-warehouse-filter]");
+        if (!button) return;
+        const key = button.dataset.warehouseFilter;
+        state.warehouseFilters = normalizeWarehouseFilters(state.warehouseFilters);
+        state.warehouseFilters[key] = !state.warehouseFilters[key];
+        saveUserUiPreferences();
+        renderWarehouseCalendar();
+      });
+
       templatesButton.addEventListener("click", () => {
         const isOpen = state.panelMode === "templates";
         state.panelMode = isOpen ? "hidden" : "templates";
@@ -17977,6 +18442,16 @@
 
       helpButton.addEventListener("click", openHelpModal);
       closeHelpButton.addEventListener("click", closeHelpModal);
+      document.querySelectorAll("[data-modal-close-button]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const closeButton = document.getElementById(button.dataset.modalCloseButton);
+          if (closeButton) {
+            closeButton.click();
+            return;
+          }
+          button.closest(".modal-backdrop")?.classList.remove("open");
+        });
+      });
       helpModal.addEventListener("click", (event) => {
         if (event.target === helpModal) closeHelpModal();
       });
@@ -18338,6 +18813,7 @@
         supportStatus.textContent = "";
         supportForm.reset();
         supportPhoneInput.value = "+7";
+        updateSupportAttachmentName();
         setSupportTab(hasSupportUnread ? "tickets" : "new");
         supportModal.classList.add("open");
         renderOnboardingTip();
@@ -18370,6 +18846,7 @@
           supportStatus.textContent = `Обращение ${data.ticket?.number || ""} создано`;
           supportForm.reset();
           supportPhoneInput.value = "+7";
+          updateSupportAttachmentName();
           await loadSupportTickets({ markSeen: true });
           setSupportTab("tickets");
         } catch (error) {
@@ -18386,6 +18863,7 @@
       supportPhoneInput.addEventListener("input", () => {
         if (!supportPhoneInput.value.startsWith("+7")) supportPhoneInput.value = "+7";
       });
+      supportAttachmentsInput.addEventListener("change", updateSupportAttachmentName);
       supportModal.addEventListener("click", (event) => {
         if (event.target === supportModal) {
           supportModal.classList.remove("open");
@@ -19011,6 +19489,7 @@
       newUserPhoneInput.addEventListener("focus", () => ensureRussianPhonePrefix(newUserPhoneInput));
       newUserPhoneInput.addEventListener("input", () => ensureRussianPhonePrefix(newUserPhoneInput));
 
+      setUserCreateFormOpen(false);
       render();
     }
 
