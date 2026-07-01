@@ -258,7 +258,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.07.01.199-saas";
+      content: "v2026.07.02.232-saas";
     }
 
     .toolbar {
@@ -389,16 +389,26 @@
     }
 
     .user-menu button:hover,
-    .user-menu button.active,
-    .user-menu .my-tasks-button[data-has-open="true"],
-    .user-menu #supportButton[data-has-unread="true"] {
+    .user-menu .my-tasks-button[data-has-open="true"]:not(.active),
+    .user-menu #supportButton[data-has-unread="true"]:not(.active) {
       background: var(--soft-bg);
+      color: var(--ink);
+    }
+
+    .user-menu button.active {
+      background: var(--brand);
+      color: #fff;
     }
 
     .user-menu button svg {
       width: 18px;
       height: 18px;
       justify-self: center;
+    }
+
+    .user-menu button.active b {
+      background: #fff;
+      color: #111827;
     }
 
     .user-menu .my-tasks-button {
@@ -1413,11 +1423,11 @@
     }
 
     .workspace[data-panel="templates"] {
-      grid-template-columns: minmax(0, 1fr) 336px;
+      grid-template-columns: minmax(0, 1fr) 504px;
     }
 
     .workspace[data-panel="templates"][data-template-tasks="true"] {
-      grid-template-columns: minmax(0, 1fr) minmax(560px, 620px);
+      grid-template-columns: minmax(0, 1fr) minmax(840px, 930px);
     }
 
     .workspace[data-panel="templates"] #cyclePanel,
@@ -1502,20 +1512,17 @@
     }
 
     #organizationSettingsPanel.open {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      z-index: 65;
       display: flex;
       flex-direction: column;
-      width: min(1144px, calc(100vw - 32px));
-      height: min(660px, calc(100vh - 40px));
+      width: 100%;
+      height: calc(100vh - 178px);
+      min-height: 520px;
+      max-height: calc(100vh - 178px);
       overflow: hidden;
-      transform: translate(-50%, -50%);
       border: 1px solid var(--line-strong);
       border-radius: 8px;
       background: var(--panel);
-      box-shadow: 0 24px 80px rgba(15, 23, 42, .28), 0 0 0 9999px rgba(15, 23, 42, .42);
+      box-shadow: var(--shadow);
     }
 
     #organizationSettingsPanel.open .panel-head {
@@ -1576,14 +1583,15 @@
     }
 
     .settings-main-pane {
-      grid-template-columns: minmax(0, 1fr) minmax(300px, .78fr);
-      gap: 14px;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
     }
 
     .settings-section {
       display: grid;
       gap: 12px;
       align-content: start;
+      min-width: 0;
       padding: 14px;
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -1795,16 +1803,16 @@
     }
 
     .workspace[data-panel="orgSettings"] {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(704px, 53vw);
     }
 
     .workspace[data-panel="orgSettings"] aside {
       display: block;
       min-width: 0;
-      width: 0;
-      padding: 0;
-      border: 0;
-      overflow: visible;
+      width: auto;
+      padding: 18px 24px 24px 18px;
+      border-left: 1px solid var(--line);
+      overflow: hidden;
     }
 
     .workspace[data-panel="mySettings"] {
@@ -1815,6 +1823,16 @@
     .workspace[data-panel="mySettings"] #mySettingsPanel {
       display: flex;
       flex-direction: column;
+    }
+
+    .workspace[data-panel="mySettings"] #organizationSettingsPanel,
+    .workspace[data-panel="orgSettings"] #mySettingsPanel {
+      display: none !important;
+    }
+
+    .workspace:not([data-panel="orgSettings"]) #organizationSettingsPanel,
+    .workspace:not([data-panel="mySettings"]) #mySettingsPanel {
+      display: none !important;
     }
 
     .workspace[data-panel="orgSettings"] #cyclePanel,
@@ -1847,16 +1865,18 @@
 
     .settings-logo-row {
       display: grid;
-      grid-template-columns: 176px minmax(0, 1fr);
-      gap: 14px;
+      grid-template-columns: minmax(160px, .38fr) minmax(0, 1fr);
+      gap: 12px;
       align-items: stretch;
     }
 
     .settings-logo-preview {
       display: grid;
       place-items: center;
-      width: 176px;
-      min-height: 96px;
+      width: 100%;
+      min-width: 0;
+      min-height: 128px;
+      padding: 10px;
       border: 1px solid var(--line-strong);
       border-radius: 8px;
       background: var(--soft-bg);
@@ -1870,7 +1890,9 @@
     .settings-logo-preview img {
       display: block;
       width: auto;
-      height: 68px;
+      max-width: 100%;
+      height: auto;
+      max-height: 68px;
       object-fit: contain;
     }
 
@@ -1884,7 +1906,7 @@
 
     .settings-logo-controls {
       display: grid;
-      align-content: center;
+      align-content: start;
       gap: 8px;
       min-width: 0;
     }
@@ -1897,10 +1919,11 @@
 
     .settings-logo-upload {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
-      gap: 10px;
-      min-height: 48px;
+      align-content: center;
+      gap: 8px;
+      min-height: 128px;
       padding: 8px;
       border: 1px solid var(--line-strong);
       border-radius: 8px;
@@ -1924,7 +1947,12 @@
       white-space: nowrap;
     }
 
+    .settings-logo-button {
+      width: 100%;
+    }
+
     .settings-logo-file {
+      grid-column: 1 / -1;
       min-width: 0;
       color: var(--muted);
       font-size: 13px;
@@ -1941,9 +1969,13 @@
 
     .settings-workday-row {
       display: grid;
-      grid-template-columns: minmax(92px, .55fr) minmax(92px, .55fr) minmax(190px, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
       align-items: end;
+    }
+
+    .settings-timezone-field {
+      grid-column: 1 / -1;
     }
 
     .settings-workday-row input,
@@ -2029,6 +2061,7 @@
     :root[data-fullscreen-mode="true"] #actionLogPanel,
     :root[data-fullscreen-mode="true"] #featuresPanel,
     :root[data-fullscreen-mode="true"] #myTasksPanel,
+    :root[data-fullscreen-mode="true"] #organizationSettingsPanel,
     :root[data-fullscreen-mode="true"] #mySettingsPanel {
       height: 100vh;
       min-height: 0;
@@ -2265,10 +2298,36 @@
       gap: 1px;
       line-height: 1.05;
       cursor: pointer;
+      position: sticky;
     }
 
     .day-cell:hover {
       background: var(--hover-bg);
+    }
+
+    .day-cell[data-has-task="true"]::after {
+      content: "";
+      position: absolute;
+      left: 2px;
+      right: 2px;
+      bottom: 3px;
+      height: 4px;
+      border-radius: 999px;
+      background: #dc2626;
+      box-shadow: 0 -1px 0 rgba(255, 255, 255, .82), 0 1px 0 rgba(15, 23, 42, .52);
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .day-task-cell {
+      position: absolute;
+      left: 7px;
+      right: 7px;
+      bottom: 3px;
+      height: 10px;
+      z-index: 7;
+      cursor: pointer;
+      display: block;
     }
 
     .day-cell b {
@@ -2888,6 +2947,7 @@
     #actionLogPanel,
     #featuresPanel,
     #myTasksPanel,
+    #organizationSettingsPanel,
     #mySettingsPanel {
       height: calc(100vh - 178px);
       min-height: 520px;
@@ -2929,6 +2989,7 @@
     #myTasksPanel > .panel-head,
     #myTasksPanel > .selected-summary,
     #myTasksPanel > .my-task-tabs,
+    #organizationSettingsPanel > .panel-head,
     #mySettingsPanel > .panel-head,
     #actionLogPanel > .panel-head,
     #actionLogPanel > .selected-summary {
@@ -2942,6 +3003,7 @@
     #usersPanel > .user-list,
     #featuresPanel > .feature-list,
     #myTasksPanel .my-task-list,
+    #organizationSettingsPanel > .settings-form,
     #mySettingsPanel > .settings-form,
     #actionLogPanel > .action-log-list {
       flex: 1 1 auto;
@@ -2954,6 +3016,10 @@
     #mySettingsPanel > .settings-form {
       align-content: start;
       padding-bottom: 24px;
+    }
+
+    #mySettingsPanel .feature-list {
+      overflow: visible;
     }
 
     #actionLogPanel > .action-log-list {
@@ -3486,13 +3552,41 @@
     .my-task-row {
       width: 100%;
       display: grid;
-      gap: 5px;
-      padding: 9px 10px;
+      grid-template-columns: 24px minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 8px;
+      padding: 10px;
       border: 1px solid var(--line);
       border-radius: 7px;
       background: var(--panel);
       color: var(--ink);
       text-align: left;
+    }
+
+    .my-task-row[data-done="true"] {
+      opacity: .62;
+    }
+
+    .my-task-row[data-assigned-me="true"] {
+      border-color: rgba(255, 139, 0, .48);
+      box-shadow: inset 3px 0 0 #FF8B00;
+    }
+
+    .my-task-row[data-done="true"] b {
+      text-decoration: line-through;
+    }
+
+    .my-task-row > input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      margin: 24px 0 0;
+      justify-self: center;
+    }
+
+    .my-task-row .cycle-task-body b {
+      overflow: visible;
+      text-overflow: clip;
+      white-space: normal;
     }
 
     .my-task-group {
@@ -3788,6 +3882,14 @@
       grid-column: 1 / -1;
     }
 
+    .process-mashing-row {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      align-items: start;
+    }
+
     .process-chart-button {
       width: 100%;
       margin: 0;
@@ -3894,6 +3996,33 @@
       font-weight: 800;
     }
 
+    .process-fermentation-table {
+      display: grid;
+      gap: 6px;
+    }
+
+    .process-fermentation-head,
+    .process-fermentation-row {
+      display: grid;
+      grid-template-columns: 96px minmax(0, 1fr) minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+    }
+
+    .process-fermentation-head {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .process-fermentation-row input {
+      min-height: 36px;
+      padding-top: 7px;
+      padding-bottom: 7px;
+    }
+
     .two {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -3964,18 +4093,28 @@
       display: grid;
     }
 
-    .help-modal {
-      width: 96vw;
-      min-width: min(760px, calc(100vw - 24px));
-      max-width: calc(100vw - 24px);
-      height: min(860px, calc(100vh - 32px));
+    #helpModal.open {
+      inset: 178px 0 0 auto;
+      display: block;
+      width: min(1028px, 100vw);
+      padding: 18px 24px 24px 18px;
+      border-left: 1px solid var(--line);
+      background: var(--bg);
+      pointer-events: none;
+    }
+
+    #helpModal .help-modal {
+      pointer-events: auto;
+      width: 100%;
+      max-width: none;
+      height: 100%;
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
 
-    .help-modal > h2,
-    .help-modal > p {
+    #helpModal .help-modal > h2,
+    #helpModal .help-modal > p {
       flex: 0 0 auto;
     }
 
@@ -3984,14 +4123,14 @@
       min-height: 0;
       display: grid;
       margin: 16px 0 0;
-      padding: 0 28px;
+      padding: 0 18px;
     }
 
     .help-layout {
       min-height: 0;
       display: grid;
-      grid-template-columns: 260px minmax(0, 1fr);
-      gap: 20px;
+      grid-template-columns: 238px minmax(0, 1fr);
+      gap: 16px;
     }
 
     .help-toc {
@@ -4069,11 +4208,16 @@
       padding-left: 18px;
     }
 
-    .help-modal .modal-actions {
+    #helpModal .help-modal .modal-actions {
       flex: 0 0 auto;
     }
 
-    @media (max-width: 760px) {
+    @media (max-width: 900px) {
+      #helpModal.open {
+        inset: 104px 14px 14px;
+        width: auto;
+      }
+
       .help-layout {
         grid-template-columns: 1fr;
       }
@@ -4616,10 +4760,24 @@
       padding-right: 58px;
     }
 
+    #supportModal.open {
+      inset: 178px 0 0 auto;
+      display: block;
+      width: min(728px, 100vw);
+      padding: 18px 24px 24px 18px;
+      border-left: 1px solid var(--line);
+      background: var(--bg);
+      pointer-events: none;
+    }
+
     #supportModal .modal {
-      width: min(860px, calc(100vw - 32px));
-      height: min(720px, calc(100vh - 32px));
-      max-height: calc(100vh - 32px);
+      --support-inline: 18px;
+      --support-gap: 8px;
+      pointer-events: auto;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      max-height: none;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -4628,10 +4786,14 @@
     .support-modal-head {
       flex: 0 0 auto;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(240px, .48fr);
-      gap: 14px;
+      grid-template-columns: 1fr;
+      gap: 10px;
       align-items: start;
-      padding: 18px 18px 0;
+      padding: 16px var(--support-inline) 0;
+    }
+
+    .support-modal-head > div:first-child {
+      padding-right: 62px;
     }
 
     #supportModal[data-access-visible="false"] .support-modal-head {
@@ -4641,7 +4803,7 @@
     .support-modal-head h2 {
       margin: 0;
       padding: 0;
-      font-size: 20px;
+      font-size: 18px;
       line-height: 1.15;
     }
 
@@ -4649,7 +4811,7 @@
       margin: 7px 0 0;
       padding: 0;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.4;
     }
 
@@ -4658,6 +4820,7 @@
       gap: 8px;
       min-width: 0;
       justify-self: stretch;
+      width: 100%;
     }
 
     #supportModal .support-pane {
@@ -4669,8 +4832,8 @@
       flex: 0 0 auto;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 6px;
-      padding: 14px 18px 0;
+      gap: var(--support-gap);
+      padding: 14px var(--support-inline) 0;
     }
 
     .support-tabs button {
@@ -4696,6 +4859,7 @@
     #supportAccessStatus {
       margin: 0;
       padding: 9px 10px;
+      width: 100%;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: color-mix(in srgb, var(--soft-bg) 62%, var(--panel));
@@ -4709,9 +4873,10 @@
     #supportAccessActions {
       margin: 0;
       padding: 0;
+      width: 100%;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 6px;
+      gap: var(--support-gap);
     }
 
     #supportAccessActions[hidden] {
@@ -4720,10 +4885,10 @@
 
     #supportAccessActions button {
       min-width: 0;
-      min-height: 32px;
+      min-height: 34px;
       padding: 6px 8px;
       font-size: 12px;
-      line-height: 1.15;
+      line-height: 1.12;
       white-space: normal;
     }
 
@@ -4731,7 +4896,7 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      padding: 16px 18px 18px;
+      padding: 16px var(--support-inline) 18px;
       overflow-y: auto;
       scrollbar-gutter: stable;
     }
@@ -4772,6 +4937,13 @@
       background: color-mix(in srgb, var(--brand) 88%, #fff);
     }
 
+    .support-file-button span {
+      color: #fff;
+      font-size: 13px;
+      font-weight: 850;
+      text-transform: none;
+    }
+
     .support-file-button input {
       position: absolute;
       opacity: 0;
@@ -4806,7 +4978,7 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      padding: 16px 18px 18px;
+      padding: 16px var(--support-inline) 18px;
       overflow-y: auto;
       scrollbar-gutter: stable;
     }
@@ -4823,6 +4995,28 @@
       overflow: hidden;
     }
 
+    .support-ticket-list[data-mode="list"] .support-ticket-card {
+      padding: 13px 14px;
+      cursor: pointer;
+      background: color-mix(in srgb, var(--soft-bg) 58%, var(--panel));
+      transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+    }
+
+    .support-ticket-list[data-mode="list"] .support-ticket-card[data-unread="true"],
+    .support-ticket-detail[data-unread="true"] {
+      border-color: color-mix(in srgb, var(--brand) 72%, var(--line-strong));
+      background: linear-gradient(90deg, color-mix(in srgb, var(--brand) 12%, var(--panel)), var(--panel) 62%);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 18%, transparent), 0 14px 28px rgba(15, 23, 42, .08);
+    }
+
+    .support-ticket-list[data-mode="list"] .support-ticket-card:hover,
+    .support-ticket-list[data-mode="list"] .support-ticket-card:focus-visible {
+      border-color: color-mix(in srgb, var(--brand) 40%, var(--line-strong));
+      box-shadow: 0 14px 28px rgba(15, 23, 42, .08);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
     .support-ticket-card summary {
       display: grid;
       gap: 10px;
@@ -4833,11 +5027,17 @@
     }
 
     .support-ticket-card[open] {
-      border-color: color-mix(in srgb, var(--brand) 42%, var(--line-strong));
+      display: flex;
+      flex-direction: column;
+      height: 50%;
+      min-height: min(360px, 50%);
+      max-height: 560px;
+      border-color: var(--line-strong);
       box-shadow: 0 14px 30px rgba(15, 23, 42, .08);
     }
 
     .support-ticket-card[open] summary {
+      flex: 0 0 auto;
       border-bottom: 1px solid var(--line);
     }
 
@@ -4845,7 +5045,17 @@
       display: none;
     }
 
-    .support-ticket-card header {
+    .support-ticket-card summary:focus {
+      outline: none;
+    }
+
+    .support-ticket-card summary:focus-visible {
+      outline: 2px solid rgba(96, 165, 250, .35);
+      outline-offset: -2px;
+    }
+
+    .support-ticket-card header,
+    .support-ticket-detail-head header {
       display: grid;
       grid-template-columns: minmax(0, 1fr) max-content;
       gap: 12px;
@@ -4876,6 +5086,17 @@
       font-size: 12px;
       font-weight: 900;
       white-space: nowrap;
+    }
+
+    .support-ticket-unread {
+      width: fit-content;
+      min-height: 22px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--brand) 16%, var(--panel));
+      color: var(--brand);
+      font-size: 12px;
+      font-weight: 900;
     }
 
     .support-ticket-meta {
@@ -4917,11 +5138,112 @@
       line-height: 1.25;
     }
 
+    .support-ticket-list[data-mode="detail"] {
+      overflow: hidden;
+    }
+
+    .support-ticket-detail {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      box-shadow: 0 14px 30px rgba(15, 23, 42, .08);
+      overflow: hidden;
+    }
+
+    .support-ticket-detail-head {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: max-content minmax(0, 1fr);
+      column-gap: 12px;
+      row-gap: 3px;
+      align-items: start;
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--soft-bg) 58%, var(--panel));
+    }
+
+    .support-ticket-back {
+      grid-column: 1;
+      grid-row: 1 / span 4;
+      width: fit-content;
+      min-height: 28px;
+      padding: 0 10px;
+      font-size: 11px;
+    }
+
+    .support-ticket-detail-head header {
+      grid-column: 2;
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: end;
+      gap: 3px;
+    }
+
+    .support-ticket-detail-head .support-ticket-title {
+      font-size: 14px;
+      line-height: 1.15;
+      text-align: right;
+    }
+
+    .support-ticket-detail-head .support-ticket-number {
+      order: -1;
+      align-self: center;
+      padding: 2px 8px;
+      font-size: 11px;
+    }
+
+    .support-ticket-detail-head .support-ticket-meta {
+      grid-column: 2;
+      justify-self: end;
+      justify-content: flex-end;
+      gap: 5px;
+    }
+
+    .support-ticket-detail-head .support-ticket-status {
+      min-height: 18px;
+      padding: 2px 7px;
+      font-size: 11px;
+    }
+
+    .support-ticket-detail-head .support-ticket-updated,
+    .support-ticket-detail-head .support-ticket-deadline {
+      font-size: 11px;
+      line-height: 1.2;
+    }
+
+    .support-ticket-detail-head .support-ticket-deadline {
+      grid-column: 2;
+      justify-self: end;
+      text-align: right;
+    }
+
     .support-ticket-body {
       display: grid;
       gap: 12px;
       padding: 12px 0 0;
       background: var(--panel);
+    }
+
+    .support-ticket-card[open] .support-ticket-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+    }
+
+    .support-ticket-detail .support-ticket-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
     }
 
     .support-ticket-thread {
@@ -4930,11 +5252,16 @@
       padding: 0 14px;
     }
 
+    .support-ticket-detail .support-ticket-thread {
+      flex: 0 0 auto;
+    }
+
     .support-ticket-message {
       display: grid;
       gap: 5px;
-      width: min(100%, 640px);
-      max-width: 100%;
+      width: fit-content;
+      min-width: min(260px, 100%);
+      max-width: min(100%, 640px);
       justify-self: start;
       border-radius: 14px 14px 14px 4px;
       padding: 8px 11px 9px;
@@ -4959,7 +5286,9 @@
     }
 
     .support-ticket-message[data-side="support"] {
-      width: min(100%, 640px);
+      width: fit-content;
+      min-width: min(260px, 100%);
+      max-width: min(100%, 640px);
       justify-self: start;
       border-radius: 14px 14px 14px 4px;
       border-color: color-mix(in srgb, var(--blue) 24%, var(--line));
@@ -4968,7 +5297,9 @@
 
     .support-ticket-message[data-own="true"],
     .support-ticket-message[data-side="customer"] {
-      width: 50%;
+      width: fit-content;
+      min-width: min(260px, 100%);
+      max-width: 50%;
       justify-self: end;
       border-radius: 14px 14px 4px 14px;
       border-color: rgba(255, 139, 0, .28);
@@ -4978,10 +5309,12 @@
     .support-ticket-reply {
       display: grid;
       gap: 8px;
-      margin-top: 2px;
+      margin-top: auto;
       padding: 12px 14px 14px;
       border-top: 1px solid var(--line);
       background: color-mix(in srgb, var(--soft-bg) 42%, var(--panel));
+      position: sticky;
+      bottom: 0;
     }
 
     .support-ticket-reply textarea {
@@ -5030,6 +5363,11 @@
     }
 
     @media (max-width: 720px) {
+      #supportModal.open {
+        inset: 104px 14px 14px;
+        width: auto;
+      }
+
       .support-modal-head,
       .support-form-grid,
       .support-file-row {
@@ -5044,6 +5382,25 @@
       .support-ticket-message[data-side="customer"] {
         width: min(100%, 520px);
       }
+    }
+
+    :root[data-fullscreen-mode="true"] #supportModal.open,
+    :root[data-fullscreen-mode="true"] #helpModal.open {
+      inset: 0 0 0 auto;
+      width: min(760px, 100vw);
+    }
+
+    :root[data-fullscreen-mode="true"] #helpModal.open {
+      width: min(980px, 100vw);
+    }
+
+    :root[data-fullscreen-mode="true"] #supportModal .modal,
+    :root[data-fullscreen-mode="true"] #helpModal .modal {
+      border-top: 0;
+      border-right: 0;
+      border-bottom: 0;
+      border-radius: 0;
+      box-shadow: none;
     }
 
     .gp-list {
@@ -5825,6 +6182,10 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    #templateForm .template-name-fields {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
     .badge {
       padding: 3px 6px;
       border-radius: 999px;
@@ -6221,9 +6582,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.199-saas</span>
+  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.02.232-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.199-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.02.232-saas</span>
   </div>
 
   <div class="fullscreen-hover-zone" id="fullscreenHoverZone" aria-hidden="true"></div>
@@ -6851,7 +7212,7 @@
               <button class="template-form-tab" id="templateChecklistTab" type="button" data-template-tab="checklist">Чек-лист</button>
             </div>
             <div class="template-form-pane" id="templateInfoPane" data-template-pane="info">
-              <div class="two">
+              <div class="two template-name-fields">
                 <label class="field">
                   <span>Название сорта</span>
                   <input id="templateNameInput" required>
@@ -7034,10 +7395,10 @@
                   <span>Название в шапке</span>
                   <input id="organizationDisplayNameInput" placeholder="Можно оставить пустым">
                 </label>
+                <span class="settings-control-label">Логотип организации</span>
                 <div class="settings-logo-row">
                   <div class="settings-logo-preview" id="organizationSettingsLogoPreview">Без логотипа</div>
                   <div class="settings-logo-controls">
-                    <span class="settings-control-label">Логотип организации</span>
                     <div class="settings-logo-upload">
                       <input id="organizationSettingsLogoInput" type="file" accept="image/*">
                       <label class="settings-logo-button" for="organizationSettingsLogoInput">Выбрать файл</label>
@@ -7063,7 +7424,7 @@
                     <span>Рабочий день по</span>
                     <input id="orgWorkdayEndInput" type="time">
                   </label>
-                  <label class="field">
+                  <label class="field settings-timezone-field">
                     <span>Часовой пояс</span>
                     <select id="orgTimezoneInput">
                       <option value="Europe/Kaliningrad">Калининград, UTC+2</option>
@@ -7432,7 +7793,7 @@
           <select id="commentAssigneeInput"></select>
         </label>
         <div class="field">
-          <span>Шаблоны задач</span>
+          <span>Шаблоны комментариев</span>
           <div class="template-row" id="commentTemplates">
             <button class="template-btn" type="button" data-template="Контроль плотности">Контроль плотности</button>
             <button class="template-btn" type="button" data-template="Снять осадок">Снять осадок</button>
@@ -7440,11 +7801,54 @@
             <button class="template-btn" type="button" data-template="Задача пюре/фруктов/соков">Задача пюре/фруктов/соков</button>
           </div>
         </div>
+        <div class="field" id="commentTaskTemplatesField">
+          <span>Шаблоны задач</span>
+          <div class="template-row" id="commentTaskTemplates"></div>
+        </div>
       </div>
       <div class="modal-actions">
         <button class="delete-confirm" id="deleteCommentButton" type="button" style="display:none">Удалить</button>
         <button class="primary" id="saveCommentButton" type="button">Сохранить</button>
         <button class="secondary" id="cancelCommentButton" type="button">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="standaloneTaskModal" role="dialog" aria-modal="true" aria-labelledby="standaloneTaskModalTitle">
+    <div class="modal">
+      <button class="modal-close" type="button" data-modal-close-button="cancelStandaloneTaskButton" aria-label="Закрыть" title="Закрыть">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      <h2 id="standaloneTaskModalTitle">Добавить задачу</h2>
+      <p id="standaloneTaskModalText">Задача будет привязана к выбранной дате без производственного цикла.</p>
+      <div class="form">
+        <label class="field">
+          <span>Задача</span>
+          <input id="standaloneTaskTitleInput" placeholder="Например: подготовить сырье">
+        </label>
+        <div class="field">
+          <span>Шаблоны задач</span>
+          <div class="template-row" id="standaloneTaskTemplates">
+            <button class="template-btn" type="button" data-standalone-task-template="Зарегистрировать ДС">Зарегистрировать ДС</button>
+            <button class="template-btn" type="button" data-standalone-task-template="Зарегистрировать ФРАП">Зарегистрировать ФРАП</button>
+            <button class="template-btn" type="button" data-standalone-task-template="Заказать этикетку">Заказать этикетку</button>
+          </div>
+        </div>
+        <div class="two">
+          <label class="field">
+            <span>Ответственный</span>
+            <select id="standaloneTaskAssigneeInput"></select>
+          </label>
+          <label class="field">
+            <span>Срок</span>
+            <input id="standaloneTaskDueInput" type="date">
+          </label>
+        </div>
+      </div>
+      <div class="status" id="standaloneTaskStatus"></div>
+      <div class="modal-actions">
+        <button class="primary" id="saveStandaloneTaskButton" type="button">Создать</button>
+        <button class="secondary" id="cancelStandaloneTaskButton" type="button">Отмена</button>
       </div>
     </div>
   </div>
@@ -7476,7 +7880,7 @@
         <div class="support-access-card">
           <div class="status" id="supportAccessStatus" hidden></div>
           <div class="modal-actions" id="supportAccessActions" hidden>
-            <button class="secondary" id="enableSupportAccessButton" type="button">Разрешить доступ на 24 часа</button>
+            <button class="secondary" id="enableSupportAccessButton" type="button">Разрешить на 24 ч</button>
             <button class="secondary" id="disableSupportAccessButton" type="button">Запретить доступ</button>
           </div>
         </div>
@@ -7725,7 +8129,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.07.01.199-saas";
+    const appVersion = "v2026.07.02.232-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -7923,14 +8327,16 @@
         {
           title: "Новое обращение",
           text: "В заявке укажите тему, описание, телефон и при необходимости приложите скриншоты.",
-          target: "#supportForm"
+          target: "#supportForm",
+          noHighlight: true
         }
       ],
       supportTickets: [
         {
           title: "Мои обращения",
           text: "Обращения раскрываются по одному: внутри видна переписка, статус и дедлайн приема в работу.",
-          target: "#supportTicketList"
+          target: "#supportTicketList",
+          noHighlight: true
         }
       ]
     };
@@ -7985,6 +8391,7 @@
       "Розлит": "#334155"
     };
     let productTemplates = [];
+    let standaloneTasks = [];
     let appFeatures = {
       cycleTasks: false,
       cycleProcess: true,
@@ -8070,9 +8477,11 @@
     let rowLayout = { heights: [], offsets: [], bottomSpacerRows: 1, baseHeight: 82 };
     let pickedSlotElement = null;
     let brewPickRenderToken = 0;
+    let dayCellClickTimer = 0;
     let onboardingTargetElement = null;
     let onboardingRefreshTimer = 0;
     let stageQuickMenu = null;
+    let supportDraft = null;
     let lastTabActiveAt = Date.now();
     let resumeRefreshInProgress = false;
     const inactiveResumeThresholdMs = 5 * 60 * 1000;
@@ -8152,7 +8561,7 @@
         cycles: cycleList.length,
         templates: Array.isArray(productTemplates) ? productTemplates.length : 0,
         comments: cycleList.reduce((sum, cycle) => sum + (Array.isArray(cycle.comments) ? cycle.comments.length : 0), 0),
-        tasks: cycleList.reduce((sum, cycle) => sum + (Array.isArray(cycle.tasks) ? cycle.tasks.length : 0), 0),
+        tasks: cycleList.reduce((sum, cycle) => sum + (Array.isArray(cycle.tasks) ? cycle.tasks.length : 0), 0) + (Array.isArray(standaloneTasks) ? standaloneTasks.length : 0),
         partialBottlings: cycleList.reduce((sum, cycle) => sum + (Array.isArray(cycle.partialBottlings) ? cycle.partialBottlings.length : 0), 0),
         actionLogs: Array.isArray(actionLogs) ? actionLogs.length : 0
       };
@@ -8345,6 +8754,59 @@
         : `Выбрано файлов: ${files.length}`;
     }
 
+    function supportDraftFromForm() {
+      return {
+        category: supportCategoryInput?.value || "bug",
+        phone: supportPhoneInput?.value || "+7",
+        title: supportTitleInput?.value || "",
+        description: supportDescriptionInput?.value || ""
+      };
+    }
+
+    function rememberSupportDraft() {
+      if (!supportForm || state.supportTab !== "new") return;
+      supportDraft = supportDraftFromForm();
+    }
+
+    function clearSupportDraft() {
+      supportDraft = null;
+    }
+
+    function restoreSupportDraft() {
+      if (!supportDraft || state.supportTab !== "new" || !supportModal?.classList.contains("open")) return;
+      if (supportCategoryInput.value !== supportDraft.category) supportCategoryInput.value = supportDraft.category;
+      if (supportPhoneInput.value !== supportDraft.phone) supportPhoneInput.value = supportDraft.phone;
+      if (supportTitleInput.value !== supportDraft.title) supportTitleInput.value = supportDraft.title;
+      if (supportDescriptionInput.value !== supportDraft.description) supportDescriptionInput.value = supportDraft.description;
+    }
+
+    function supportFormHasUserInput() {
+      if (!supportForm) return false;
+      const draft = supportDraftFromForm();
+      const phone = draft.phone.trim();
+      return Boolean(
+        draft.category !== "bug"
+        || (phone && phone !== "+7")
+        || draft.title.trim()
+        || draft.description.trim()
+        || (supportAttachmentsInput?.files?.length || 0)
+      );
+    }
+
+    function supportReplyHasUserInput() {
+      const textarea = supportTicketList?.querySelector("[data-ticket-reply] textarea");
+      return Boolean(textarea && (textarea.value.trim() || textarea === document.activeElement));
+    }
+
+    function supportAutoRefreshLocked() {
+      if (!supportModal?.classList.contains("open")) return false;
+      if (state.supportTab === "new") {
+        return Boolean(supportForm?.contains(document.activeElement) || supportFormHasUserInput());
+      }
+      if (state.supportTab === "tickets") return supportReplyHasUserInput();
+      return false;
+    }
+
     function renderSupportAccessStatus(data = {}) {
       const visible = isYandexBackend && canAdmin();
       supportModal.dataset.accessVisible = visible ? "true" : "false";
@@ -8367,6 +8829,7 @@
       supportForm.hidden = state.supportTab !== "new";
       supportTicketList.hidden = state.supportTab !== "tickets";
       if (state.supportTab === "tickets") loadSupportTickets({ markSeen: true });
+      if (state.supportTab === "new") restoreSupportDraft();
       renderOnboardingTip();
     }
 
@@ -8397,12 +8860,20 @@
       return tickets.map((ticket) => `${ticket.id}:${ticket.status}:${ticket.updatedAt || ticket.createdAt}`).join("|");
     }
 
-    function supportNotificationCount(tickets = [], previousSignature = "") {
+    function supportTicketEntry(ticket) {
+      return `${ticket.id}:${ticket.status}:${ticket.updatedAt || ticket.createdAt}`;
+    }
+
+    function supportUnreadTicketIds(tickets = [], previousSignature = "") {
       const previousEntries = new Set(String(previousSignature || "").split("|").filter(Boolean));
-      return tickets.reduce((count, ticket) => {
-        const entry = `${ticket.id}:${ticket.status}:${ticket.updatedAt || ticket.createdAt}`;
-        return previousEntries.has(entry) ? count : count + 1;
-      }, 0);
+      if (!previousEntries.size) return new Set();
+      return new Set(tickets
+        .filter((ticket) => !previousEntries.has(supportTicketEntry(ticket)))
+        .map((ticket) => String(ticket.id)));
+    }
+
+    function supportNotificationCount(tickets = [], previousSignature = "") {
+      return supportUnreadTicketIds(tickets, previousSignature).size;
     }
 
     function supportTicketStatusLabel(status = "new") {
@@ -8423,6 +8894,9 @@
     }
 
     function supportTicketMessageSide(message, ticket) {
+      if (!message) return "customer";
+      if (message.isInternal || message.authorRole === "support") return "support";
+      if (message.authorRole === "customer") return "customer";
       const authorId = message?.authorUserId || ticket?.createdByUserId || "";
       return currentUser?.id && authorId === currentUser.id ? "customer" : "support";
     }
@@ -8689,6 +9163,10 @@
     }
 
     function highlightOnboardingTarget(tip) {
+      if (tip?.noHighlight) {
+        clearOnboardingHighlight();
+        return;
+      }
       const element = resolveOnboardingTarget(tip);
       if (!element) {
         clearOnboardingHighlight();
@@ -8715,6 +9193,9 @@
     function openHelpModal() {
       if (!helpModal) return;
       userBox.classList.remove("open");
+      supportModal?.classList.remove("open");
+      closeRightPanelsBeforeFloatingWindow();
+      render();
       helpModal.classList.add("open");
       clearOnboardingHighlight();
       if (onboardingTip) onboardingTip.hidden = true;
@@ -8723,6 +9204,28 @@
     function closeHelpModal() {
       helpModal?.classList.remove("open");
       renderOnboardingTip();
+    }
+
+    function closeSupportModal() {
+      supportModal?.classList.remove("open");
+      renderOnboardingTip();
+    }
+
+    function closeRightPanelsBeforeFloatingWindow() {
+      state.panelMode = "hidden";
+      state.addMode = false;
+      state.commentMode = false;
+      state.selectedCycleId = null;
+      state.selectedTankId = null;
+      state.selectedSiteId = null;
+      state.pickedTankId = null;
+      state.pickedDate = null;
+      mySettingsFormDirty = false;
+      organizationSettingsFormDirty = false;
+      organizationSettingsPanel?.classList.remove("open");
+      addMenu?.classList.remove("open");
+      adminMenu?.classList.remove("open");
+      filterMenu?.classList.remove("open");
     }
 
     function renderOnboardingTip() {
@@ -8831,62 +9334,104 @@
 
     function renderSupportTickets(tickets = [], options = {}) {
       if (!supportTicketList) return;
+      const unreadTicketIds = options.unreadTicketIds || supportUnreadTicketIds(tickets, supportTicketSignature);
       updateSupportNotification(tickets, options);
       if (options.openTicketId) openSupportTicketId = String(options.openTicketId);
       const openedTicketId = openSupportTicketId && tickets.some((ticket) => String(ticket.id) === String(openSupportTicketId))
         ? String(openSupportTicketId)
         : "";
       openSupportTicketId = openedTicketId;
-      supportTicketList.innerHTML = tickets.length ? tickets.map((ticket) => {
-        const messages = Array.isArray(ticket.messages) ? ticket.messages.filter((message) => !message.isInternal) : [];
+      const ticketHeaderMarkup = (ticket) => {
         const deadline = supportTicketDeadlineText(ticket);
-        const opened = openedTicketId && openedTicketId === String(ticket.id);
+        const unread = unreadTicketIds.has(String(ticket.id));
         return `
-          <details class="support-ticket-card" data-ticket-id="${escapeHtml(ticket.id)}" ${opened ? "open" : ""}>
-            <summary>
-              <header>
-                <b class="support-ticket-title">${escapeHtml(ticket.title || "Без темы")}</b>
-                <span class="support-ticket-number">${escapeHtml(ticket.number || "")}</span>
-              </header>
-              <div class="support-ticket-meta">
-                <span class="support-ticket-status" data-status="${escapeHtml(ticket.status || "new")}">${escapeHtml(supportTicketStatusLabel(ticket.status || "new"))}</span>
-                <span class="support-ticket-updated">${escapeHtml(formatSupportDate(ticket.updatedAt || ticket.createdAt))}</span>
-              </div>
-              ${deadline ? `<span class="support-ticket-deadline">${escapeHtml(deadline)}</span>` : ""}
-            </summary>
-            <div class="support-ticket-body">
-              <div class="support-ticket-thread">
-                <div class="support-ticket-message" data-side="${supportTicketMessageSide(null, ticket)}" data-own="${ticket.createdByUserId === currentUser?.id ? "true" : "false"}">
-                  <div class="support-ticket-message-meta">${escapeHtml(ticket.createdByName || ticket.createdByEmail || "")} · ${escapeHtml(formatSupportDate(ticket.createdAt))}</div>
-                  <div class="support-ticket-message-body">${escapeHtml(ticket.description || "")}</div>
-                </div>
-                ${messages.map((message) => `
-                  <div class="support-ticket-message" data-side="${supportTicketMessageSide(message, ticket)}" data-own="${message.authorUserId === currentUser?.id ? "true" : "false"}">
-                    <div class="support-ticket-message-meta">${escapeHtml(message.authorName || message.authorEmail || "")} · ${escapeHtml(formatSupportDate(message.createdAt))}</div>
-                    <div class="support-ticket-message-body">${escapeHtml(message.text || "")}</div>
-                  </div>
-                `).join("")}
-              </div>
-              <form class="support-ticket-reply" data-ticket-reply>
-                <textarea placeholder="Ответить по обращению"></textarea>
-                <button class="secondary" type="submit">Отправить (${submitShortcutLabel})</button>
-                <div class="status"></div>
-              </form>
-            </div>
-          </details>
+          <header>
+            <b class="support-ticket-title">${escapeHtml(ticket.title || "Без темы")}</b>
+            <span class="support-ticket-number">${escapeHtml(ticket.number || "")}</span>
+          </header>
+          <div class="support-ticket-meta">
+            <span class="support-ticket-status" data-status="${escapeHtml(ticket.status || "new")}">${escapeHtml(supportTicketStatusLabel(ticket.status || "new"))}</span>
+            ${unread ? `<span class="support-ticket-unread">Новое сообщение</span>` : ""}
+            <span class="support-ticket-updated">${escapeHtml(formatSupportDate(ticket.updatedAt || ticket.createdAt))}</span>
+          </div>
+          ${deadline ? `<span class="support-ticket-deadline">${escapeHtml(deadline)}</span>` : ""}
         `;
-      }).join("") : `<div class="support-empty-state">У вас пока нет обращений</div>`;
-      supportTicketList.querySelectorAll(".support-ticket-card").forEach((card) => {
-        card.addEventListener("toggle", () => {
-          if (card.open) {
-            openSupportTicketId = card.dataset.ticketId || "";
-            supportTicketList.querySelectorAll(".support-ticket-card[open]").forEach((other) => {
-              if (other !== card) other.open = false;
-            });
-          } else if (openSupportTicketId === card.dataset.ticketId) {
-            openSupportTicketId = "";
+      };
+      const ticketThreadMarkup = (ticket) => {
+        const messages = Array.isArray(ticket.messages) ? ticket.messages.filter((message) => !message.isInternal) : [];
+        return `
+          <div class="support-ticket-thread">
+            <div class="support-ticket-message" data-side="${supportTicketMessageSide(null, ticket)}" data-own="${ticket.createdByUserId === currentUser?.id ? "true" : "false"}">
+              <div class="support-ticket-message-meta">${escapeHtml(ticket.createdByName || ticket.createdByEmail || "")} · ${escapeHtml(formatSupportDate(ticket.createdAt))}</div>
+              <div class="support-ticket-message-body">${escapeHtml(ticket.description || "")}</div>
+            </div>
+            ${messages.map((message) => `
+              <div class="support-ticket-message" data-side="${supportTicketMessageSide(message, ticket)}" data-own="${message.authorUserId === currentUser?.id ? "true" : "false"}">
+                <div class="support-ticket-message-meta">${escapeHtml(message.authorName || message.authorEmail || "")} · ${escapeHtml(formatSupportDate(message.createdAt))}</div>
+                <div class="support-ticket-message-body">${escapeHtml(message.text || "")}</div>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      };
+      const replyMarkup = () => `
+        <form class="support-ticket-reply" data-ticket-reply>
+          <textarea placeholder="Ответить по обращению"></textarea>
+          <button class="secondary" type="submit">Отправить (${submitShortcutLabel})</button>
+          <div class="status"></div>
+        </form>
+      `;
+      const openedTicket = openedTicketId
+        ? tickets.find((ticket) => String(ticket.id) === openedTicketId)
+        : null;
+      supportTicketList.dataset.mode = openedTicket ? "detail" : "list";
+      if (!tickets.length) {
+        supportTicketList.innerHTML = `<div class="support-empty-state">У вас пока нет обращений</div>`;
+      } else if (openedTicket) {
+        supportTicketList.innerHTML = `
+          <section class="support-ticket-detail" data-ticket-id="${escapeHtml(openedTicket.id)}" data-unread="${unreadTicketIds.has(String(openedTicket.id)) ? "true" : "false"}">
+            <div class="support-ticket-detail-head">
+              <button class="secondary support-ticket-back" type="button" data-support-ticket-back>Вернуться</button>
+              ${ticketHeaderMarkup(openedTicket)}
+            </div>
+            <div class="support-ticket-body">
+              ${ticketThreadMarkup(openedTicket)}
+              ${replyMarkup()}
+            </div>
+          </section>
+        `;
+      } else {
+        const sortedTickets = [...tickets].sort((a, b) => Number(unreadTicketIds.has(String(b.id))) - Number(unreadTicketIds.has(String(a.id)))
+          || String(b.updatedAt || b.createdAt).localeCompare(String(a.updatedAt || a.createdAt)));
+        supportTicketList.innerHTML = sortedTickets.map((ticket) => `
+          <article class="support-ticket-card" data-ticket-id="${escapeHtml(ticket.id)}" data-unread="${unreadTicketIds.has(String(ticket.id)) ? "true" : "false"}" role="button" tabindex="0">
+            ${ticketHeaderMarkup(ticket)}
+          </article>
+        `).join("");
+      }
+      supportTicketList.querySelectorAll(".support-ticket-card[data-ticket-id]").forEach((card) => {
+        const openTicket = () => {
+          openSupportTicketId = card.dataset.ticketId || "";
+          renderSupportTickets(tickets, { markSeen: true });
+        };
+        card.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          openTicket();
+        });
+        card.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            event.stopPropagation();
+            openTicket();
           }
         });
+      });
+      supportTicketList.querySelector("[data-support-ticket-back]")?.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openSupportTicketId = "";
+        renderSupportTickets(tickets, { markSeen: true });
       });
       supportTicketList.querySelectorAll("[data-ticket-reply]").forEach((form) => {
         form.querySelector("textarea").addEventListener("keydown", (event) => {
@@ -8911,7 +9456,7 @@
           try {
             await yandexRequest(`/tickets/${encodeURIComponent(card.dataset.ticketId)}/messages`, {
               method: "POST",
-              body: { text }
+              body: { text, authorRole: "customer" }
             });
             textarea.value = "";
             status.className = "status ok";
@@ -8926,6 +9471,7 @@
     }
 
     async function loadSupportTickets(options = {}) {
+      if (options.background && supportAutoRefreshLocked()) return;
       if (!isYandexBackend || !currentUser || !featureEnabled("supportTickets")) {
         renderSupportTickets([]);
         return;
@@ -9127,10 +9673,11 @@
         .map((item, index) => ({
           id: item.id || newId(),
           volume: item.volume === undefined || item.volume === "" ? "" : Number(item.volume),
+          density: item.density === undefined || item.density === "" ? "" : Number(item.density),
           index: index + 1
         }));
       while (normalizedMashings.length < 2) {
-        normalizedMashings.push({ id: newId(), volume: "", index: normalizedMashings.length + 1 });
+        normalizedMashings.push({ id: newId(), volume: "", density: "", index: normalizedMashings.length + 1 });
       }
       return {
         mashings: normalizedMashings.map((item, index) => ({ ...item, index: index + 1 })),
@@ -9154,6 +9701,9 @@
       appFeatures = normalizeFeatures(saved.features);
       sites = Array.isArray(saved.sites) && saved.sites.length ? saved.sites : sites;
       productTemplates = Array.isArray(saved.productTemplates) ? normalizeProductTemplates(saved.productTemplates) : [];
+      standaloneTasks = Object.prototype.hasOwnProperty.call(saved, "standaloneTasks")
+        ? normalizeCycleTasks(saved.standaloneTasks)
+        : standaloneTaskList();
       tanks = saved.tanks.map((tank) => ({
         ...tank,
         siteId: tank.siteId || sites[0].id,
@@ -9254,7 +9804,7 @@
     }
 
     function clonePlanData() {
-      return JSON.parse(JSON.stringify({ sites, tanks, cycles, productTemplates, features: appFeatures }));
+      return JSON.parse(JSON.stringify({ sites, tanks, cycles, productTemplates, standaloneTasks, features: appFeatures }));
     }
 
     function restorePlanDataSnapshot(snapshot) {
@@ -9263,6 +9813,7 @@
       tanks = snapshot.tanks || [];
       cycles = snapshot.cycles || [];
       productTemplates = normalizeProductTemplates(snapshot.productTemplates || []);
+      standaloneTasks = normalizeCycleTasks(snapshot.standaloneTasks || []);
       appFeatures = normalizeFeatures(snapshot.features);
     }
 
@@ -9653,6 +10204,37 @@
       throw new Error("Редактирование профиля доступно только через Yandex API");
     }
 
+    async function deleteOrganizationUser(userId) {
+      if (!requireAdmin()) return;
+      const user = users.find((item) => item.id === userId);
+      if (!user) return;
+      if (user.login === currentUser.login) {
+        userStatus.className = "status error";
+        userStatus.textContent = "Нельзя удалить текущего пользователя";
+        return;
+      }
+      try {
+        if (isYandexBackend) {
+          await yandexRequest(`/users/${encodeURIComponent(user.id)}`, { method: "DELETE" });
+        } else {
+          const { error } = await db.from("user_profiles").delete().eq("id", user.id);
+          if (error) throw error;
+        }
+      } catch (error) {
+        userStatus.className = "status error";
+        userStatus.textContent = `Не удалось удалить пользователя: ${error.message}`;
+        return;
+      }
+      logAction("user_deleted", "user", user.id, userDisplayName(user), {
+        email: user.login
+      });
+      await loadProfiles();
+      userStatus.className = "status";
+      userStatus.textContent = "Пользователь удален";
+      renderUsers();
+      applyAccessControl();
+    }
+
     async function createAuthUser(email, password) {
       if (isYandexBackend) {
         const profile = userNameProfileFromParts(newUserLastNameInput.value, newUserFirstNameInput.value, newUserMiddleNameInput.value);
@@ -9838,7 +10420,12 @@
             method: "PUT",
             body: { plan }
           });
-          if (data.plan && !saveQueued) applyPlanData(data.plan);
+          if (data.plan && !saveQueued) {
+            const returnedPlan = Array.isArray(data.plan.standaloneTasks)
+              ? data.plan
+              : { ...data.plan, standaloneTasks: plan.standaloneTasks || [] };
+            applyPlanData(returnedPlan);
+          }
         } while (saveQueued);
         setSyncStatus("Сохранено", "saved");
         saved = true;
@@ -10077,17 +10664,29 @@
     function scheduleRealtimeRefresh() {
       if (!currentUser || !remoteReady) return;
       if (Date.now() < suppressRealtimeUntil) return;
+      if (supportAutoRefreshLocked()) {
+        rememberSupportDraft();
+        return;
+      }
       resetStalePlanSave("polling");
       if (realtimeRefreshTimer) clearTimeout(realtimeRefreshTimer);
       realtimeRefreshTimer = setTimeout(async () => {
         realtimeRefreshTimer = null;
+        if (supportAutoRefreshLocked()) {
+          rememberSupportDraft();
+          return;
+        }
         if (cycleFormHasUnsavedChanges()) {
           setSyncStatus("Есть обновления", "pending");
           return;
         }
         try {
           const result = await loadRemotePlan(() => {}, { resetHistory: false, skipUnchanged: true });
-          if (featureEnabled("supportTickets")) loadSupportTickets();
+          if (supportAutoRefreshLocked()) {
+            rememberSupportDraft();
+            return;
+          }
+          if (featureEnabled("supportTickets")) loadSupportTickets({ background: true });
           setSyncStatus("Обновлено", "updated");
           if (result?.changed !== false) render();
         } catch (error) {
@@ -10105,6 +10704,10 @@
       resetStalePlanSave(reason);
       if (document.hidden || resumeRefreshInProgress || !currentUser) return;
       if (inactiveMs < inactiveResumeThresholdMs && reason !== "pageshow-persisted") return;
+      if (supportAutoRefreshLocked()) {
+        rememberSupportDraft();
+        return;
+      }
       resumeRefreshInProgress = true;
       try {
         console.info("[brew-planner] resume-recovery", { reason, inactiveMs });
@@ -10302,7 +10905,11 @@
       processSavedFieldKey: "",
       processSaveToken: 0,
       taskEditId: null,
+      taskEditScope: "",
       pendingTaskFileTaskId: null,
+      pendingTaskFileScope: "cycle",
+      pendingTaskFileCycleId: "",
+      pendingStandaloneTaskDate: "",
       myTasksTab: "open",
       myTasksScope: "mine",
       fullscreenMode: false,
@@ -10369,6 +10976,15 @@
     const taskStatus = document.querySelector("#taskStatus");
     const cycleTaskList = document.querySelector("#cycleTaskList");
     const taskFileInput = document.querySelector("#taskFileInput");
+    const standaloneTaskModal = document.querySelector("#standaloneTaskModal");
+    const standaloneTaskModalText = document.querySelector("#standaloneTaskModalText");
+    const standaloneTaskTitleInput = document.querySelector("#standaloneTaskTitleInput");
+    const standaloneTaskAssigneeInput = document.querySelector("#standaloneTaskAssigneeInput");
+    const standaloneTaskDueInput = document.querySelector("#standaloneTaskDueInput");
+    const standaloneTaskTemplates = document.querySelector("#standaloneTaskTemplates");
+    const standaloneTaskStatus = document.querySelector("#standaloneTaskStatus");
+    const saveStandaloneTaskButton = document.querySelector("#saveStandaloneTaskButton");
+    const cancelStandaloneTaskButton = document.querySelector("#cancelStandaloneTaskButton");
     const stageInput = document.querySelector("#stageInput");
     const cycleStartInput = document.querySelector("#cycleStartInput");
     const cycleDurationInput = document.querySelector("#cycleDurationInput");
@@ -10553,6 +11169,8 @@
     const commentAssigneeField = document.querySelector("#commentAssigneeField");
     const commentAssigneeInput = document.querySelector("#commentAssigneeInput");
     const commentTemplates = document.querySelector("#commentTemplates");
+    const commentTaskTemplatesField = document.querySelector("#commentTaskTemplatesField");
+    const commentTaskTemplates = document.querySelector("#commentTaskTemplates");
     const cancelCommentButton = document.querySelector("#cancelCommentButton");
     const saveCommentButton = document.querySelector("#saveCommentButton");
     const deleteCommentButton = document.querySelector("#deleteCommentButton");
@@ -10805,6 +11423,15 @@
       return commentDate;
     }
 
+    function insertCommentTemplateText(template) {
+      const text = String(template || "").trim();
+      if (!text || !commentInput) return;
+      commentInput.value = commentInput.value.trim()
+        ? `${commentInput.value.trim()}\n${text}`
+        : text;
+      commentInput.focus();
+    }
+
     function renderConfigurableTemplates() {
       if (commentTemplates) {
         commentTemplates.innerHTML = currentCommentTemplates()
@@ -10814,6 +11441,19 @@
       if (taskTemplates) {
         taskTemplates.innerHTML = currentTaskTemplates()
           .map((template) => `<button class="template-btn" type="button" data-task-template="${escapeHtml(template)}">${escapeHtml(template)}</button>`)
+          .join("");
+      }
+      if (commentTaskTemplates) {
+        commentTaskTemplates.innerHTML = currentTaskTemplates()
+          .map((template) => `<button class="template-btn" type="button" data-comment-task-template="${escapeHtml(template)}">${escapeHtml(template)}</button>`)
+          .join("");
+      }
+      if (commentTaskTemplatesField) {
+        commentTaskTemplatesField.hidden = !featureEnabled("cycleTasks");
+      }
+      if (standaloneTaskTemplates) {
+        standaloneTaskTemplates.innerHTML = currentTaskTemplates()
+          .map((template) => `<button class="template-btn" type="button" data-standalone-task-template="${escapeHtml(template)}">${escapeHtml(template)}</button>`)
           .join("");
       }
     }
@@ -11361,13 +12001,22 @@
       const mashingsTotal = processMashingsTotal(process);
       processBrewPane.innerHTML = `
         ${process.mashings.map((mashing, index) => `
-          <label class="field">
-            <span>Затирание ${index + 1} объем ХС, л</span>
-            <span class="process-input-wrap">
-              <input type="number" min="0" step="0.01" data-mashing-index="${index}" value="${escapeHtml(mashing.volume)}">
-              ${processSaveCheckHtml(`mashing:${index}`)}
-            </span>
-          </label>
+          <div class="process-mashing-row">
+            <label class="field">
+              <span>Затирание ${index + 1} объем ХС, л</span>
+              <span class="process-input-wrap">
+                <input type="number" min="0" step="0.01" data-mashing-index="${index}" data-mashing-field="volume" value="${escapeHtml(mashing.volume)}">
+                ${processSaveCheckHtml(`mashing:${index}:volume`)}
+              </span>
+            </label>
+            <label class="field">
+              <span>Плотность</span>
+              <span class="process-input-wrap">
+                <input type="number" min="0" step="0.001" data-mashing-index="${index}" data-mashing-field="density" value="${escapeHtml(mashing.density)}">
+                ${processSaveCheckHtml(`mashing:${index}:density`)}
+              </span>
+            </label>
+          </div>
         `).join("")}
         <label class="field process-total-field">
           <span>Итого ХС в ЦКТ</span>
@@ -11377,28 +12026,31 @@
       `;
       const dates = processDateRows(cycle);
       processFermentationPane.innerHTML = dates.length
-        ? dates.map((date) => {
+        ? `
+          <div class="process-fermentation-table">
+            <div class="process-fermentation-head" aria-hidden="true">
+              <span>Дата</span>
+              <span>Температура</span>
+              <span>Плотность</span>
+            </div>
+            ${dates.map((date) => {
           const record = fermentationRecordFor(process, date);
           return `
-            <div class="process-row" data-fermentation-date="${escapeHtml(date)}">
+            <div class="process-fermentation-row" data-fermentation-date="${escapeHtml(date)}">
               <div class="process-date">${escapeHtml(shortNumericDateFormatter.format(parseDate(date)))}</div>
-              <label class="field">
-                <span>Температура</span>
-                <span class="process-input-wrap">
-                  <input type="number" step="0.1" data-fermentation-field="temperature" value="${escapeHtml(record.temperature)}">
+              <span class="process-input-wrap">
+                  <input type="number" step="0.1" data-fermentation-field="temperature" value="${escapeHtml(record.temperature)}" aria-label="Температура ${escapeHtml(shortNumericDateFormatter.format(parseDate(date)))}">
                   ${processSaveCheckHtml(`fermentation:${date}:temperature`)}
-                </span>
-              </label>
-              <label class="field">
-                <span>Плотность</span>
-                <span class="process-input-wrap">
-                  <input type="number" step="0.001" data-fermentation-field="density" value="${escapeHtml(record.density)}">
+              </span>
+              <span class="process-input-wrap">
+                  <input type="number" step="0.001" data-fermentation-field="density" value="${escapeHtml(record.density)}" aria-label="Плотность ${escapeHtml(shortNumericDateFormatter.format(parseDate(date)))}">
                   ${processSaveCheckHtml(`fermentation:${date}:density`)}
-                </span>
-              </label>
+              </span>
             </div>
           `;
-        }).join("")
+            }).join("")}
+          </div>
+        `
         : `<div class="empty-state">Укажите даты цикла во вкладке Производство</div>`;
       processBrewPane.querySelectorAll("input").forEach((input) => {
         input.disabled = !canEdit();
@@ -11432,20 +12084,20 @@
       if (!cycle || !canEdit()) return;
       const process = cycleProcess(cycle);
       pushUndoSnapshot("добавление затирания");
-      process.mashings.push({ id: newId(), volume: "", index: process.mashings.length + 1 });
+      process.mashings.push({ id: newId(), volume: "", density: "", index: process.mashings.length + 1 });
       saveProcessChange("добавление затирания");
       renderCycleProcess();
     }
 
-    function updateMashingVolume(index, value) {
+    function updateMashingField(index, field, value) {
       const cycle = selectedCycle();
-      if (!cycle || !canEdit()) return;
+      if (!cycle || !canEdit() || !["volume", "density"].includes(field)) return;
       const process = cycleProcess(cycle);
       const mashing = process.mashings[index];
       if (!mashing) return;
       pushUndoSnapshot("изменение варки");
-      mashing.volume = processNumberValue(value);
-      saveProcessChange("изменение варки", `mashing:${index}`);
+      mashing[field] = processNumberValue(value);
+      saveProcessChange("изменение варки", `mashing:${index}:${field}`);
       renderCycleProcess();
     }
 
@@ -11725,8 +12377,17 @@
       return cycle.tasks;
     }
 
+    function standaloneTaskList() {
+      standaloneTasks = normalizeCycleTasks(standaloneTasks);
+      return standaloneTasks;
+    }
+
     function incompleteTasksForCycle(cycle) {
       return tasksForCycle(cycle).filter((task) => !task.done);
+    }
+
+    function incompleteStandaloneTasks() {
+      return standaloneTaskList().filter((task) => !task.done);
     }
 
     function overdueTasksForCycle(cycle) {
@@ -11821,15 +12482,22 @@
 
     function myTaskItems() {
       if (!currentUser) return [];
-      return cycles.flatMap((cycle) => tasksForCycle(cycle)
+      const cycleItems = cycles.flatMap((cycle) => tasksForCycle(cycle)
         .filter(isTaskAssignedToCurrentUser)
         .map((task) => ({ task, cycle })));
+      const standaloneItems = standaloneTaskList()
+        .filter(isTaskAssignedToCurrentUser)
+        .map((task) => ({ task, cycle: null }));
+      return cycleItems.concat(standaloneItems);
     }
 
     function allTaskItems() {
       if (!currentUser || !canAdmin()) return [];
-      return cycles.flatMap((cycle) => tasksForCycle(cycle)
+      const cycleItems = cycles.flatMap((cycle) => tasksForCycle(cycle)
         .map((task) => ({ task, cycle })));
+      const standaloneItems = standaloneTaskList()
+        .map((task) => ({ task, cycle: null }));
+      return cycleItems.concat(standaloneItems);
     }
 
     function currentTaskPanelScope() {
@@ -12020,6 +12688,90 @@
       addTaskButton.disabled = !canCreate;
     }
 
+    function updateStandaloneTaskButtonState() {
+      if (!saveStandaloneTaskButton) return;
+      saveStandaloneTaskButton.disabled = !featureEnabled("cycleTasks")
+        || !canEdit()
+        || !standaloneTaskTitleInput?.value.trim()
+        || !standaloneTaskDueInput?.value;
+    }
+
+    function openStandaloneTaskModal(date) {
+      if (!featureEnabled("cycleTasks") || !canEdit()) return;
+      renderConfigurableTemplates();
+      const dueDate = date || toISO(appToday());
+      const defaultAssignee = currentUserTaskAssigneeValue();
+      state.pendingStandaloneTaskDate = dueDate;
+      standaloneTaskTitleInput.value = "";
+      standaloneTaskDueInput.value = dueDate;
+      standaloneTaskAssigneeInput.innerHTML = taskAssigneeOptionsHtml(defaultAssignee);
+      standaloneTaskAssigneeInput.value = defaultAssignee;
+      standaloneTaskAssigneeInput.disabled = !canAssignTaskResponsible();
+      standaloneTaskStatus.className = "status";
+      standaloneTaskStatus.textContent = "";
+      standaloneTaskModalText.textContent = `Срок: ${shortNumericDateFormatter.format(parseDate(dueDate))}. Задача будет создана без привязки к производственному циклу.`;
+      updateStandaloneTaskButtonState();
+      standaloneTaskModal.classList.add("open");
+      requestAnimationFrame(() => standaloneTaskTitleInput.focus());
+    }
+
+    function closeStandaloneTaskModal() {
+      state.pendingStandaloneTaskDate = "";
+      standaloneTaskTitleInput.value = "";
+      standaloneTaskDueInput.value = "";
+      standaloneTaskStatus.className = "status";
+      standaloneTaskStatus.textContent = "";
+      standaloneTaskModal.classList.remove("open");
+    }
+
+    async function addStandaloneTask() {
+      if (!requireEdit()) return;
+      const title = standaloneTaskTitleInput.value.trim();
+      const dueDate = standaloneTaskDueInput.value || state.pendingStandaloneTaskDate || "";
+      if (!title) {
+        standaloneTaskStatus.className = "status error";
+        standaloneTaskStatus.textContent = "Укажите текст задачи";
+        standaloneTaskTitleInput.focus();
+        return;
+      }
+      if (!dueDate) {
+        standaloneTaskStatus.className = "status error";
+        standaloneTaskStatus.textContent = "Укажите срок задачи";
+        return;
+      }
+      const task = {
+        id: newId(),
+        title,
+        assignee: canAssignTaskResponsible() ? standaloneTaskAssigneeInput.value.trim() : currentUserTaskAssigneeValue(),
+        dueDate,
+        done: false,
+        createdAt: new Date().toISOString(),
+        completedAt: "",
+        source: "standalone",
+        attachments: []
+      };
+      pushUndoSnapshot("создание задачи без цикла");
+      standaloneTasks = standaloneTaskList().concat(task);
+      standaloneTaskStatus.className = "status loading";
+      standaloneTaskStatus.innerHTML = '<span class="loading-spinner"></span><span>Сохраняем задачу...</span>';
+      const saved = await savePlan();
+      if (!saved) {
+        standaloneTasks = standaloneTaskList().filter((item) => item.id !== task.id);
+        standaloneTaskStatus.className = "status error";
+        standaloneTaskStatus.textContent = "Не удалось сохранить задачу";
+        return;
+      }
+      logAction("cycle_task_created", "task", task.id, task.title, {
+        task: task.title,
+        assignee: task.assignee,
+        dueDate: task.dueDate,
+        source: "standalone"
+      });
+      baseGridRenderKey = "";
+      closeStandaloneTaskModal();
+      refreshTaskViews();
+    }
+
     function refreshTaskViews() {
       render();
       rememberCycleFormSnapshot();
@@ -12041,16 +12793,17 @@
       return `${formatNumber(value)} Б`;
     }
 
-    function taskAttachmentHtml(task) {
+    function taskAttachmentHtml(task, scope = "cycle") {
       const attachments = task.attachments || [];
       const manageable = canManageTask(task);
       if (!attachments.length) return "";
+      const deleteAttribute = scope === "standalone" ? "data-standalone-task-file-delete" : "data-task-file-delete";
       return `
         <div class="cycle-task-files">
           ${attachments.map((attachment) => `
             <div class="cycle-task-file-row">
               <a class="cycle-task-file" href="${escapeHtml(attachment.dataUrl)}" download="${escapeHtml(attachment.name)}">${escapeHtml(attachment.name)} · ${formatFileSize(attachment.size)}</a>
-              <button class="cycle-task-file-delete" type="button" data-task-file-delete="${escapeHtml(task.id)}" data-file-id="${escapeHtml(attachment.id)}" ${manageable ? "" : "disabled"} aria-label="Удалить файл ${escapeHtml(attachment.name)}" title="${manageable ? "Удалить файл" : "Можно удалять файлы только в своих задачах"}">×</button>
+              <button class="cycle-task-file-delete" type="button" ${deleteAttribute}="${escapeHtml(task.id)}" data-file-id="${escapeHtml(attachment.id)}" ${manageable ? "" : "disabled"} aria-label="Удалить файл ${escapeHtml(attachment.name)}" title="${manageable ? "Удалить файл" : "Можно удалять файлы только в своих задачах"}">×</button>
             </div>
           `).join("")}
         </div>
@@ -12059,8 +12812,13 @@
 
     function taskInlineEditFormHtml(task, cycle) {
       const assigneeValue = String(task.assignee || "");
+      const dueValue = task.dueDate || cycle?.end || "";
+      const dateBounds = cycle ? `min="${escapeHtml(cycle.start)}" max="${escapeHtml(cycle.end)}"` : "";
+      const formAttr = cycle ? "data-task-edit-form" : "data-standalone-task-edit-form";
+      const saveAttr = cycle ? "data-task-edit-save" : "data-standalone-task-edit-save";
+      const cancelAttr = cycle ? "data-task-edit-cancel" : "data-standalone-task-edit-cancel";
       return `
-        <div class="cycle-task-edit-form" data-task-edit-form="${escapeHtml(task.id)}">
+        <div class="cycle-task-edit-form" ${formAttr}="${escapeHtml(task.id)}">
           <label class="field">
             <span>Задача</span>
             <input data-task-edit-title="${escapeHtml(task.id)}" value="${escapeHtml(task.title)}">
@@ -12074,12 +12832,12 @@
             </label>
             <label class="field">
               <span>Срок</span>
-              <input data-task-edit-due="${escapeHtml(task.id)}" type="date" min="${escapeHtml(cycle.start)}" max="${escapeHtml(cycle.end)}" value="${escapeHtml(task.dueDate || cycle.end)}">
+              <input data-task-edit-due="${escapeHtml(task.id)}" type="date" ${dateBounds} value="${escapeHtml(dueValue)}">
             </label>
           </div>
           <div class="cycle-task-edit-actions">
-            <button class="primary" type="button" data-task-edit-save="${escapeHtml(task.id)}">Сохранить</button>
-            <button class="secondary" type="button" data-task-edit-cancel="${escapeHtml(task.id)}">Отмена</button>
+            <button class="primary" type="button" ${saveAttr}="${escapeHtml(task.id)}">Сохранить</button>
+            <button class="secondary" type="button" ${cancelAttr}="${escapeHtml(task.id)}">Отмена</button>
           </div>
         </div>
       `;
@@ -12144,7 +12902,7 @@
                 <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>
               </button>
             </div>
-            ${state.taskEditId === task.id ? taskInlineEditFormHtml(task, cycle) : ""}
+            ${state.taskEditScope === "cycle" && state.taskEditId === task.id ? taskInlineEditFormHtml(task, cycle) : ""}
           </article>
         `;
         }).join("");
@@ -12169,6 +12927,7 @@
         taskStatus.textContent = "Срок задачи должен быть внутри цикла";
         return;
       }
+      state.taskEditScope = "";
       state.taskEditId = null;
       taskCreateInProgress = true;
       updateAddTaskButtonState();
@@ -12211,7 +12970,9 @@
       const task = tasksForCycle(cycle).find((item) => item.id === taskId);
       if (!task) return;
       if (!requireTaskManage(task)) return;
-      state.taskEditId = state.taskEditId === task.id ? null : task.id;
+      const opened = state.taskEditScope === "cycle" && state.taskEditId === task.id;
+      state.taskEditScope = opened ? "" : "cycle";
+      state.taskEditId = opened ? null : task.id;
       taskStatus.className = "status";
       taskStatus.textContent = state.taskEditId ? "Задача открыта для редактирования" : "";
       renderCycleTasks();
@@ -12255,6 +13016,7 @@
         assignee: task.assignee,
         dueDate: task.dueDate
       });
+      state.taskEditScope = "";
       state.taskEditId = null;
       taskStatus.className = "status";
       taskStatus.textContent = "Задача изменена";
@@ -12262,7 +13024,8 @@
     }
 
     function cancelInlineCycleTaskEdit(taskId) {
-      if (state.taskEditId !== taskId) return;
+      if (state.taskEditScope !== "cycle" || state.taskEditId !== taskId) return;
+      state.taskEditScope = "";
       state.taskEditId = null;
       taskStatus.className = "status";
       taskStatus.textContent = "";
@@ -12432,13 +13195,225 @@
       if (!requireTaskManage(task)) return;
       pushUndoSnapshot("удаление задачи");
       cycle.tasks = tasks.filter((item) => item.id !== taskId);
-      if (state.taskEditId === taskId) resetTaskForm(cycle);
+      if (state.taskEditScope === "cycle" && state.taskEditId === taskId) resetTaskForm(cycle);
       savePlan();
       logAction("cycle_task_deleted", "task", task.id, cycle.product, {
         task: task.title
       });
       taskStatus.className = "status";
       taskStatus.textContent = "Задача удалена";
+      refreshTaskViews();
+    }
+
+    function standaloneTaskById(taskId) {
+      return standaloneTaskList().find((item) => String(item.id) === String(taskId));
+    }
+
+    function editStandaloneTask(taskId) {
+      if (!requireEdit()) return;
+      const task = standaloneTaskById(taskId);
+      if (!task) return;
+      if (!requireTaskManage(task)) return;
+      const opened = state.taskEditScope === "standalone" && state.taskEditId === task.id;
+      state.taskEditScope = opened ? "" : "standalone";
+      state.taskEditId = opened ? null : task.id;
+      renderMyTasks();
+      if (state.taskEditId) {
+        myTasksList.querySelector("[data-task-edit-title]")?.focus();
+      }
+    }
+
+    async function saveInlineStandaloneTask(taskId) {
+      if (!requireEdit()) return;
+      const task = standaloneTaskById(taskId);
+      if (!task) return;
+      if (!requireTaskManage(task)) return;
+      const form = Array.from(myTasksList.querySelectorAll("[data-standalone-task-edit-form]"))
+        .find((item) => item.dataset.standaloneTaskEditForm === taskId);
+      if (!form) return;
+      const titleInput = form.querySelector("[data-task-edit-title]");
+      const title = titleInput?.value.trim() || "";
+      const dueDate = form.querySelector("[data-task-edit-due]")?.value || "";
+      const assignee = form.querySelector("[data-task-edit-assignee]")?.value || "";
+      if (!title) {
+        titleInput?.focus();
+        return;
+      }
+      pushUndoSnapshot("редактирование задачи без цикла");
+      standaloneTasks = standaloneTaskList().map((item) => String(item.id) === String(task.id)
+        ? {
+            ...item,
+            title,
+            assignee: canAssignTaskResponsible() ? assignee : item.assignee,
+            dueDate
+          }
+        : item);
+      state.taskEditScope = "";
+      state.taskEditId = null;
+      baseGridRenderKey = "";
+      await savePlan();
+      logAction("cycle_task_updated", "task", task.id, title, {
+        task: title,
+        assignee: canAssignTaskResponsible() ? assignee : task.assignee,
+        dueDate,
+        source: "standalone"
+      });
+      refreshTaskViews();
+    }
+
+    function cancelInlineStandaloneTaskEdit(taskId) {
+      if (state.taskEditScope !== "standalone" || state.taskEditId !== taskId) return;
+      state.taskEditScope = "";
+      state.taskEditId = null;
+      renderMyTasks();
+    }
+
+    async function attachFilesToStandaloneTask(taskId, files) {
+      if (!requireEdit()) return;
+      const selectedFiles = Array.from(files || []);
+      if (!selectedFiles.length) return;
+      const task = standaloneTaskById(taskId);
+      if (!task) return;
+      if (!requireTaskManage(task)) return;
+      const oversized = selectedFiles.find((file) => file.size > maxTaskAttachmentSize);
+      if (oversized) {
+        formStatus.className = "status error";
+        formStatus.textContent = `Размер файла "${oversized.name}" не должен превышать 5 МБ`;
+        return;
+      }
+      const currentAttachments = task.attachments || [];
+      const freeSlots = maxTaskAttachments - currentAttachments.length;
+      if (freeSlots <= 0) {
+        formStatus.className = "status error";
+        formStatus.textContent = `К задаче уже прикреплено ${formatNumber(maxTaskAttachments)} файлов`;
+        return;
+      }
+      if (selectedFiles.length > freeSlots) {
+        formStatus.className = "status error";
+        formStatus.textContent = `Можно добавить еще ${formatNumber(freeSlots)} ${freeSlots === 1 ? "файл" : "файла"}`;
+        return;
+      }
+      try {
+        const attachments = await Promise.all(selectedFiles.map(readTaskAttachment));
+        pushUndoSnapshot("прикрепление файлов к задаче без цикла");
+        standaloneTasks = standaloneTaskList().map((item) => String(item.id) === String(task.id)
+          ? { ...item, attachments: currentAttachments.concat(attachments) }
+          : item);
+        await savePlan();
+        logAction("cycle_task_updated", "task", task.id, task.title, {
+          task: task.title,
+          attachments: attachments.map((attachment) => attachment.name).join(", "),
+          source: "standalone"
+        });
+        formStatus.className = "status";
+        formStatus.textContent = selectedFiles.length === 1 ? `Файл прикреплен: ${attachments[0].name}` : `Прикреплено файлов: ${formatNumber(attachments.length)}`;
+        refreshTaskViews();
+      } catch (error) {
+        formStatus.className = "status error";
+        formStatus.textContent = `Не удалось прикрепить файл: ${error.message}`;
+      }
+    }
+
+    function confirmDeleteStandaloneTaskAttachment(taskId, fileId) {
+      if (!requireEdit()) return;
+      const task = standaloneTaskById(taskId);
+      const attachment = (task?.attachments || []).find((item) => item.id === fileId);
+      if (!task || !attachment) return;
+      if (!requireTaskManage(task)) return;
+      pendingDelete = { type: "standaloneTaskAttachment", taskId, fileId };
+      deleteModalTitle.textContent = "Удалить вложение?";
+      deleteModalText.textContent = `Будет удален файл "${attachment.name}" из задачи "${task.title}".`;
+      deleteModal.classList.add("open");
+    }
+
+    function deleteStandaloneTaskAttachment(taskId, fileId) {
+      if (!requireEdit()) return;
+      const task = standaloneTaskById(taskId);
+      if (!task) return;
+      if (!requireTaskManage(task)) return;
+      const attachment = (task.attachments || []).find((item) => item.id === fileId);
+      if (!attachment) return;
+      pushUndoSnapshot("удаление файла из задачи без цикла");
+      standaloneTasks = standaloneTaskList().map((item) => String(item.id) === String(task.id)
+        ? { ...item, attachments: (item.attachments || []).filter((file) => file.id !== fileId) }
+        : item);
+      savePlan();
+      logAction("cycle_task_updated", "task", task.id, task.title, {
+        task: task.title,
+        removedAttachment: attachment.name,
+        source: "standalone"
+      });
+      formStatus.className = "status";
+      formStatus.textContent = `Файл удален: ${attachment.name}`;
+      refreshTaskViews();
+    }
+
+    async function toggleStandaloneTask(taskId, done) {
+      if (!requireEdit()) return;
+      const task = standaloneTaskById(taskId);
+      if (!task) return;
+      if (!requireTaskManage(task)) return;
+      if (pendingTaskToggleIds.has(task.id)) return;
+      const previousDone = Boolean(task.done);
+      const previousCompletedAt = task.completedAt || "";
+      const nextDone = Boolean(done);
+      if (previousDone === nextDone) return;
+      pushUndoSnapshot(done ? "выполнение задачи без цикла" : "возврат задачи без цикла в работу");
+      pendingTaskToggleIds.add(task.id);
+      standaloneTasks = standaloneTaskList().map((item) => String(item.id) === String(task.id)
+        ? { ...item, done: nextDone, completedAt: nextDone ? new Date().toISOString() : "" }
+        : item);
+      baseGridRenderKey = "";
+      refreshTaskViews();
+      const saved = await savePlan();
+      pendingTaskToggleIds.delete(task.id);
+      if (!saved) {
+        standaloneTasks = standaloneTaskList().map((item) => String(item.id) === String(task.id)
+          ? { ...item, done: previousDone, completedAt: previousCompletedAt }
+          : item);
+        formStatus.className = "status error";
+        formStatus.textContent = "Не удалось сохранить статус задачи. Изменение отменено.";
+        refreshTaskViews();
+        return;
+      }
+      logAction("cycle_task_updated", "task", task.id, task.title, {
+        task: task.title,
+        status: nextDone ? "Выполнено" : "В работе",
+        source: "standalone"
+      });
+      refreshTaskViews();
+    }
+
+    function confirmDeleteStandaloneTask(taskId) {
+      if (!requireEdit()) return;
+      const task = standaloneTaskById(taskId);
+      if (!task) return;
+      if (!requireTaskManage(task)) return;
+      pendingDelete = { type: "standaloneTask", taskId };
+      deleteModalTitle.textContent = "Удалить задачу?";
+      deleteModalText.textContent = `Будет удалена задача "${task.title}" без привязки к циклу.`;
+      deleteModal.classList.add("open");
+    }
+
+    function deleteStandaloneTask(taskId) {
+      if (!requireEdit()) return;
+      const task = standaloneTaskById(taskId);
+      if (!task) return;
+      if (!requireTaskManage(task)) return;
+      pushUndoSnapshot("удаление задачи без цикла");
+      standaloneTasks = standaloneTaskList().filter((item) => String(item.id) !== String(taskId));
+      if (state.taskEditScope === "standalone" && state.taskEditId === taskId) {
+        state.taskEditScope = "";
+        state.taskEditId = null;
+      }
+      baseGridRenderKey = "";
+      savePlan();
+      logAction("cycle_task_deleted", "task", task.id, task.title, {
+        task: task.title,
+        source: "standalone"
+      });
+      formStatus.className = "status";
+      formStatus.textContent = "Задача удалена";
       refreshTaskViews();
     }
 
@@ -13061,16 +14036,42 @@
     }
 
     function myTaskRowHtml(task, cycle, options = {}) {
-      const tank = tanks.find((item) => item.id === cycle.tankId);
-      const assignee = options.showAssignee ? `<span>Ответственный: ${escapeHtml(taskAssigneeLabel(task.assignee))}</span>` : "";
+      const tank = cycle ? tanks.find((item) => item.id === cycle.tankId) : null;
+      const manageable = canManageTask(task);
+      const toggleSaving = pendingTaskToggleIds.has(task.id);
+      const sourceText = cycle ? `${escapeHtml(cycle.product)}${tank ? ` · ${escapeHtml(tank.name)}` : ""}` : "Без привязки к циклу";
+      const doneAttr = cycle ? `data-my-task-done="${escapeHtml(task.id)}" data-cycle-id="${escapeHtml(cycle.id)}"` : `data-standalone-task-done="${escapeHtml(task.id)}"`;
+      const attachAttr = cycle ? `data-my-task-attach="${escapeHtml(task.id)}" data-cycle-id="${escapeHtml(cycle.id)}"` : `data-standalone-task-attach="${escapeHtml(task.id)}"`;
+      const editAttr = cycle ? `data-my-task-edit="${escapeHtml(task.id)}" data-cycle-id="${escapeHtml(cycle.id)}"` : `data-standalone-task-edit="${escapeHtml(task.id)}"`;
+      const deleteAttr = cycle ? `data-my-task-delete="${escapeHtml(task.id)}" data-cycle-id="${escapeHtml(cycle.id)}"` : `data-standalone-task-delete="${escapeHtml(task.id)}"`;
+      const openAttr = cycle ? `data-open-task-cycle="${escapeHtml(cycle.id)}"` : `data-open-standalone-task="${escapeHtml(task.id)}"`;
+      const editOpen = state.taskEditScope === (cycle ? "cycle" : "standalone") && state.taskEditId === task.id;
       return `
-        <button class="my-task-row" type="button" data-cycle-id="${escapeHtml(cycle.id)}" data-task-id="${escapeHtml(task.id)}" data-overdue="${taskIsOverdue(task) ? "true" : "false"}">
-          ${taskStatusBadgeHtml(task)}
-          <b>${escapeHtml(task.title)}</b>
-          <span>${escapeHtml(cycle.product)}${tank ? ` · ${escapeHtml(tank.name)}` : ""}</span>
-          ${assignee}
-          <span>Срок: ${taskDueLabel(task)}${taskIsOverdue(task) ? " · просрочено" : ""}</span>
-        </button>
+        <article class="my-task-row" ${openAttr} data-task-id="${escapeHtml(task.id)}" data-done="${task.done ? "true" : "false"}" data-assigned-me="${isTaskAssignedToCurrentUser(task) ? "true" : "false"}" data-overdue="${taskIsOverdue(task) ? "true" : "false"}">
+          <input type="checkbox" ${doneAttr} ${task.done ? "checked" : ""} ${manageable && !toggleSaving ? "" : "disabled"} aria-label="Отметить выполнение задачи" title="${toggleSaving ? "Сохраняем статус задачи" : manageable ? "Изменить статус задачи" : "Можно менять только свои задачи"}">
+          <div class="cycle-task-body">
+            ${taskStatusBadgeHtml(task)}
+            <b>${escapeHtml(task.title)}</b>
+            <div class="cycle-task-meta">
+              <span>${sourceText}</span>
+              ${options.showAssignee ? `<span>Ответственный: ${escapeHtml(taskAssigneeLabel(task.assignee))}</span>` : ""}
+              <span>Срок: ${taskDueLabel(task)}${taskIsOverdue(task) ? " · просрочено" : ""}</span>
+            </div>
+            ${taskAttachmentHtml(task, cycle ? "cycle" : "standalone")}
+          </div>
+          <div class="cycle-task-actions">
+            <button class="icon-btn" type="button" ${attachAttr} data-has-file="${task.attachments?.length ? "true" : "false"}" ${manageable ? "" : "disabled"} aria-label="Прикрепить файл к задаче" title="${manageable ? "Прикрепить файл" : "Можно прикреплять файлы только к своим задачам"}">
+              <svg viewBox="0 0 24 24"><path d="M21.4 11.6 12 21a6 6 0 0 1-8.5-8.5l9.7-9.7a4 4 0 0 1 5.7 5.7l-9.7 9.7a2 2 0 1 1-2.8-2.8l9.1-9.1"/></svg>
+            </button>
+            <button class="icon-btn" type="button" ${editAttr} ${manageable ? "" : "disabled"} aria-label="Редактировать задачу" title="${manageable ? "Редактировать задачу" : "Можно редактировать только свои задачи"}">
+              <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/></svg>
+            </button>
+            <button class="icon-btn danger-btn" type="button" ${deleteAttr} ${manageable ? "" : "disabled"} aria-label="Удалить задачу" title="${manageable ? "Удалить задачу" : "Можно удалять только свои задачи"}">
+              <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>
+            </button>
+          </div>
+          ${editOpen ? taskInlineEditFormHtml(task, cycle) : ""}
+        </article>
       `;
     }
 
@@ -13128,7 +14129,7 @@
                 <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>
               </button>
             </div>
-            ${state.taskEditId === task.id ? taskInlineEditFormHtml(task, cycle) : ""}
+            ${state.taskEditScope === "cycle" && state.taskEditId === task.id ? taskInlineEditFormHtml(task, cycle) : ""}
           </article>
         `;
         }).join("");
@@ -13640,28 +14641,14 @@
       });
 
       userList.querySelectorAll("[data-delete-user]").forEach((button) => {
-        button.addEventListener("click", async () => {
+        button.addEventListener("click", () => {
           const user = users.find((item) => item.login === button.dataset.deleteUser);
           if (!user) return;
-          try {
-            if (isYandexBackend) {
-              await yandexRequest(`/users/${encodeURIComponent(user.id)}`, { method: "DELETE" });
-            } else {
-              const { error } = await db.from("user_profiles").delete().eq("id", user.id);
-              if (error) throw error;
-            }
-          } catch (error) {
-            userStatus.className = "status error";
-            userStatus.textContent = `Не удалось удалить пользователя: ${error.message}`;
-            return;
-          }
-          logAction("user_deleted", "user", user.id, userDisplayName(user), {
-            email: user.login
-          });
-          await loadProfiles();
-          userStatus.className = "status";
-          userStatus.textContent = "Пользователь удален";
-          renderUsers();
+          if (user.login === currentUser.login) return;
+          pendingDelete = { type: "user", id: user.id };
+          deleteModalTitle.textContent = "Удалить пользователя?";
+          deleteModalText.textContent = `Будет удален пользователь ${userDisplayName(user)} (${user.login}). Вход в сервис для этой учетной записи станет недоступен.`;
+          deleteModal.classList.add("open");
         });
       });
     }
@@ -15872,6 +16859,9 @@
         canEdit: canEdit(),
         dates: [toISO(dates[0]), toISO(dates[dates.length - 1]), dates.length],
         collapsedSites: state.collapsedSites,
+        standaloneTaskDates: featureEnabled("cycleTasks")
+          ? incompleteStandaloneTasks().map((task) => [task.id, task.dueDate || ""]).sort((a, b) => String(a[0]).localeCompare(String(b[0])))
+          : [],
         rowHeights: layout.heights,
         rows: rows.map((row) => row.type === "tank"
           ? ["tank", row.tank.id, row.tank.name, row.tank.volume, row.tank.siteId]
@@ -15950,6 +16940,15 @@
         grid.append(cell);
       });
 
+      const standaloneTaskGroups = featureEnabled("cycleTasks")
+        ? incompleteStandaloneTasks().reduce((result, task) => {
+          if (!task.dueDate) return result;
+          if (!result.has(task.dueDate)) result.set(task.dueDate, { date: task.dueDate, tasks: [] });
+          result.get(task.dueDate).tasks.push(task);
+          return result;
+        }, new Map())
+        : new Map();
+
       dates.forEach((date, dateIndex) => {
         const isWeekend = date.getDay() === 0 || date.getDay() === 6;
         const flags = [
@@ -15963,10 +16962,48 @@
         dayCell.className = `day-cell ${flags}`;
         dayCell.style.gridColumn = String(dateIndex + 2);
         dayCell.style.gridRow = "4";
+        const isoDate = toISO(date);
+        const standaloneTaskGroup = standaloneTaskGroups.get(isoDate);
+        dayCell.dataset.hasTask = standaloneTaskGroup ? "true" : "false";
         dayCell.innerHTML = `<b>${String(date.getDate()).padStart(2, "0")}</b><span>${weekdayFormatter.format(date)}</span>`;
+        if (standaloneTaskGroup) {
+          const marker = document.createElement("div");
+          marker.className = "day-task-cell";
+          marker.setAttribute("aria-label", taskGroupAriaLabel(standaloneTaskGroup));
+          marker.addEventListener("pointerdown", (event) => event.stopPropagation());
+          marker.addEventListener("mouseenter", (event) => showCommentTooltip(cycleTaskTooltip(standaloneTaskGroup), event, true));
+          marker.addEventListener("mousemove", moveCommentTooltip);
+          marker.addEventListener("mouseleave", hideCommentTooltip);
+          marker.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            clearTimeout(dayCellClickTimer);
+            state.myTasksScope = canAdmin() ? "all" : "mine";
+            state.panelMode = "myTasks";
+            state.addMode = false;
+            state.commentMode = false;
+            state.selectedCycleId = null;
+            state.selectedTankId = null;
+            state.pickedTankId = null;
+            state.pickedDate = null;
+            addMenu.classList.remove("open");
+            render();
+          });
+          dayCell.append(marker);
+        }
         dayCell.addEventListener("click", (event) => {
           event.stopPropagation();
-          selectDatePeriod("day", toISO(date), toISO(date));
+          clearTimeout(dayCellClickTimer);
+          dayCellClickTimer = window.setTimeout(() => {
+            selectDatePeriod("day", isoDate, isoDate);
+          }, 220);
+        });
+        dayCell.addEventListener("dblclick", (event) => {
+          if (!featureEnabled("cycleTasks") || !canEdit()) return;
+          event.preventDefault();
+          event.stopPropagation();
+          clearTimeout(dayCellClickTimer);
+          openStandaloneTaskModal(toISO(date));
         });
         grid.append(dayCell);
       });
@@ -17334,13 +18371,14 @@
         myTaskItems().forEach(({ task, cycle }) => {
           if (!task.dueDate) return;
           events.push({
-            id: `${cycle.id}:task:${task.id}`,
+            id: `${cycle?.id || "standalone"}:task:${task.id}`,
             kind: "task",
-            cycleId: cycle.id,
+            cycleId: cycle?.id || "",
             taskId: task.id,
             date: task.dueDate,
-            product: cycle.product,
+            product: cycle?.product || "Без цикла",
             title: task.title,
+            standalone: !cycle,
             done: Boolean(task.done),
             overdue: taskIsOverdue(task)
           });
@@ -17375,6 +18413,15 @@
 
     function warehouseEventHtml(event) {
       const { cycle, tank, site } = warehouseEventLocation(event);
+      if (event.kind === "task" && event.standalone) {
+        return `
+          <button class="warehouse-entry" type="button" data-kind="task" data-task-id="${escapeHtml(event.taskId || "")}" data-standalone-task="true" data-done="${event.done ? "true" : "false"}" data-overdue="${event.overdue ? "true" : "false"}" title="${escapeHtml(event.title || "Задача")}">
+            <b>${escapeHtml(event.title || "Задача")}</b>
+            <span>Без привязки к циклу</span>
+            <span>${event.done ? "Выполнено" : event.overdue ? "Просрочена" : "В работе"}</span>
+          </button>
+        `;
+      }
       if (!cycle) return "";
       const pastEvent = event.date < toISO(appToday());
       if (event.kind === "brew") {
@@ -17521,6 +18568,7 @@
         updateUndoButton();
         workspace.dataset.panel = state.panelMode;
         workspace.dataset.templateTasks = templateTasksEnabled() ? "true" : "false";
+        if (state.panelMode === "mySettings") organizationSettingsPanel.classList.remove("open");
         organizationSettingsPanel.classList.toggle("open", state.panelMode === "orgSettings");
         userMenuButton.setAttribute("aria-expanded", userBox.classList.contains("open") ? "true" : "false");
         addMenuButton.classList.toggle("active", addMenu.classList.contains("open"));
@@ -17568,6 +18616,7 @@
         updateTankPanelState();
         updateSitePanelState();
         renderOnboardingTip();
+        restoreSupportDraft();
         initializeFastTooltips();
       } finally {
         recordRenderMetric(renderStartedAt);
@@ -17581,6 +18630,7 @@
         syncPickedSlotState();
         return;
       }
+      clearPickedSlotState();
       if (!state.pickedTankId || !state.pickedDate) {
         if (cell) removeDynamicGridElement(cell);
         return;
@@ -17604,11 +18654,25 @@
       cell.style.height = `${rowHeightPx(tankIndex)}px`;
     }
 
-    function syncPickedSlotState() {
+    function clearPickedSlotState() {
       if (pickedSlotElement && pickedSlotElement.isConnected) {
         pickedSlotElement.dataset.picked = "false";
       }
       pickedSlotElement = null;
+    }
+
+    function clearPickedCellState({ clearState = true } = {}) {
+      if (clearState) {
+        state.pickedTankId = null;
+        state.pickedDate = null;
+      }
+      clearPickedSlotState();
+      const cell = grid.querySelector(":scope > .picked-cell");
+      if (cell) removeDynamicGridElement(cell);
+    }
+
+    function syncPickedSlotState() {
+      clearPickedSlotState();
       if (!state.pickedTankId || !state.pickedDate) return null;
       const pickedSlot = Array.from(grid.querySelectorAll(":scope > .slot"))
         .find((slot) => slot.dataset.tankId === String(state.pickedTankId) && slot.dataset.date === String(state.pickedDate));
@@ -18162,8 +19226,7 @@
     function closeCyclePanelAfterSave() {
       state.selectedCycleId = null;
       state.addMode = false;
-      state.pickedTankId = null;
-      state.pickedDate = null;
+      clearPickedCellState();
       state.packagingSource = null;
       state.cycleFormSnapshot = null;
       state.cycleTab = "production";
@@ -18432,8 +19495,7 @@
       state.addMode = false;
       state.commentMode = false;
       state.panelMode = "hidden";
-      state.pickedTankId = null;
-      state.pickedDate = null;
+      clearPickedCellState();
       state.packagingSource = null;
       state.cycleTab = "production";
       state.processTab = "brew";
@@ -18950,7 +20012,8 @@
         render();
       });
 
-      organizationSettingsButton.addEventListener("click", async () => {
+      organizationSettingsButton.addEventListener("click", async (event) => {
+        event.stopPropagation();
         if (!requireAdmin()) return;
         const isOpen = state.panelMode === "orgSettings";
         state.panelMode = isOpen ? "hidden" : "orgSettings";
@@ -19042,11 +20105,14 @@
         render();
       });
 
-      mySettingsButton.addEventListener("click", () => {
+      mySettingsButton.addEventListener("click", (event) => {
+        event.stopPropagation();
         if (!currentUser) return;
         userBox.classList.remove("open");
         const isOpen = state.panelMode === "mySettings";
         mySettingsFormDirty = false;
+        organizationSettingsFormDirty = false;
+        organizationSettingsPanel.classList.remove("open");
         state.panelMode = isOpen ? "hidden" : "mySettings";
         state.addMode = false;
         state.commentMode = false;
@@ -19085,9 +20151,24 @@
       window.addEventListener("scroll", scheduleOnboardingHighlightRefresh, { passive: true, capture: true });
       resetOnboardingButton.addEventListener("click", resetOnboardingTips);
       myResetOnboardingButton.addEventListener("click", resetMyOnboardingTips);
-      onboardingHelpButton.addEventListener("click", openHelpModal);
-      dismissOnboardingButton.addEventListener("click", dismissOnboardingTips);
-      nextOnboardingButton.addEventListener("click", showNextOnboardingTip);
+      onboardingTip?.addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
+      onboardingHelpButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openHelpModal();
+      });
+      dismissOnboardingButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        dismissOnboardingTips();
+      });
+      nextOnboardingButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        showNextOnboardingTip();
+      });
 
       closeActionLogButton.addEventListener("click", () => {
         state.panelMode = "hidden";
@@ -19165,6 +20246,22 @@
           closeStageQuickMenu();
         }
         if (
+          supportModal?.classList.contains("open")
+          && !event.target.closest("#supportModal .modal")
+          && !event.target.closest("#supportButton")
+          && !event.target.closest("#onboardingTip")
+        ) {
+          closeSupportModal();
+        }
+        if (
+          helpModal?.classList.contains("open")
+          && !event.target.closest("#helpModal .modal")
+          && !event.target.closest("#helpButton")
+          && !event.target.closest("#onboardingHelpButton")
+        ) {
+          closeHelpModal();
+        }
+        if (
           state.panelMode === "orgSettings"
           && !event.target.closest("#organizationSettingsPanel")
           && !event.target.closest("#organizationSettingsButton")
@@ -19216,9 +20313,9 @@
         addMashingRow();
       });
       processBrewPane.addEventListener("change", (event) => {
-        const input = event.target.closest("[data-mashing-index]");
+        const input = event.target.closest("[data-mashing-index][data-mashing-field]");
         if (!input) return;
-        updateMashingVolume(Number(input.dataset.mashingIndex), input.value);
+        updateMashingField(Number(input.dataset.mashingIndex), input.dataset.mashingField, input.value);
       });
       processFermentationPane.addEventListener("change", (event) => {
         const input = event.target.closest("[data-fermentation-field]");
@@ -19239,14 +20336,38 @@
         updateAddTaskButtonState();
         taskTitleInput.focus();
       });
+      standaloneTaskTemplates.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-standalone-task-template]");
+        if (!button) return;
+        standaloneTaskTitleInput.value = button.dataset.standaloneTaskTemplate;
+        updateStandaloneTaskButtonState();
+        standaloneTaskTitleInput.focus();
+      });
       taskTitleInput.addEventListener("input", updateAddTaskButtonState);
+      standaloneTaskTitleInput.addEventListener("input", updateStandaloneTaskButtonState);
+      standaloneTaskDueInput.addEventListener("input", updateStandaloneTaskButtonState);
       addTaskButton.addEventListener("click", addCycleTask);
+      saveStandaloneTaskButton.addEventListener("click", addStandaloneTask);
+      cancelStandaloneTaskButton.addEventListener("click", closeStandaloneTaskModal);
+      standaloneTaskModal.addEventListener("click", (event) => {
+        if (event.target === standaloneTaskModal) closeStandaloneTaskModal();
+      });
       taskFileInput.addEventListener("change", async () => {
         const files = Array.from(taskFileInput.files || []);
         const taskId = state.pendingTaskFileTaskId;
+        const scope = state.pendingTaskFileScope || "cycle";
+        const cycleId = state.pendingTaskFileCycleId || "";
         state.pendingTaskFileTaskId = null;
+        state.pendingTaskFileScope = "cycle";
+        state.pendingTaskFileCycleId = "";
         taskFileInput.value = "";
-        if (taskId) await attachFilesToTask(taskId, files);
+        if (!taskId) return;
+        if (scope === "standalone") {
+          await attachFilesToStandaloneTask(taskId, files);
+        } else {
+          if (cycleId) state.selectedCycleId = cycleId;
+          await attachFilesToTask(taskId, files);
+        }
       });
       cycleTaskList.addEventListener("change", async (event) => {
         const doneInput = event.target.closest("[data-task-done]");
@@ -19266,18 +20387,105 @@
         if (deleteButton) confirmDeleteCycleTask(deleteButton.dataset.taskDelete);
         if (attachButton) {
           state.pendingTaskFileTaskId = attachButton.dataset.taskAttach;
+          state.pendingTaskFileScope = "cycle";
+          state.pendingTaskFileCycleId = state.selectedCycleId || "";
           taskFileInput.value = "";
           taskFileInput.click();
         }
         if (deleteFileButton) confirmDeleteTaskAttachment(deleteFileButton.dataset.taskFileDelete, deleteFileButton.dataset.fileId);
       });
       myTasksList.addEventListener("click", (event) => {
-        const button = event.target.closest("[data-cycle-id]");
-        if (!button) return;
-        const cycle = cycles.find((item) => String(item.id) === String(button.dataset.cycleId));
+        const standaloneDoneInput = event.target.closest("[data-standalone-task-done]");
+        const cycleDoneInput = event.target.closest("[data-my-task-done]");
+        const standaloneAttachButton = event.target.closest("[data-standalone-task-attach]");
+        const cycleAttachButton = event.target.closest("[data-my-task-attach]");
+        const standaloneEditButton = event.target.closest("[data-standalone-task-edit]");
+        const cycleEditButton = event.target.closest("[data-my-task-edit]");
+        const standaloneSaveButton = event.target.closest("[data-standalone-task-edit-save]");
+        const standaloneCancelButton = event.target.closest("[data-standalone-task-edit-cancel]");
+        const standaloneDeleteButton = event.target.closest("[data-standalone-task-delete]");
+        const cycleDeleteButton = event.target.closest("[data-my-task-delete]");
+        const standaloneFileDeleteButton = event.target.closest("[data-standalone-task-file-delete]");
+        const cycleFileDeleteButton = event.target.closest("[data-task-file-delete]");
+        if (standaloneDoneInput) {
+          toggleStandaloneTask(standaloneDoneInput.dataset.standaloneTaskDone, standaloneDoneInput.checked);
+          return;
+        }
+        if (cycleDoneInput) {
+          state.selectedCycleId = cycleDoneInput.dataset.cycleId || state.selectedCycleId;
+          toggleCycleTask(cycleDoneInput.dataset.myTaskDone, cycleDoneInput.checked);
+          return;
+        }
+        if (standaloneAttachButton) {
+          state.pendingTaskFileTaskId = standaloneAttachButton.dataset.standaloneTaskAttach;
+          state.pendingTaskFileScope = "standalone";
+          state.pendingTaskFileCycleId = "";
+          taskFileInput.value = "";
+          taskFileInput.click();
+          return;
+        }
+        if (cycleAttachButton) {
+          state.selectedCycleId = cycleAttachButton.dataset.cycleId || state.selectedCycleId;
+          state.pendingTaskFileTaskId = cycleAttachButton.dataset.myTaskAttach;
+          state.pendingTaskFileScope = "cycle";
+          state.pendingTaskFileCycleId = cycleAttachButton.dataset.cycleId || "";
+          taskFileInput.value = "";
+          taskFileInput.click();
+          return;
+        }
+        if (standaloneEditButton) {
+          editStandaloneTask(standaloneEditButton.dataset.standaloneTaskEdit);
+          return;
+        }
+        if (cycleEditButton) {
+          const cycle = cycles.find((item) => String(item.id) === String(cycleEditButton.dataset.cycleId));
+          if (cycle) {
+            fillForm(cycle);
+            setCycleTab("tasks");
+            editCycleTask(cycleEditButton.dataset.myTaskEdit);
+          }
+          return;
+        }
+        if (standaloneSaveButton) {
+          saveInlineStandaloneTask(standaloneSaveButton.dataset.standaloneTaskEditSave);
+          return;
+        }
+        if (standaloneCancelButton) {
+          cancelInlineStandaloneTaskEdit(standaloneCancelButton.dataset.standaloneTaskEditCancel);
+          return;
+        }
+        if (standaloneDeleteButton) {
+          confirmDeleteStandaloneTask(standaloneDeleteButton.dataset.standaloneTaskDelete);
+          return;
+        }
+        if (cycleDeleteButton) {
+          state.selectedCycleId = cycleDeleteButton.dataset.cycleId || state.selectedCycleId;
+          confirmDeleteCycleTask(cycleDeleteButton.dataset.myTaskDelete);
+          return;
+        }
+        if (standaloneFileDeleteButton) {
+          confirmDeleteStandaloneTaskAttachment(standaloneFileDeleteButton.dataset.standaloneTaskFileDelete, standaloneFileDeleteButton.dataset.fileId);
+          return;
+        }
+        if (cycleFileDeleteButton) {
+          state.selectedCycleId = cycleFileDeleteButton.closest("[data-open-task-cycle]")?.dataset.openTaskCycle || state.selectedCycleId;
+          confirmDeleteTaskAttachment(cycleFileDeleteButton.dataset.taskFileDelete, cycleFileDeleteButton.dataset.fileId);
+          return;
+        }
+        if (event.target.closest("button, input, select, textarea, a, .cycle-task-edit-form")) return;
+        const standaloneRow = event.target.closest("[data-open-standalone-task]");
+        if (standaloneRow) {
+          const task = standaloneTaskList().find((item) => String(item.id) === String(standaloneRow.dataset.openStandaloneTask));
+          if (task?.dueDate) selectDatePeriod("day", task.dueDate, task.dueDate);
+          return;
+        }
+        const row = event.target.closest("[data-open-task-cycle]");
+        if (!row) return;
+        const cycle = cycles.find((item) => String(item.id) === String(row.dataset.openTaskCycle));
         if (!cycle) return;
         fillForm(cycle);
         setCycleTab("tasks");
+        state.taskEditScope = "";
         state.taskEditId = null;
         renderCycleTasks();
       });
@@ -19434,13 +20642,18 @@
 
       supportButton.addEventListener("click", () => {
         userBox.classList.remove("open");
+        helpModal?.classList.remove("open");
+        closeRightPanelsBeforeFloatingWindow();
         const hasSupportUnread = supportUnreadCount > 0;
+        openSupportTicketId = "";
+        clearSupportDraft();
         supportStatus.className = "status";
         supportStatus.textContent = "";
         supportForm.reset();
         supportPhoneInput.value = "+7";
         updateSupportAttachmentName();
         setSupportTab(hasSupportUnread ? "tickets" : "new");
+        render();
         supportModal.classList.add("open");
         renderOnboardingTip();
         loadSupportAccessStatus();
@@ -19448,8 +20661,7 @@
       });
 
       cancelSupportButton.addEventListener("click", () => {
-        supportModal.classList.remove("open");
-        renderOnboardingTip();
+        closeSupportModal();
       });
 
       supportForm.addEventListener("submit", async (event) => {
@@ -19470,6 +20682,7 @@
           });
           supportStatus.className = "status ok";
           supportStatus.textContent = `Обращение ${data.ticket?.number || ""} создано`;
+          clearSupportDraft();
           supportForm.reset();
           supportPhoneInput.value = "+7";
           updateSupportAttachmentName();
@@ -19481,20 +20694,36 @@
         }
       });
 
-      supportNewTab.addEventListener("click", () => setSupportTab("new"));
-      supportTicketsTab.addEventListener("click", () => setSupportTab("tickets"));
+      supportNewTab.addEventListener("click", () => {
+        openSupportTicketId = "";
+        setSupportTab("new");
+      });
+      supportTicketsTab.addEventListener("click", () => {
+        openSupportTicketId = "";
+        setSupportTab("tickets");
+      });
+      [supportCategoryInput, supportTitleInput, supportDescriptionInput].forEach((input) => {
+        input.addEventListener("input", rememberSupportDraft);
+        input.addEventListener("change", rememberSupportDraft);
+      });
       supportPhoneInput.addEventListener("focus", () => {
         if (!supportPhoneInput.value.trim()) supportPhoneInput.value = "+7";
       });
       supportPhoneInput.addEventListener("input", () => {
         if (!supportPhoneInput.value.startsWith("+7")) supportPhoneInput.value = "+7";
+        rememberSupportDraft();
       });
-      supportAttachmentsInput.addEventListener("change", updateSupportAttachmentName);
+      supportAttachmentsInput.addEventListener("change", () => {
+        updateSupportAttachmentName();
+        rememberSupportDraft();
+      });
       supportModal.addEventListener("click", (event) => {
         if (event.target === supportModal) {
-          supportModal.classList.remove("open");
-          renderOnboardingTip();
+          closeSupportModal();
         }
+      });
+      supportModal.querySelector(".modal")?.addEventListener("click", (event) => {
+        event.stopPropagation();
       });
 
       enableSupportAccessButton.addEventListener("click", () => updateSupportAccess(true));
@@ -19683,6 +20912,8 @@
             await deleteTank(pendingDelete.id);
           } else if (pendingDelete?.type === "site") {
             await deleteSite(pendingDelete.id);
+          } else if (pendingDelete?.type === "user") {
+            await deleteOrganizationUser(pendingDelete.id);
           } else if (pendingDelete?.type === "partialBottling") {
             deletePartialBottling(pendingDelete.cycleId, pendingDelete.partialId);
           } else if (pendingDelete?.type === "cycleTask") {
@@ -19691,6 +20922,10 @@
           } else if (pendingDelete?.type === "taskAttachment") {
             state.selectedCycleId = pendingDelete.cycleId;
             deleteTaskAttachment(pendingDelete.taskId, pendingDelete.fileId);
+          } else if (pendingDelete?.type === "standaloneTask") {
+            deleteStandaloneTask(pendingDelete.taskId);
+          } else if (pendingDelete?.type === "standaloneTaskAttachment") {
+            deleteStandaloneTaskAttachment(pendingDelete.taskId, pendingDelete.fileId);
           }
         } finally {
           pendingDelete = null;
@@ -19757,11 +20992,13 @@
       commentTemplates.addEventListener("click", (event) => {
         const button = event.target.closest("[data-template]");
         if (!button) return;
-        const template = button.dataset.template;
-        commentInput.value = commentInput.value.trim()
-          ? `${commentInput.value.trim()}\n${template}`
-          : template;
-        commentInput.focus();
+        insertCommentTemplateText(button.dataset.template);
+      });
+
+      commentTaskTemplates.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-comment-task-template]");
+        if (!button) return;
+        insertCommentTemplateText(button.dataset.commentTaskTemplate);
       });
 
       commentDateInput.addEventListener("input", () => {

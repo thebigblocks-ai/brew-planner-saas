@@ -841,6 +841,14 @@
       overflow-wrap: anywhere;
     }
 
+    .ticket-title-stack {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
     .ticket-number {
       flex: 0 0 auto;
       color: var(--muted);
@@ -865,6 +873,18 @@
     .ticket-row.active {
       border-color: var(--accent);
       box-shadow: 0 0 0 2px rgba(255, 139, 0, .14);
+    }
+
+    .ticket-row[data-attention="true"],
+    .ticket-card[data-attention="true"] {
+      border-color: rgba(255, 139, 0, .78);
+      background: linear-gradient(90deg, rgba(255, 247, 237, .98), #fff 58%);
+      box-shadow: 0 0 0 2px rgba(255, 139, 0, .16), 0 10px 22px rgba(194, 65, 12, .08);
+    }
+
+    .ticket-row[data-attention="true"].active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 139, 0, .22), 0 10px 22px rgba(194, 65, 12, .10);
     }
 
     .tickets-layout {
@@ -980,6 +1000,17 @@
       font-weight: 900;
     }
 
+    .ticket-attention-badge {
+      width: fit-content;
+      min-height: 22px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #fff7ed;
+      color: #c2410c;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
     .sla-deadline {
       color: var(--muted);
       font-size: 12px;
@@ -1049,7 +1080,7 @@
       <div class="side-footer">
         <span id="currentUserName">Супер-админ</span>
         <button id="logoutButton" type="button">Выйти</button>
-        <span>v2026.07.01.43-saas</span>
+        <span>v2026.07.01.47-saas</span>
       </div>
     </aside>
 
@@ -2177,19 +2208,68 @@
       return `Дедлайн приема в работу: ${formatDateTime(ticket.responseDeadlineAt)} · SLA ${level}`;
     }
 
+    function sameTicketIdentity(left = "", right = "") {
+      return String(left || "").trim().toLowerCase() === String(right || "").trim().toLowerCase();
+    }
+
     function ticketMessageSide(message, ticket) {
-      return message?.isInternal || (ticket?.createdByUserId && message?.authorUserId !== ticket.createdByUserId) ? "support" : "customer";
+      if (!message) return "customer";
+      if (message.isInternal || message.authorRole === "support") return "support";
+      if (message.authorRole === "customer") return "customer";
+      if (message.authorUserId && ticket?.createdByUserId) {
+        return message.authorUserId === ticket.createdByUserId ? "customer" : "support";
+      }
+      if (message.authorEmail && ticket?.createdByEmail) {
+        return sameTicketIdentity(message.authorEmail, ticket.createdByEmail) ? "customer" : "support";
+      }
+      if (message.authorName && ticket?.createdByName) {
+        return sameTicketIdentity(message.authorName, ticket.createdByName) ? "customer" : "support";
+      }
+      return "support";
+    }
+
+    function maxMessageTime(messages, predicate) {
+      return (Array.isArray(messages) ? messages : [])
+        .filter((message) => !message.isInternal && predicate(message))
+        .reduce((latest, message) => {
+          const time = Date.parse(message.createdAt || "");
+          return Number.isFinite(time) ? Math.max(latest, time) : latest;
+        }, 0);
+    }
+
+    function ticketNeedsSupportAttention(ticket) {
+      if (!ticket) return false;
+      if (ticket.requiresSupportAttention !== undefined) return Boolean(ticket.requiresSupportAttention);
+      if ((ticket.status || "new") === "new") return true;
+      const messages = Array.isArray(ticket.messages) ? ticket.messages : [];
+      const lastCustomerMessageAt = maxMessageTime(messages, (message) => ticketMessageSide(message, ticket) === "customer");
+      if (!lastCustomerMessageAt) return false;
+      const lastSupportMessageAt = maxMessageTime(messages, (message) => ticketMessageSide(message, ticket) === "support");
+      return lastCustomerMessageAt > lastSupportMessageAt;
+    }
+
+    function ticketAttentionBadge(ticket) {
+      return ticketNeedsSupportAttention(ticket)
+        ? `<span class="ticket-attention-badge">Требует ответа</span>`
+        : "";
+    }
+
+    function ticketSortValue(ticket) {
+      return Date.parse(ticket?.updatedAt || ticket?.createdAt || "") || 0;
     }
 
     function ticketCardHtml(ticket) {
       const messages = Array.isArray(ticket.messages) ? ticket.messages : [];
       const deadline = ticketDeadlineText(ticket);
       return `
-        <details class="ticket-card" data-ticket-card-id="${escapeHtml(ticket.id)}">
+        <details class="ticket-card" data-ticket-card-id="${escapeHtml(ticket.id)}" data-attention="${ticketNeedsSupportAttention(ticket) ? "true" : "false"}">
           <summary>
             <span class="ticket-row-main">
               <span class="ticket-card-top">
-                <b class="ticket-card-title">${escapeHtml(ticket.title)}</b>
+                <span class="ticket-title-stack">
+                  <b class="ticket-card-title">${escapeHtml(ticket.title)}</b>
+                  ${ticketAttentionBadge(ticket)}
+                </span>
                 <span class="ticket-number">${escapeHtml(ticket.number || "")}</span>
               </span>
               <span class="small">${escapeHtml(ticket.organizationName || ticket.organizationId)} · ${escapeHtml(ticket.createdByName || ticket.createdByEmail)} · ${escapeHtml(formatDateTime(ticket.updatedAt || ticket.createdAt))}</span>
@@ -2720,20 +2800,27 @@
     function renderTickets(options = {}) {
       renderTicketCounter();
       renderTicketCategoryFilter();
-      const visibleTickets = tickets.filter((ticket) => (
-        (!ticketStatusFilter || ticket.status === ticketStatusFilter)
-        && (!ticketCategoryFilter || ticketCategoryValue(ticket.category) === ticketCategoryFilter)
-      ));
+      const visibleTickets = tickets
+        .filter((ticket) => (
+          (!ticketStatusFilter || ticket.status === ticketStatusFilter)
+          && (!ticketCategoryFilter || ticketCategoryValue(ticket.category) === ticketCategoryFilter)
+        ))
+        .sort((a, b) => Number(ticketNeedsSupportAttention(b)) - Number(ticketNeedsSupportAttention(a))
+          || ticketSortValue(b) - ticketSortValue(a)
+          || String(b.number || "").localeCompare(String(a.number || ""), "ru"));
       const filtersActive = Boolean(ticketStatusFilter || ticketCategoryFilter);
       $("#ticketCount").textContent = filtersActive ? `${visibleTickets.length}/${tickets.length}` : String(tickets.length);
       if (selectedTicketId && !tickets.some((ticket) => ticket.id === selectedTicketId)) selectedTicketId = "";
       if (selectedTicketId && !visibleTickets.some((ticket) => ticket.id === selectedTicketId)) selectedTicketId = "";
       if (!selectedTicketId && visibleTickets.length) selectedTicketId = visibleTickets[0].id;
       $("#ticketList").innerHTML = visibleTickets.length ? visibleTickets.map((ticket) => `
-        <div class="ticket-row ${ticket.id === selectedTicketId ? "active" : ""}" data-ticket-id="${escapeHtml(ticket.id)}">
+        <div class="ticket-row ${ticket.id === selectedTicketId ? "active" : ""}" data-ticket-id="${escapeHtml(ticket.id)}" data-attention="${ticketNeedsSupportAttention(ticket) ? "true" : "false"}">
           <div class="ticket-row-main">
             <div class="ticket-row-top">
-              <b class="ticket-row-title">${escapeHtml(ticket.title)}</b>
+              <span class="ticket-title-stack">
+                <b class="ticket-row-title">${escapeHtml(ticket.title)}</b>
+                ${ticketAttentionBadge(ticket)}
+              </span>
               <span class="ticket-number">${escapeHtml(ticket.number || "")}</span>
             </div>
             <div class="small">${escapeHtml(ticket.organizationName || ticket.organizationId)} · ${escapeHtml(ticket.createdByName || ticket.createdByEmail)} · ${escapeHtml(ticket.createdByPhone || "телефон не указан")}</div>
@@ -2841,6 +2928,7 @@
             method: "POST",
             body: {
               text,
+              authorRole: "support",
               isInternal: $("#ticketInternalInput").checked
             }
           });
@@ -2875,10 +2963,10 @@
 
     function renderTicketCounter() {
       const counter = $("#ticketNavCounter");
-      const newCount = tickets.filter((ticket) => ticket.status === "new").length;
-      counter.textContent = String(newCount);
-      counter.hidden = newCount === 0;
-      counter.title = `Новых обращений: ${newCount}`;
+      const attentionCount = tickets.filter(ticketNeedsSupportAttention).length;
+      counter.textContent = String(attentionCount);
+      counter.hidden = attentionCount === 0;
+      counter.title = `Обращений, требующих ответа: ${attentionCount}`;
     }
 
     async function boot() {
