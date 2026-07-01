@@ -214,7 +214,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.07.01.187-saas";
+      content: "v2026.07.01.189-saas";
     }
 
     .toolbar {
@@ -4095,11 +4095,12 @@
 
     .onboarding-highlight {
       position: fixed;
-      z-index: 71;
+      z-index: 85;
       pointer-events: none;
       box-sizing: border-box;
-      border-radius: 7px !important;
+      border-radius: 8px !important;
       border: 2px solid rgba(255, 139, 0, .82);
+      box-shadow: 0 0 0 3px rgba(255, 139, 0, .14);
       animation: onboardingGlowPulse 1.8s ease-in-out infinite;
     }
 
@@ -5221,22 +5222,24 @@
     }
 
     .warehouse-filters {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 8px;
-      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 5px;
+      min-width: 0;
     }
 
     .warehouse-filter {
-      min-height: 38px;
-      padding: 0 10px;
+      min-height: 30px;
+      padding: 0 8px;
       border: 1px solid var(--line-strong);
       border-radius: 8px;
       background: var(--panel);
       color: var(--ink);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 850;
       line-height: 1.15;
+      white-space: nowrap;
     }
 
     .warehouse-filter[data-active="true"] {
@@ -6036,9 +6039,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.187-saas</span>
+  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.189-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.187-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.189-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6620,16 +6623,15 @@
           <div class="panel-head">
             <h2>Календарь</h2>
             <div class="panel-actions">
-              <span class="badge" id="warehouseCount">0 соб.</span>
+              <div class="warehouse-filters" id="warehouseFilters" aria-label="Фильтры календаря">
+                <button class="warehouse-filter" type="button" data-warehouse-filter="brews" aria-label="Плановые варки" title="Плановые варки" aria-pressed="true">Варки</button>
+                <button class="warehouse-filter" type="button" data-warehouse-filter="bottlings" aria-label="Плановые розливы" title="Плановые розливы" aria-pressed="true">Розливы</button>
+                <button class="warehouse-filter" type="button" data-warehouse-filter="tasks" aria-label="Мои задачи" title="Мои задачи" aria-pressed="true">Задачи</button>
+              </div>
               <button class="icon-btn" id="closeWarehouseButton" type="button" aria-label="Закрыть календарь розливов" title="Закрыть">
                 <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
             </div>
-          </div>
-          <div class="warehouse-filters" id="warehouseFilters" aria-label="Фильтры календаря">
-            <button class="warehouse-filter" type="button" data-warehouse-filter="brews" aria-pressed="true">Плановые варки</button>
-            <button class="warehouse-filter" type="button" data-warehouse-filter="bottlings" aria-pressed="true">Плановые розливы</button>
-            <button class="warehouse-filter" type="button" data-warehouse-filter="tasks" aria-pressed="true">Мои задачи</button>
           </div>
           <div class="warehouse-calendar" id="warehouseCalendar"></div>
         </section>
@@ -7501,7 +7503,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.07.01.187-saas";
+    const appVersion = "v2026.07.01.189-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -8284,8 +8286,18 @@
       const rect = element.getBoundingClientRect();
       const heavyTarget = rect.width * rect.height > 120000 || rect.width > 720 || rect.height > 260;
       element.dataset.onboardingHeavy = heavyTarget ? "true" : "false";
-      element.classList.add("onboarding-target-highlight");
-      onboardingHighlight.hidden = true;
+      if (heavyTarget) {
+        element.classList.add("onboarding-target-highlight");
+        onboardingHighlight.hidden = true;
+        return;
+      }
+      element.classList.remove("onboarding-target-highlight");
+      const padding = 4;
+      onboardingHighlight.style.left = `${Math.max(0, rect.left - padding)}px`;
+      onboardingHighlight.style.top = `${Math.max(0, rect.top - padding)}px`;
+      onboardingHighlight.style.width = `${Math.max(8, rect.width + padding * 2)}px`;
+      onboardingHighlight.style.height = `${Math.max(8, rect.height + padding * 2)}px`;
+      onboardingHighlight.hidden = false;
     }
 
     function onboardingTargetInViewport(element) {
@@ -10097,7 +10109,6 @@
     const closeWarehouseButton = document.querySelector("#closeWarehouseButton");
     const warehouseFilters = document.querySelector("#warehouseFilters");
     const warehouseCalendar = document.querySelector("#warehouseCalendar");
-    const warehouseCount = document.querySelector("#warehouseCount");
     const templatesButton = document.querySelector("#templatesButton");
     const myTasksButton = document.querySelector("#myTasksButton");
     const myTasksCount = document.querySelector("#myTasksCount");
@@ -16976,7 +16987,6 @@
         if (event.kind === "task") sum.tasks += 1;
         return sum;
       }, { brews: 0, bottlings: 0, tasks: 0 });
-      warehouseCount.textContent = `${formatNumber(incoming.length)} соб.`;
 
       if (!incoming.length) {
         warehouseCalendar.innerHTML = `<div class="empty-state">В выбранном периоде событий нет</div>`;
