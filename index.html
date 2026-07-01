@@ -258,7 +258,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.07.01.195-saas";
+      content: "v2026.07.01.196-saas";
     }
 
     .toolbar {
@@ -1813,7 +1813,8 @@
 
     .workspace[data-panel="orgSettings"] #organizationSettingsPanel,
     .workspace[data-panel="mySettings"] #mySettingsPanel {
-      display: block;
+      display: flex;
+      flex-direction: column;
     }
 
     .workspace[data-panel="orgSettings"] #cyclePanel,
@@ -2027,9 +2028,11 @@
     :root[data-fullscreen-mode="true"] #usersPanel,
     :root[data-fullscreen-mode="true"] #actionLogPanel,
     :root[data-fullscreen-mode="true"] #featuresPanel,
-    :root[data-fullscreen-mode="true"] #myTasksPanel {
+    :root[data-fullscreen-mode="true"] #myTasksPanel,
+    :root[data-fullscreen-mode="true"] #mySettingsPanel {
       height: 100vh;
       min-height: 0;
+      max-height: 100vh;
       border-radius: 0;
       box-shadow: none;
     }
@@ -2875,44 +2878,86 @@
       overflow: hidden;
     }
 
-    #warehousePanel {
-      height: calc(100vh - 170px);
-      min-height: 520px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #bottlingPanel {
-      height: calc(100vh - 220px);
-      min-height: 420px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #cyclePanel {
-      height: calc(100vh - 220px);
-      min-height: 420px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #myTasksPanel {
+    #cyclePanel,
+    #tankPanel,
+    #sitePanel,
+    #bottlingPanel,
+    #warehousePanel,
+    #templatesPanel,
+    #usersPanel,
+    #actionLogPanel,
+    #featuresPanel,
+    #myTasksPanel,
+    #mySettingsPanel {
       height: calc(100vh - 178px);
       min-height: 520px;
+      max-height: calc(100vh - 178px);
+    }
+
+    #cyclePanel,
+    #tankPanel,
+    #sitePanel,
+    #bottlingPanel,
+    #warehousePanel,
+    #templatesPanel,
+    #usersPanel,
+    #actionLogPanel,
+    #featuresPanel,
+    #myTasksPanel {
       display: flex;
       flex-direction: column;
     }
 
-    #myTasksPanel .panel-head,
-    #myTasksPanel .selected-summary,
-    #myTasksPanel .my-task-tabs {
+    #cyclePanel > .panel-head,
+    #cyclePanel > .selected-summary,
+    #cyclePanel > .cycle-tabs,
+    #tankPanel > .panel-head,
+    #sitePanel > .panel-head,
+    #bottlingPanel > .panel-head,
+    #bottlingPanel > .bottling-period-total,
+    #warehousePanel > .panel-head,
+    #templatesPanel > .panel-head,
+    #templatesPanel > .template-search-row,
+    #usersPanel > .panel-head,
+    #usersPanel > .user-search-row,
+    #usersPanel > .user-create-toggle,
+    #usersPanel > .user-create-form,
+    #usersPanel > .status,
+    #featuresPanel > .panel-head,
+    #featuresPanel > .selected-summary,
+    #featuresPanel > .feature-status,
+    #myTasksPanel > .panel-head,
+    #myTasksPanel > .selected-summary,
+    #myTasksPanel > .my-task-tabs,
+    #mySettingsPanel > .panel-head,
+    #actionLogPanel > .panel-head,
+    #actionLogPanel > .selected-summary {
       flex: 0 0 auto;
     }
 
-    #myTasksPanel .my-task-list {
+    #cyclePanel .form,
+    #tankPanel > .form,
+    #sitePanel > .form,
+    #templatesPanel .template-inline-form,
+    #usersPanel > .user-list,
+    #featuresPanel > .feature-list,
+    #myTasksPanel .my-task-list,
+    #mySettingsPanel > .settings-form,
+    #actionLogPanel > .action-log-list {
       flex: 1 1 auto;
       min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
       scrollbar-gutter: stable;
+    }
+
+    #mySettingsPanel > .settings-form {
+      align-content: start;
+      padding-bottom: 24px;
+    }
+
+    #actionLogPanel > .action-log-list {
+      max-height: none;
     }
 
     .panel + .panel {
@@ -2971,8 +3016,6 @@
     }
 
     #templatesPanel {
-      height: calc(100vh - 220px);
-      min-height: 420px;
       display: flex;
       flex-direction: column;
     }
@@ -6128,9 +6171,20 @@
         border: 1px solid var(--line-strong);
       }
 
-      #myTasksPanel {
+      #cyclePanel,
+      #tankPanel,
+      #sitePanel,
+      #bottlingPanel,
+      #warehousePanel,
+      #templatesPanel,
+      #usersPanel,
+      #actionLogPanel,
+      #featuresPanel,
+      #myTasksPanel,
+      #mySettingsPanel {
         height: 64vh;
         min-height: 420px;
+        max-height: 64vh;
       }
 
       aside {
@@ -6166,9 +6220,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.195-saas</span>
+  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.196-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.195-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.196-saas</span>
   </div>
 
   <div class="fullscreen-hover-zone" id="fullscreenHoverZone" aria-hidden="true"></div>
@@ -7641,7 +7695,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.07.01.195-saas";
+    const appVersion = "v2026.07.01.196-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
