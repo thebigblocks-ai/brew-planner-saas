@@ -214,7 +214,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.07.01.190-saas";
+      content: "v2026.07.01.191-saas";
     }
 
     .toolbar {
@@ -2658,6 +2658,10 @@
       min-width: 8px;
       z-index: 5;
       cursor: help;
+    }
+
+    .cycle-event-cell[data-has-partial-bottling="true"] {
+      cursor: pointer;
     }
 
     .cycle-event-line {
@@ -6052,9 +6056,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.190-saas</span>
+  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.191-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.190-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.191-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6998,6 +7002,7 @@
               <label class="field">
                 <span>Показывать с</span>
                 <select id="myTimelineStartOffsetInput">
+                  <option value="cycles">По циклам</option>
                   <option value="7">Сегодня минус 7 дней</option>
                   <option value="14">Сегодня минус 14 дней</option>
                   <option value="30">Сегодня минус 30 дней</option>
@@ -7516,7 +7521,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.07.01.190-saas";
+    const appVersion = "v2026.07.01.191-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -8513,7 +8518,7 @@
         inAppNotifications: document.querySelector("#myInAppNotificationsInput")?.checked,
         plannerView: document.querySelector("#myPlannerViewInput")?.value,
         density: document.querySelector("#myDensityInput")?.value,
-        timelineStartOffsetDays: Number(document.querySelector("#myTimelineStartOffsetInput")?.value || 30),
+        timelineStartOffsetDays: timelineStartSettingFromForm(),
         defaultRangeMode: document.querySelector("#myDefaultRangeInput")?.value,
         expandedCycleDetails: selectedExpandedCycleDetailsFromForm()
       });
@@ -10733,7 +10738,7 @@
     }
 
     function normalizeMySettings(settings = {}) {
-      const timelineStartOffsetDays = Number(settings.timelineStartOffsetDays || 30);
+      const timelineStartOffsetDays = normalizeTimelineStartOffset(settings.timelineStartOffsetDays);
       const defaultRangeMode = String(settings.defaultRangeMode || "auto");
       const rawExpandedCycleDetails = Array.isArray(settings.expandedCycleDetails)
         ? settings.expandedCycleDetails
@@ -10749,10 +10754,21 @@
         showOnboardingTips: settings.showOnboardingTips !== false,
         plannerView: settings.plannerView === "expanded" ? "expanded" : "compact",
         density: settings.density === "compact" ? "compact" : "normal",
-        timelineStartOffsetDays: [7, 14, 30, 60].includes(timelineStartOffsetDays) ? timelineStartOffsetDays : 30,
+        timelineStartOffsetDays,
         defaultRangeMode: ["auto", "45", "90", "180", "365"].includes(defaultRangeMode) ? defaultRangeMode : "auto",
         expandedCycleDetails
       };
+    }
+
+    function normalizeTimelineStartOffset(value) {
+      if (String(value || "") === "cycles") return "cycles";
+      const days = Number(value || 30);
+      return [7, 14, 30, 60].includes(days) ? days : 30;
+    }
+
+    function timelineStartSettingFromForm() {
+      const value = document.querySelector("#myTimelineStartOffsetInput")?.value || "30";
+      return value === "cycles" ? "cycles" : Number(value || 30);
     }
 
     function selectedExpandedCycleDetailsFromForm() {
@@ -10771,7 +10787,38 @@
     }
 
     function timelineStartFromMySettings(settings) {
-      return toISO(addDays(appToday(), -normalizeMySettings(settings).timelineStartOffsetDays));
+      const normalized = normalizeMySettings(settings);
+      if (normalized.timelineStartOffsetDays === "cycles") return earliestActiveCycleStart();
+      return toISO(addDays(appToday(), -normalized.timelineStartOffsetDays));
+    }
+
+    function earliestActiveCycleStart() {
+      const activeStarts = cycles
+        .filter(cycleIsActiveForTimeline)
+        .map((cycle) => cycle.start)
+        .sort((a, b) => a.localeCompare(b));
+      return activeStarts[0] || defaultTimelineStart();
+    }
+
+    function cycleIsActiveForTimeline(cycle) {
+      if (!validDateInput(cycle?.start)) return false;
+      const stage = normalizeStage(cycle.stage);
+      if (stage === "Розлит") return false;
+      if (stage === "Готов к розливу" && validDateInput(cycle.end)) {
+        return autoStageForCycle(cycle) !== "Розлит";
+      }
+      return true;
+    }
+
+    function syncCycleBasedTimelineStart() {
+      const settings = normalizeMySettings(loadMySettings());
+      if (settings.timelineStartOffsetDays !== "cycles") return;
+      const nextStart = timelineStartFromMySettings(settings);
+      if (!nextStart || state.start === nextStart) return;
+      state.start = nextStart;
+      if (state.rangeMode === "auto") state.range = autoRangeFromStart(state.start);
+      if (startInput) startInput.value = state.start;
+      syncEndDate();
     }
 
     function applyInterfaceDensity(density) {
@@ -10827,7 +10874,7 @@
         showOnboardingTips: document.querySelector("#myOnboardingTipsInput").checked,
         plannerView: document.querySelector("#myPlannerViewInput").value,
         density: document.querySelector("#myDensityInput").value,
-        timelineStartOffsetDays: Number(document.querySelector("#myTimelineStartOffsetInput").value || 30),
+        timelineStartOffsetDays: timelineStartSettingFromForm(),
         defaultRangeMode: document.querySelector("#myDefaultRangeInput").value,
         expandedCycleDetails: selectedExpandedCycleDetailsFromForm()
       });
@@ -15099,7 +15146,9 @@
       const display = saved?.display || {};
       const hasSavedDisplay = Boolean(display.start || display.rangeMode || display.zoom || display.view);
       if (hasSavedDisplay) {
-        state.start = validDateInput(display.start) || timelineStartFromMySettings(personalSettings);
+        state.start = personalSettings.timelineStartOffsetDays === "cycles"
+          ? timelineStartFromMySettings(personalSettings)
+          : validDateInput(display.start) || timelineStartFromMySettings(personalSettings);
         state.rangeMode = validRangeMode(display.rangeMode, personalSettings.defaultRangeMode);
         state.range = state.rangeMode === "auto" ? autoRangeFromStart(state.start) : Number(state.rangeMode);
         state.zoom = validZoomMode(display.zoom);
@@ -15986,6 +16035,7 @@
           const markerOffset = clamp(diffDays(toISO(visibleCycleStart), eventGroup.date), 0, visibleDuration - 1);
           const marker = document.createElement("span");
           marker.className = `cycle-event-cell${hasComments && hasPartialBottlings ? " combined" : ""}`;
+          if (hasPartialBottlings) marker.dataset.hasPartialBottling = "true";
           marker.style.left = `${(markerOffset / visibleDuration) * 100}%`;
           marker.style.width = `${100 / visibleDuration}%`;
           marker.setAttribute("aria-label", eventGroupAriaLabel(eventGroup));
@@ -17076,6 +17126,7 @@
       try {
         closeStageQuickMenu();
         applyAutomaticStages({ save: true });
+        syncCycleBasedTimelineStart();
         setZoom();
         renderSummaryVisibility();
         const dates = getDates();
