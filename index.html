@@ -214,7 +214,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.07.01.191-saas";
+      content: "v2026.07.01.193-saas";
     }
 
     .toolbar {
@@ -2808,6 +2808,25 @@
       min-height: 420px;
       display: flex;
       flex-direction: column;
+    }
+
+    #myTasksPanel {
+      height: calc(100vh - 178px);
+      min-height: 520px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #myTasksPanel .panel-head,
+    #myTasksPanel .selected-summary,
+    #myTasksPanel .my-task-tabs {
+      flex: 0 0 auto;
+    }
+
+    #myTasksPanel .my-task-list {
+      flex: 1 1 auto;
+      min-height: 0;
+      scrollbar-gutter: stable;
     }
 
     .panel + .panel {
@@ -6023,6 +6042,11 @@
         border: 1px solid var(--line-strong);
       }
 
+      #myTasksPanel {
+        height: 64vh;
+        min-height: 420px;
+      }
+
       aside {
         padding: 0 14px 18px;
       }
@@ -6056,9 +6080,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.191-saas</span>
+  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.193-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.191-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.193-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -6126,6 +6150,11 @@
                 <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                 <span>Мои задачи</span>
                 <b id="myTasksCount">0</b>
+              </button>
+              <button class="my-tasks-button" id="allTasksButton" type="button" hidden>
+                <svg viewBox="0 0 24 24"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
+                <span>Все задачи</span>
+                <b id="allTasksCount">0</b>
               </button>
               <button class="top-action" id="supportButton" type="button">
                 <svg viewBox="0 0 24 24"><path d="M20.5 11.5a7.5 7.5 0 0 1-7.5 7.5H8l-4.5 2 1.4-4.2A7.5 7.5 0 1 1 20.5 11.5Z"/><path d="M10 9.2a2.2 2.2 0 0 1 4.1 1.1c0 1.45-1.7 1.7-2.05 2.65"/><path d="M12 16h.01"/></svg>
@@ -6823,7 +6852,7 @@
 
         <section class="panel" id="myTasksPanel">
           <div class="panel-head">
-            <h2>Мои задачи</h2>
+            <h2 id="myTasksTitle">Мои задачи</h2>
             <button class="icon-btn" id="closeMyTasksButton" type="button" aria-label="Закрыть мои задачи" title="Закрыть">
               <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
@@ -7521,7 +7550,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.07.01.191-saas";
+    const appVersion = "v2026.07.01.193-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -10023,6 +10052,7 @@
       taskEditId: null,
       pendingTaskFileTaskId: null,
       myTasksTab: "open",
+      myTasksScope: "mine",
       tankCreateMode: "single",
       supportTab: "new",
       cycleFormSnapshot: null,
@@ -10130,6 +10160,9 @@
     const templatesButton = document.querySelector("#templatesButton");
     const myTasksButton = document.querySelector("#myTasksButton");
     const myTasksCount = document.querySelector("#myTasksCount");
+    const allTasksButton = document.querySelector("#allTasksButton");
+    const allTasksCount = document.querySelector("#allTasksCount");
+    const myTasksTitle = document.querySelector("#myTasksTitle");
     const myTasksSummary = document.querySelector("#myTasksSummary");
     const myTasksOpenTab = document.querySelector("#myTasksOpenTab");
     const myTasksDoneTab = document.querySelector("#myTasksDoneTab");
@@ -10401,6 +10434,7 @@
       templatesButton.hidden = !featureEnabled("productTemplates");
       presenceBox.hidden = !featureEnabled("onlineUsers");
       myTasksButton.hidden = !featureEnabled("cycleTasks");
+      if (allTasksButton) allTasksButton.hidden = !featureEnabled("cycleTasks") || !admin;
       bulkActions.hidden = !featureEnabled("bulkActions") || !selectedCycleIds().length;
       addSiteButton.disabled = !editable || !featureEnabled("contractBrewery");
       addSiteButton.hidden = !featureEnabled("contractBrewery");
@@ -11533,6 +11567,20 @@
         .map((task) => ({ task, cycle })));
     }
 
+    function allTaskItems() {
+      if (!currentUser || !canAdmin()) return [];
+      return cycles.flatMap((cycle) => tasksForCycle(cycle)
+        .map((task) => ({ task, cycle })));
+    }
+
+    function currentTaskPanelScope() {
+      return state.myTasksScope === "all" && canAdmin() ? "all" : "mine";
+    }
+
+    function currentTaskPanelItems() {
+      return currentTaskPanelScope() === "all" ? allTaskItems() : myTaskItems();
+    }
+
     function taskDueLabel(task) {
       return task.dueDate ? shortNumericDateFormatter.format(parseDate(task.dueDate)) : "без срока";
     }
@@ -11590,38 +11638,56 @@
       `;
     }
 
-    function renderMyTasksButton() {
-      if (!myTasksButton || !myTasksCount) return;
-      const enabled = featureEnabled("cycleTasks") && Boolean(currentUser);
-      const items = enabled ? myTaskItems() : [];
-      const openCount = items.filter(({ task }) => !task.done).length;
-      myTasksButton.hidden = !enabled;
-      myTasksButton.style.display = enabled ? "" : "none";
+    function updateTaskMenuButton(button, counter, { enabled, openCount, active }) {
+      if (!button || !counter) return;
+      button.hidden = !enabled;
+      button.style.display = enabled ? "" : "none";
       if (!enabled) {
-        myTasksCount.hidden = true;
-        myTasksCount.textContent = "0";
-        myTasksButton.dataset.hasOpen = "false";
-        myTasksButton.classList.remove("active");
+        counter.hidden = true;
+        counter.textContent = "0";
+        button.dataset.hasOpen = "false";
+        button.classList.remove("active");
         return;
       }
-      myTasksCount.textContent = formatNumber(openCount);
-      myTasksCount.hidden = false;
-      myTasksButton.dataset.hasOpen = openCount > 0 ? "true" : "false";
-      myTasksButton.classList.toggle("active", state.panelMode === "myTasks");
+      counter.textContent = formatNumber(openCount);
+      counter.hidden = false;
+      button.dataset.hasOpen = openCount > 0 ? "true" : "false";
+      button.classList.toggle("active", active);
+    }
+
+    function renderMyTasksButton() {
+      const tasksEnabled = featureEnabled("cycleTasks") && Boolean(currentUser);
+      const scope = currentTaskPanelScope();
+      const myOpenCount = tasksEnabled ? myTaskItems().filter(({ task }) => !task.done).length : 0;
+      const allEnabled = tasksEnabled && canAdmin();
+      const allOpenCount = allEnabled ? allTaskItems().filter(({ task }) => !task.done).length : 0;
+      updateTaskMenuButton(myTasksButton, myTasksCount, {
+        enabled: tasksEnabled,
+        openCount: myOpenCount,
+        active: state.panelMode === "myTasks" && scope === "mine"
+      });
+      updateTaskMenuButton(allTasksButton, allTasksCount, {
+        enabled: allEnabled,
+        openCount: allOpenCount,
+        active: state.panelMode === "myTasks" && scope === "all"
+      });
     }
 
     function renderMyTasks() {
       if (!myTasksList) return;
-      const items = myTaskItems()
+      const scope = currentTaskPanelScope();
+      state.myTasksScope = scope;
+      const isAllTasks = scope === "all";
+      const items = currentTaskPanelItems()
         .sort((a, b) => Number(a.task.done) - Number(b.task.done) || (a.task.dueDate || "9999-99-99").localeCompare(b.task.dueDate || "9999-99-99"));
       const open = items.filter((item) => !item.task.done);
       const done = items.filter((item) => item.task.done);
       const activeTab = state.myTasksTab === "done" ? "done" : "open";
       const visibleItems = activeTab === "done" ? done : open;
-      myTasksCount.textContent = formatNumber(open.length);
-      myTasksCount.hidden = open.length === 0;
-      myTasksButton.dataset.hasOpen = open.length > 0 ? "true" : "false";
-      myTasksButton.classList.toggle("active", state.panelMode === "myTasks");
+      if (myTasksTitle) myTasksTitle.textContent = isAllTasks ? "Все задачи" : "Мои задачи";
+      if (closeMyTasksButton) closeMyTasksButton.setAttribute("aria-label", isAllTasks ? "Закрыть все задачи" : "Закрыть мои задачи");
+      if (myTaskTabs) myTaskTabs.setAttribute("aria-label", isAllTasks ? "Разделы всех задач" : "Разделы моих задач");
+      renderMyTasksButton();
       myTasksSummary.innerHTML = `<b>${formatNumber(open.length)} в работе</b><span>${formatNumber(done.length)} выполнено</span>`;
       myTasksOpenTab.dataset.active = activeTab === "open" ? "true" : "false";
       myTasksDoneTab.dataset.active = activeTab === "done" ? "true" : "false";
@@ -12637,23 +12703,21 @@
     }
 
     function renderMyTasksButton() {
-      if (!myTasksButton || !myTasksCount) return;
-      const enabled = featureEnabled("cycleTasks") && Boolean(currentUser);
-      const items = enabled ? myTaskItems() : [];
-      const openCount = items.filter(({ task }) => !task.done).length;
-      myTasksButton.hidden = !enabled;
-      myTasksButton.style.display = enabled ? "" : "none";
-      if (!enabled) {
-        myTasksCount.hidden = true;
-        myTasksCount.textContent = "0";
-        myTasksButton.dataset.hasOpen = "false";
-        myTasksButton.classList.remove("active");
-        return;
-      }
-      myTasksCount.textContent = formatNumber(openCount);
-      myTasksCount.hidden = false;
-      myTasksButton.dataset.hasOpen = openCount > 0 ? "true" : "false";
-      myTasksButton.classList.toggle("active", state.panelMode === "myTasks");
+      const tasksEnabled = featureEnabled("cycleTasks") && Boolean(currentUser);
+      const scope = currentTaskPanelScope();
+      const myOpenCount = tasksEnabled ? myTaskItems().filter(({ task }) => !task.done).length : 0;
+      const allEnabled = tasksEnabled && canAdmin();
+      const allOpenCount = allEnabled ? allTaskItems().filter(({ task }) => !task.done).length : 0;
+      updateTaskMenuButton(myTasksButton, myTasksCount, {
+        enabled: tasksEnabled,
+        openCount: myOpenCount,
+        active: state.panelMode === "myTasks" && scope === "mine"
+      });
+      updateTaskMenuButton(allTasksButton, allTasksCount, {
+        enabled: allEnabled,
+        openCount: allOpenCount,
+        active: state.panelMode === "myTasks" && scope === "all"
+      });
     }
 
     function setCycleTab(tab) {
@@ -12696,16 +12760,19 @@
 
     function renderMyTasks() {
       if (!myTasksList) return;
-      const items = myTaskItems()
+      const scope = currentTaskPanelScope();
+      state.myTasksScope = scope;
+      const isAllTasks = scope === "all";
+      const items = currentTaskPanelItems()
         .sort((a, b) => Number(a.task.done) - Number(b.task.done) || (a.task.dueDate || "9999-99-99").localeCompare(b.task.dueDate || "9999-99-99"));
       const open = items.filter((item) => !item.task.done);
       const done = items.filter((item) => item.task.done);
       const activeTab = state.myTasksTab === "done" ? "done" : "open";
       const visibleItems = activeTab === "done" ? done : open;
-      myTasksCount.textContent = formatNumber(open.length);
-      myTasksCount.hidden = open.length === 0;
-      myTasksButton.dataset.hasOpen = open.length > 0 ? "true" : "false";
-      myTasksButton.classList.toggle("active", state.panelMode === "myTasks");
+      if (myTasksTitle) myTasksTitle.textContent = isAllTasks ? "Все задачи" : "Мои задачи";
+      if (closeMyTasksButton) closeMyTasksButton.setAttribute("aria-label", isAllTasks ? "Закрыть все задачи" : "Закрыть мои задачи");
+      if (myTaskTabs) myTaskTabs.setAttribute("aria-label", isAllTasks ? "Разделы всех задач" : "Разделы моих задач");
+      renderMyTasksButton();
       myTasksSummary.innerHTML = `<b>${formatNumber(open.length)} в работе</b><span>${formatNumber(done.length)} выполнено</span>`;
       myTasksOpenTab.dataset.active = activeTab === "open" ? "true" : "false";
       myTasksDoneTab.dataset.active = activeTab === "done" ? "true" : "false";
@@ -12722,25 +12789,27 @@
         return;
       }
       myTasksList.innerHTML = activeTab === "done"
-        ? visibleItems.map(({ task, cycle }) => myTaskRowHtml(task, cycle)).join("")
+        ? visibleItems.map(({ task, cycle }) => myTaskRowHtml(task, cycle, { showAssignee: isAllTasks })).join("")
         : groupedMyTaskItems(visibleItems).map((group) => `
           <section class="my-task-group" data-group="${escapeHtml(group.key)}">
             <div class="my-task-group-title">
               <span>${escapeHtml(group.title)}</span>
               <b>${formatNumber(group.items.length)}</b>
             </div>
-            ${group.items.map(({ task, cycle }) => myTaskRowHtml(task, cycle)).join("")}
+            ${group.items.map(({ task, cycle }) => myTaskRowHtml(task, cycle, { showAssignee: isAllTasks })).join("")}
           </section>
         `).join("");
     }
 
-    function myTaskRowHtml(task, cycle) {
+    function myTaskRowHtml(task, cycle, options = {}) {
       const tank = tanks.find((item) => item.id === cycle.tankId);
+      const assignee = options.showAssignee ? `<span>Ответственный: ${escapeHtml(taskAssigneeLabel(task.assignee))}</span>` : "";
       return `
         <button class="my-task-row" type="button" data-cycle-id="${escapeHtml(cycle.id)}" data-task-id="${escapeHtml(task.id)}" data-overdue="${taskIsOverdue(task) ? "true" : "false"}">
           ${taskStatusBadgeHtml(task)}
           <b>${escapeHtml(task.title)}</b>
           <span>${escapeHtml(cycle.product)}${tank ? ` · ${escapeHtml(tank.name)}` : ""}</span>
+          ${assignee}
           <span>Срок: ${taskDueLabel(task)}${taskIsOverdue(task) ? " · просрочено" : ""}</span>
         </button>
       `;
@@ -18488,10 +18557,12 @@
         });
       }
 
-      myTasksButton.addEventListener("click", () => {
+      function openTasksPanel(scope = "mine") {
         if (!featureEnabled("cycleTasks")) return;
+        const nextScope = scope === "all" && canAdmin() ? "all" : "mine";
         userBox.classList.remove("open");
-        const isOpen = state.panelMode === "myTasks";
+        const isOpen = state.panelMode === "myTasks" && currentTaskPanelScope() === nextScope;
+        state.myTasksScope = nextScope;
         state.panelMode = isOpen ? "hidden" : "myTasks";
         state.addMode = false;
         state.commentMode = false;
@@ -18501,7 +18572,10 @@
         state.pickedDate = null;
         addMenu.classList.remove("open");
         render();
-      });
+      }
+
+      myTasksButton.addEventListener("click", () => openTasksPanel("mine"));
+      if (allTasksButton) allTasksButton.addEventListener("click", () => openTasksPanel("all"));
 
       adminMenuButton.addEventListener("click", () => {
         if (!requireAdmin()) return;
