@@ -214,7 +214,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.07.01.189-saas";
+      content: "v2026.07.01.190-saas";
     }
 
     .toolbar {
@@ -5367,7 +5367,20 @@
       background: color-mix(in srgb, var(--danger) 9%, var(--panel));
     }
 
-    .warehouse-entry[data-overdue="true"] {
+    .warehouse-entry[data-kind="task"][data-done="true"] {
+      border-color: color-mix(in srgb, var(--muted) 26%, var(--line));
+      background: color-mix(in srgb, var(--muted) 10%, var(--panel));
+      opacity: .62;
+    }
+
+    .warehouse-entry[data-kind="brew"][data-past="true"],
+    .warehouse-entry[data-kind="bottling"][data-past="true"] {
+      border-color: color-mix(in srgb, var(--muted) 26%, var(--line));
+      background: color-mix(in srgb, var(--muted) 10%, var(--panel));
+      opacity: .62;
+    }
+
+    .warehouse-entry[data-overdue="true"]:not([data-done="true"]) {
       border-color: color-mix(in srgb, var(--danger) 42%, var(--line));
       background: color-mix(in srgb, var(--danger) 10%, var(--panel));
     }
@@ -6039,9 +6052,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.189-saas</span>
+  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.190-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.189-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.190-saas</span>
   </div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
@@ -7503,7 +7516,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.07.01.189-saas";
+    const appVersion = "v2026.07.01.190-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -16933,9 +16946,10 @@
     function warehouseEventHtml(event) {
       const { cycle, tank, site } = warehouseEventLocation(event);
       if (!cycle) return "";
+      const pastEvent = event.date < toISO(appToday());
       if (event.kind === "brew") {
         return `
-          <button class="warehouse-entry" type="button" data-kind="brew" data-id="${escapeHtml(cycle.id)}" title="${escapeHtml(event.product)}">
+          <button class="warehouse-entry" type="button" data-kind="brew" data-id="${escapeHtml(cycle.id)}" data-past="${pastEvent ? "true" : "false"}" title="${escapeHtml(event.product)}">
             <b>${escapeHtml(event.product)}</b>
             <span>ГП: ${formatLiters(cycle.plannedOutput || 0)}л</span>
             <span>Варка · ${tank ? escapeHtml(tank.name) : "ЦКТ не указан"}</span>
@@ -16945,7 +16959,7 @@
       }
       if (event.kind === "task") {
         return `
-          <button class="warehouse-entry" type="button" data-kind="task" data-id="${escapeHtml(cycle.id)}" data-task-id="${escapeHtml(event.taskId || "")}" data-overdue="${event.overdue ? "true" : "false"}" title="${escapeHtml(event.title || "Задача")}">
+          <button class="warehouse-entry" type="button" data-kind="task" data-id="${escapeHtml(cycle.id)}" data-task-id="${escapeHtml(event.taskId || "")}" data-done="${event.done ? "true" : "false"}" data-overdue="${event.overdue ? "true" : "false"}" title="${escapeHtml(event.title || "Задача")}">
             <b>${escapeHtml(event.title || "Задача")}</b>
             <span>${escapeHtml(cycle.product)}${tank ? ` · ${escapeHtml(tank.name)}` : ""}</span>
             <span>${event.done ? "Выполнено" : event.overdue ? "Просрочена" : "В работе"}</span>
@@ -16954,7 +16968,7 @@
       }
       const packaging = event.packaging;
       return `
-        <button class="warehouse-entry" type="button" data-kind="bottling" data-id="${escapeHtml(cycle.id)}" title="${escapeHtml(event.product)}">
+        <button class="warehouse-entry" type="button" data-kind="bottling" data-id="${escapeHtml(cycle.id)}" data-past="${pastEvent ? "true" : "false"}" title="${escapeHtml(event.product)}">
           <b>${escapeHtml(event.product)}${event.label ? ` · ${event.label}` : ""}</b>
           <span>Площадка: ${site ? escapeHtml(site.name) : "не указана"}</span>
           <span>Банки: ${formatNumber(packaging.can045.quantity)} шт</span>
