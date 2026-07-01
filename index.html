@@ -92,6 +92,10 @@
       background-attachment: fixed;
     }
 
+    :root[data-fullscreen-mode="true"] body {
+      overflow: hidden;
+    }
+
     body[data-auth="locked"] .app,
     body[data-auth="checking"] .app {
       filter: blur(8px);
@@ -144,6 +148,46 @@
       position: sticky;
       top: 0;
       z-index: 30;
+      transition: transform .22s ease, box-shadow .22s ease;
+    }
+
+    .fullscreen-hover-zone {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 78;
+      display: none;
+      height: 16px;
+      background: transparent;
+    }
+
+    :root[data-fullscreen-mode="true"] .app {
+      display: block;
+      min-height: 100vh;
+    }
+
+    :root[data-fullscreen-mode="true"] .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 80;
+      transform: translateY(calc(-100% - 10px));
+      box-shadow: 0 16px 44px rgba(15, 23, 42, .18);
+    }
+
+    :root[data-fullscreen-mode="true"][data-topbar-revealed="true"] .topbar {
+      transform: translateY(0);
+    }
+
+    :root[data-fullscreen-mode="true"] .fullscreen-hover-zone {
+      display: block;
+    }
+
+    :root[data-fullscreen-mode="true"] .summary-shell,
+    :root[data-fullscreen-mode="true"] .bulk-actions {
+      display: none !important;
     }
 
     .brand {
@@ -214,7 +258,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.07.01.193-saas";
+      content: "v2026.07.01.195-saas";
     }
 
     .toolbar {
@@ -1936,6 +1980,11 @@
       padding: 9px 0 24px 24px;
     }
 
+    :root[data-fullscreen-mode="true"] .planner-shell {
+      height: 100vh;
+      padding: 0;
+    }
+
     .planner {
       position: relative;
       isolation: isolate;
@@ -1946,6 +1995,43 @@
       border-right: 0;
       background: var(--panel);
       box-shadow: var(--shadow);
+    }
+
+    :root[data-fullscreen-mode="true"] .workspace {
+      height: 100vh;
+      min-height: 0;
+    }
+
+    :root[data-fullscreen-mode="true"] .planner {
+      height: 100vh;
+      min-height: 0;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    :root[data-fullscreen-mode="true"] aside {
+      height: 100vh;
+      min-height: 0;
+      padding: 0 0 0 12px;
+      border-left: 1px solid var(--line);
+      background: var(--bg);
+    }
+
+    :root[data-fullscreen-mode="true"] #cyclePanel,
+    :root[data-fullscreen-mode="true"] #tankPanel,
+    :root[data-fullscreen-mode="true"] #bottlingPanel,
+    :root[data-fullscreen-mode="true"] #warehousePanel,
+    :root[data-fullscreen-mode="true"] #templatesPanel,
+    :root[data-fullscreen-mode="true"] #sitePanel,
+    :root[data-fullscreen-mode="true"] #usersPanel,
+    :root[data-fullscreen-mode="true"] #actionLogPanel,
+    :root[data-fullscreen-mode="true"] #featuresPanel,
+    :root[data-fullscreen-mode="true"] #myTasksPanel {
+      height: 100vh;
+      min-height: 0;
+      border-radius: 0;
+      box-shadow: none;
     }
 
     .grid {
@@ -6080,10 +6166,12 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.193-saas</span>
+  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.195-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.193-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.195-saas</span>
   </div>
+
+  <div class="fullscreen-hover-zone" id="fullscreenHoverZone" aria-hidden="true"></div>
 
   <div class="modal-backdrop" id="forcePasswordModal" role="dialog" aria-modal="true" aria-labelledby="forcePasswordModalTitle">
     <div class="modal">
@@ -6181,6 +6269,9 @@
           </button>
           <button class="icon-btn" id="redoButton" type="button" aria-label="Вернуть отмененное действие" title="Вернуть отмененное действие" disabled>
             <svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h4"/></svg>
+          </button>
+          <button class="icon-btn" id="fullscreenButton" type="button" aria-label="Полный экран" title="Полный экран" aria-pressed="false">
+            <svg id="fullscreenIcon" viewBox="0 0 24 24"><path d="M8 3H3v5"/><path d="M16 3h5v5"/><path d="M21 16v5h-5"/><path d="M3 16v5h5"/></svg>
           </button>
         </div>
       </div>
@@ -7550,7 +7641,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.07.01.193-saas";
+    const appVersion = "v2026.07.01.195-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
@@ -10053,6 +10144,8 @@
       pendingTaskFileTaskId: null,
       myTasksTab: "open",
       myTasksScope: "mine",
+      fullscreenMode: false,
+      fullscreenTopbarRevealed: false,
       tankCreateMode: "single",
       supportTab: "new",
       cycleFormSnapshot: null,
@@ -10060,6 +10153,7 @@
     };
 
     const uiStorageKey = "production-planner-ui-v1";
+    const fullscreenUiKey = `${storageKey}-fullscreen-ui`;
 
     const grid = document.querySelector("#grid");
     const appVersionBadge = document.querySelector("#appVersionBadge");
@@ -10067,6 +10161,8 @@
     const loginCardVersionBadge = document.querySelector("#loginCardVersionBadge");
     const workspace = document.querySelector("#workspace");
     const planner = document.querySelector("#planner");
+    const topbar = document.querySelector(".topbar");
+    const fullscreenHoverZone = document.querySelector("#fullscreenHoverZone");
     const summaryShell = document.querySelector("#summaryShell");
     const summaryToggleButton = document.querySelector("#summaryToggleButton");
     const rangeSelect = document.querySelector("#rangeSelect");
@@ -10079,6 +10175,8 @@
     const redoButton = document.querySelector("#redoButton");
     const themeButton = document.querySelector("#themeButton");
     const themeIcon = document.querySelector("#themeIcon");
+    const fullscreenButton = document.querySelector("#fullscreenButton");
+    const fullscreenIcon = document.querySelector("#fullscreenIcon");
     const cyclePanelTitle = document.querySelector("#cyclePanelTitle");
     const productInput = document.querySelector("#productInput");
     const openProductTemplateButton = document.querySelector("#openProductTemplateButton");
@@ -15353,6 +15451,58 @@
       }
     }
 
+    function fullscreenIconHtml(active = state.fullscreenMode) {
+      return active
+        ? `<path d="M8 3v5H3"/><path d="M16 3v5h5"/><path d="M21 16h-5v5"/><path d="M3 16h5v5"/>`
+        : `<path d="M8 3H3v5"/><path d="M16 3h5v5"/><path d="M21 16v5h-5"/><path d="M3 16v5h5"/>`;
+    }
+
+    function applyFullscreenState() {
+      document.documentElement.dataset.fullscreenMode = state.fullscreenMode ? "true" : "false";
+      document.documentElement.dataset.topbarRevealed = state.fullscreenTopbarRevealed ? "true" : "false";
+      if (fullscreenButton) {
+        fullscreenButton.classList.toggle("active", state.fullscreenMode);
+        fullscreenButton.setAttribute("aria-pressed", state.fullscreenMode ? "true" : "false");
+        fullscreenButton.setAttribute("aria-label", state.fullscreenMode ? "Обычный режим" : "Полный экран");
+        fullscreenButton.title = state.fullscreenMode ? "Обычный режим" : "Полный экран";
+      }
+      if (fullscreenIcon) fullscreenIcon.innerHTML = fullscreenIconHtml();
+    }
+
+    function saveFullscreenState() {
+      try {
+        localStorage.setItem(fullscreenUiKey, JSON.stringify({
+          mode: Boolean(state.fullscreenMode)
+        }));
+      } catch {
+        // Режим полного экрана не должен мешать работе планировщика.
+      }
+    }
+
+    function loadFullscreenState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(fullscreenUiKey)) || {};
+        state.fullscreenMode = Boolean(saved.mode);
+      } catch {
+        state.fullscreenMode = false;
+      }
+      state.fullscreenTopbarRevealed = false;
+      applyFullscreenState();
+    }
+
+    function setFullscreenMode(enabled) {
+      state.fullscreenMode = Boolean(enabled);
+      state.fullscreenTopbarRevealed = state.fullscreenMode;
+      saveFullscreenState();
+      applyFullscreenState();
+    }
+
+    function revealFullscreenTopbar(revealed) {
+      if (!state.fullscreenMode) return;
+      state.fullscreenTopbarRevealed = Boolean(revealed);
+      applyFullscreenState();
+    }
+
     function weekNumber(date) {
       const copy = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
       const dayNum = copy.getUTCDay() || 7;
@@ -18183,6 +18333,7 @@
       loginCardVersionBadge.textContent = appVersion;
       loginCardVersionBadge.title = `Версия приложения: ${appVersion}`;
       loadTheme();
+      loadFullscreenState();
       installNumberInputWheelGuard();
       installStatusErrorAutoScroll();
       installResumeRecovery();
@@ -18423,6 +18574,14 @@
         const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
         applyTheme(current === "dark" ? "light" : "dark");
       });
+
+      fullscreenButton.addEventListener("click", () => {
+        setFullscreenMode(!state.fullscreenMode);
+      });
+
+      fullscreenHoverZone.addEventListener("mouseenter", () => revealFullscreenTopbar(true));
+      topbar.addEventListener("mouseenter", () => revealFullscreenTopbar(true));
+      topbar.addEventListener("mouseleave", () => revealFullscreenTopbar(false));
 
       summaryToggleButton.addEventListener("click", () => {
         state.summaryExpanded = !state.summaryExpanded;
