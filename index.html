@@ -258,7 +258,7 @@
     }
 
     .login-backdrop::after {
-      content: "v2026.07.01.196-saas";
+      content: "v2026.07.01.197-saas";
     }
 
     .toolbar {
@@ -3319,6 +3319,7 @@
     .my-task-list,
     .feature-list {
       display: grid;
+      align-content: start;
       gap: 10px;
       padding: 14px;
       overflow-y: auto;
@@ -6220,9 +6221,9 @@
       </label>
       <button class="primary" type="submit">Войти</button>
       <div class="status" id="loginStatus"></div>
-  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.196-saas</span>
+  <span class="login-card-version" id="loginCardVersionBadge" title="Версия приложения">v2026.07.01.197-saas</span>
     </form>
-  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.196-saas</span>
+  <span class="login-version" id="loginVersionBadge" title="Версия приложения">v2026.07.01.197-saas</span>
   </div>
 
   <div class="fullscreen-hover-zone" id="fullscreenHoverZone" aria-hidden="true"></div>
@@ -7695,7 +7696,7 @@
       { value: "end", label: "В день розлива" },
       { value: "condition", label: "По показателю" }
     ];
-    const appVersion = "v2026.07.01.196-saas";
+    const appVersion = "v2026.07.01.197-saas";
     const submitShortcutLabel = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "Cmd+Enter" : "Ctrl+Enter";
     const maxTaskAttachmentSize = 5 * 1024 * 1024;
     const maxTaskAttachments = 5;
